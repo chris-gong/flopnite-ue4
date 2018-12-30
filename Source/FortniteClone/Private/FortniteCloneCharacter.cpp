@@ -63,6 +63,8 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAxis("MoveRight", this, &AFortniteCloneCharacter::MoveRight);
 
 	PlayerInputComponent->BindAction("PickUpItem", IE_Pressed, this, &AFortniteCloneCharacter::PickUpItem);
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AFortniteCloneCharacter::StartSprinting);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &AFortniteCloneCharacter::StopSprinting);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
@@ -141,6 +143,7 @@ void AFortniteCloneCharacter::PickUpItem() {
 	FHitResult OutHit;
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "e key pressed");
 	bool SomethingFound = GetWorld()->LineTraceSingleByChannel(OutHit, GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 500, ECC_WorldStatic, Params);
 	if (SomethingFound) {
 		if (OutHit.GetActor()->IsA(AWeaponActor::StaticClass())) {
@@ -154,3 +157,14 @@ void AFortniteCloneCharacter::PickUpItem() {
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, text);
 	}
 }
+
+void AFortniteCloneCharacter::StartSprinting() {
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "shift key pressed");
+	GetCharacterMovement()->MaxWalkSpeed = 1200.0;
+}
+
+void AFortniteCloneCharacter::StopSprinting() {
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "shift key released");
+	GetCharacterMovement()->MaxWalkSpeed = 300.0;
+}
+
