@@ -2,6 +2,7 @@
 
 #include "FortniteCloneGameMode.h"
 #include "FortniteCloneCharacter.h"
+#include "FortniteClonePlayerState.h"
 #include "UObject/ConstructorHelpers.h"
 
 AFortniteCloneGameMode::AFortniteCloneGameMode()
@@ -11,5 +12,6 @@ AFortniteCloneGameMode::AFortniteCloneGameMode()
 	if (PlayerPawnBPClass.Class != NULL)
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
+		PlayerStateClass = AFortniteClonePlayerState::StaticClass();
 	}
 }

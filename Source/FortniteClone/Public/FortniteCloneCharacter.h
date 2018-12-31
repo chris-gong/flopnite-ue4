@@ -29,6 +29,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
+
 protected:
 
 	/** Resets HMD orientation in VR. */
@@ -51,6 +52,15 @@ protected:
 	/* Stop sprinting */
 	UFUNCTION()
 	void StopSprinting();
+
+	/* Show preview of where the wall will be built */
+	UFUNCTION()
+	void ShowWall();
+
+	/* When the wall is shown, you will have the option to attempt to build it*/
+	UFUNCTION()
+	void BuildWall();
+
 	/** 
 	 * Called via input to turn at a given rate. 
 	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
@@ -72,6 +82,9 @@ protected:
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	// Object creation can only have after the character has finished being constructed
+	virtual void BeginPlay() override;
 	// End of APawn interface
 
 public:
