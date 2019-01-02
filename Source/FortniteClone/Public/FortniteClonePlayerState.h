@@ -14,4 +14,14 @@ class FORTNITECLONE_API AFortniteClonePlayerState : public APlayerState
 {
 	GENERATED_BODY()
 	
+public:
+	AFortniteClonePlayerState();
+
+	bool InBuildMode;
+	FString BuildMode;
+
+protected:
+
+private:
+
 };

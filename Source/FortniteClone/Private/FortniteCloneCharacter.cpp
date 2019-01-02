@@ -10,6 +10,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Engine.h"
 #include "WeaponActor.h"
+#include "FortniteClonePlayerState.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AFortniteCloneCharacter
@@ -154,6 +155,7 @@ void AFortniteCloneCharacter::PickUpItem() {
 	if (SomethingFound) {
 		if (OutHit.GetActor()->IsA(AWeaponActor::StaticClass())) {
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "plz god");
+			// PICK UP WEAPON
 			/*FName WeaponSocketName = TEXT("left_hand");
 			FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepRelative, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 
@@ -176,6 +178,10 @@ void AFortniteCloneCharacter::StopSprinting() {
 
 void AFortniteCloneCharacter::ShowWall() {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "x key pressed");
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	if (State) {
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString(State->BuildMode));
+	}
 }
 
 void AFortniteCloneCharacter::BuildWall() {

@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "FortniteCloneCharacter.generated.h"
 
+class ABuildingActor;
+
 UCLASS(config=Game)
 class AFortniteCloneCharacter : public ACharacter
 {
@@ -29,6 +31,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
+	/* Class for wall actor */
+	UPROPERTY(EditDefaultsOnly, Category = "Wall")
+	TSubclassOf<ABuildingActor> WallClass;
 
 protected:
 
@@ -52,14 +57,6 @@ protected:
 	/* Stop sprinting */
 	UFUNCTION()
 	void StopSprinting();
-
-	/* Show preview of where the wall will be built */
-	UFUNCTION()
-	void ShowWall();
-
-	/* When the wall is shown, you will have the option to attempt to build it*/
-	UFUNCTION()
-	void BuildWall();
 
 	/** 
 	 * Called via input to turn at a given rate. 
@@ -92,5 +89,14 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+private:
+	/* Show preview of where the wall will be built */
+	UFUNCTION()
+	void ShowWall();
+
+	/* When the wall is shown, you will have the option to attempt to build it*/
+	UFUNCTION()
+	void BuildWall();
 };
 
