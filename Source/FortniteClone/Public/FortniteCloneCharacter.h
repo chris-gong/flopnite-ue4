@@ -31,9 +31,13 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
-	/* Class for wall actor */
+	/* Class for wall preview actor */
 	UPROPERTY(EditDefaultsOnly, Category = "Wall")
-	TSubclassOf<ABuildingActor> WallClass;
+	TSubclassOf<ABuildingActor> WallPreviewClass;
+
+	/* Class for wall preview actor */
+	UPROPERTY(EditDefaultsOnly, Category = "Wall")
+	TSubclassOf<ABuildingActor> ForwardWallClass;
 
 protected:
 

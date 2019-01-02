@@ -69,6 +69,7 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AFortniteCloneCharacter::StartSprinting);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &AFortniteCloneCharacter::StopSprinting);
 	PlayerInputComponent->BindAction("PreviewForwardWall", IE_Pressed, this, &AFortniteCloneCharacter::PreviewForwardWall);
+	PlayerInputComponent->BindAction("BuildStructure", IE_Pressed, this, &AFortniteCloneCharacter::BuildStructure);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
@@ -95,11 +96,11 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (State) {
-		if (State->InBuildMode && State->BuildMode == FString("Wall")) {
+		if (State->InBuildMode && State->BuildMode == FString("ForwardWall")) {
 			if (WallPreview) {
 				WallPreview->Destroy(); //destroy the last wall preview
 			}
-			WallPreview = GetWorld()->SpawnActor<ABuildingActor>(WallClass, GetActorLocation() + GetActorForwardVector() * 250 , GetActorRotation().Add(0,90,0)); //set the new wall preview
+			WallPreview = GetWorld()->SpawnActor<ABuildingActor>(WallPreviewClass, GetActorLocation() + GetActorForwardVector() * 250, GetActorRotation().Add(0,90,0)); //set the new wall preview
 		}
 	}
 }
@@ -171,9 +172,9 @@ void AFortniteCloneCharacter::PickUpItem() {
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "plz god");
 			// PICK UP WEAPON
 			/*FName WeaponSocketName = TEXT("left_hand");
-			FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepRelative, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 
-			OutHit.GetComponent()->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);*/
+			OutHit.GetActor()->AttachToActor(this, AttachmentRules, WeaponSocketName);*/
 		}
 		FString text = FString("Found ") + OutHit.GetActor()->GetName();
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, text);
@@ -194,7 +195,7 @@ void AFortniteCloneCharacter::PreviewForwardWall() {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "x key pressed");
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (State) {
-		if (State->BuildMode == FString("Wall")) {
+		if (State->BuildMode == FString("ForwardWall")) {
 			// getting out of build mode
 			State->InBuildMode = false;
 			State->BuildMode = FString("None");
@@ -204,16 +205,32 @@ void AFortniteCloneCharacter::PreviewForwardWall() {
 		}
 		else if (State->InBuildMode) {
 			// switching to a different build mode
-			State->BuildMode = FString("Wall");
+			State->BuildMode = FString("ForwardWall");
 		}
 		else {
 			// getting into build mode
 			State->InBuildMode = true;
-			State->BuildMode = FString("Wall");
+			State->BuildMode = FString("ForwardWall");
 		}
 	}
 }
 
 void AFortniteCloneCharacter::BuildStructure() {
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	if (State) {
+		if (State->InBuildMode && State->BuildMode == FString("ForwardWall")) {
+			TArray<AActor*> OverlappingActors;
+			ABuildingActor* Wall = GetWorld()->SpawnActor<ABuildingActor>(ForwardWallClass, GetActorLocation() + GetActorForwardVector() * 250, GetActorRotation().Add(0, 90, 0));
 
+			Wall->GetOverlappingActors(OverlappingActors);
+
+			for (int i = 0; i < OverlappingActors.Num(); i++) {
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString(OverlappingActors[i]->GetName()));
+			}
+
+			if (OverlappingActors.Num() == 0) {
+				Wall->Destroy();
+			}
+		}
+	}
 }
