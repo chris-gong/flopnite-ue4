@@ -68,7 +68,7 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAction("PickUpItem", IE_Pressed, this, &AFortniteCloneCharacter::PickUpItem);
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AFortniteCloneCharacter::StartSprinting);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &AFortniteCloneCharacter::StopSprinting);
-	PlayerInputComponent->BindAction("ShowWall", IE_Pressed, this, &AFortniteCloneCharacter::ShowWall);
+	PlayerInputComponent->BindAction("PreviewForwardWall", IE_Pressed, this, &AFortniteCloneCharacter::PreviewForwardWall);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
@@ -190,7 +190,7 @@ void AFortniteCloneCharacter::StopSprinting() {
 	GetCharacterMovement()->MaxWalkSpeed = 300.0;
 }
 
-void AFortniteCloneCharacter::ShowWall() {
+void AFortniteCloneCharacter::PreviewForwardWall() {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "x key pressed");
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (State) {
@@ -214,6 +214,6 @@ void AFortniteCloneCharacter::ShowWall() {
 	}
 }
 
-void AFortniteCloneCharacter::BuildWall() {
+void AFortniteCloneCharacter::BuildStructure() {
 
 }

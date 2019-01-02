@@ -60,11 +60,11 @@ protected:
 
 	/* Show preview of where the wall will be built */
 	UFUNCTION()
-	void ShowWall();
+	void PreviewForwardWall();
 
 	/* When the wall is shown, you will have the option to attempt to build it*/
 	UFUNCTION()
-	void BuildWall();
+	void BuildStructure();
 
 	/* Current preview of wall to be built in build mode*/
 	ABuildingActor* WallPreview;
