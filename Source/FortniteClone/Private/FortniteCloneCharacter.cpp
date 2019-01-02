@@ -11,6 +11,7 @@
 #include "Engine.h"
 #include "WeaponActor.h"
 #include "FortniteClonePlayerState.h"
+#include "BuildingActor.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AFortniteCloneCharacter
@@ -86,8 +87,21 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 }
 
 void AFortniteCloneCharacter::BeginPlay() {
-	//CustomController = NewObject<ACustomPlayerController>(CustomControllerClass);
 	Super::BeginPlay();
+	WallPreview = NULL;
+}
+
+void AFortniteCloneCharacter::Tick(float DeltaTime) {
+	Super::Tick(DeltaTime);
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	if (State) {
+		if (State->InBuildMode && State->BuildMode == FString("Wall")) {
+			if (WallPreview) {
+				WallPreview->Destroy(); //destroy the last wall preview
+			}
+			WallPreview = GetWorld()->SpawnActor<ABuildingActor>(WallClass, GetActorLocation() + GetActorForwardVector() * 250 , GetActorRotation().Add(0,90,0)); //set the new wall preview
+		}
+	}
 }
 
 void AFortniteCloneCharacter::OnResetVR()
@@ -180,7 +194,23 @@ void AFortniteCloneCharacter::ShowWall() {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "x key pressed");
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (State) {
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString(State->BuildMode));
+		if (State->BuildMode == FString("Wall")) {
+			// getting out of build mode
+			State->InBuildMode = false;
+			State->BuildMode = FString("None");
+			if (WallPreview) {
+				WallPreview->Destroy(); //destroy the last wall preview
+			}
+		}
+		else if (State->InBuildMode) {
+			// switching to a different build mode
+			State->BuildMode = FString("Wall");
+		}
+		else {
+			// getting into build mode
+			State->InBuildMode = true;
+			State->BuildMode = FString("Wall");
+		}
 	}
 }
 

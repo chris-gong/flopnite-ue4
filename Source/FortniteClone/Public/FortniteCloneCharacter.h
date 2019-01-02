@@ -58,6 +58,17 @@ protected:
 	UFUNCTION()
 	void StopSprinting();
 
+	/* Show preview of where the wall will be built */
+	UFUNCTION()
+	void ShowWall();
+
+	/* When the wall is shown, you will have the option to attempt to build it*/
+	UFUNCTION()
+	void BuildWall();
+
+	/* Current preview of wall to be built in build mode*/
+	ABuildingActor* WallPreview;
+
 	/** 
 	 * Called via input to turn at a given rate. 
 	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
@@ -80,8 +91,9 @@ protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	// Object creation can only have after the character has finished being constructed
+	// Object creation can only happen after the character has finished being constructed
 	virtual void BeginPlay() override;
+
 	// End of APawn interface
 
 public:
@@ -89,14 +101,7 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
-
-private:
-	/* Show preview of where the wall will be built */
-	UFUNCTION()
-	void ShowWall();
-
-	/* When the wall is shown, you will have the option to attempt to build it*/
-	UFUNCTION()
-	void BuildWall();
+	// Tick function is called every frame
+	virtual void Tick(float DeltaTime) override;
 };
 
