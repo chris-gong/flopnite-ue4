@@ -174,10 +174,11 @@ void AFortniteCloneCharacter::PickUpItem() {
 		if (OutHit.GetActor()->IsA(AWeaponActor::StaticClass())) {
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "plz god");
 			// PICK UP WEAPON
-			/*FName WeaponSocketName = TEXT("left_hand");
+			FName WeaponSocketName = TEXT("RightHandSocket");
 			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 
-			OutHit.GetActor()->AttachToActor(this, AttachmentRules, WeaponSocketName);*/
+			UStaticMeshComponent* OutHitStaticMeshComponent = Cast<UStaticMeshComponent>(OutHit.GetActor()->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+			OutHitStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
 		}
 		FString text = FString("Found ") + OutHit.GetActor()->GetName();
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, text);
