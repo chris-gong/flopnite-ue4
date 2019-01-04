@@ -18,4 +18,10 @@ class UGuyAnimInstance : public UAnimInstance
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
 	bool IsWalking;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
+	bool HoldingGun;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
+	bool ShotGun;
 };

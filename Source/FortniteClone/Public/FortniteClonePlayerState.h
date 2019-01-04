@@ -19,6 +19,7 @@ public:
 
 	bool InBuildMode;
 	FString BuildMode;
+	bool HoldingGun;
 
 protected:
 

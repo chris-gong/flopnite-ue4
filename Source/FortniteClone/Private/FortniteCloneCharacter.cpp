@@ -73,6 +73,7 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &AFortniteCloneCharacter::StopSprinting);
 	PlayerInputComponent->BindAction("PreviewForwardWall", IE_Pressed, this, &AFortniteCloneCharacter::PreviewForwardWall);
 	PlayerInputComponent->BindAction("BuildStructure", IE_Pressed, this, &AFortniteCloneCharacter::BuildStructure);
+	PlayerInputComponent->BindAction("ShootGun", IE_Pressed, this, &AFortniteCloneCharacter::ShootGun);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
@@ -174,11 +175,23 @@ void AFortniteCloneCharacter::PickUpItem() {
 		if (OutHit.GetActor()->IsA(AWeaponActor::StaticClass())) {
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "plz god");
 			// PICK UP WEAPON
-			FName WeaponSocketName = TEXT("RightHandSocket");
-			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+			FName WeaponSocketName = TEXT("RightHandMiddle4Socket");
+			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, true);
+
+			FRotator OutHitActorRotation = OutHit.GetActor()->GetActorRotation();
+			OutHitActorRotation.Pitch += 310.0;
+			OutHitActorRotation.Yaw += 270;
+			OutHitActorRotation.Roll += 0.0;
+			OutHit.GetActor()->SetActorRotation(OutHitActorRotation);
 
 			UStaticMeshComponent* OutHitStaticMeshComponent = Cast<UStaticMeshComponent>(OutHit.GetActor()->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 			OutHitStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
+
+			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+			if (State) {
+				State->HoldingGun = true;
+			}
+
 		}
 		FString text = FString("Found ") + OutHit.GetActor()->GetName();
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, text);
@@ -256,6 +269,20 @@ void AFortniteCloneCharacter::BuildStructure() {
 
 			if (OverlappingActors.Num() == 0) {
 				Wall->Destroy();
+			}
+		}
+	}
+}
+
+void AFortniteCloneCharacter::ShootGun() {
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "shoot gun key pressed");
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	if (State) {
+		if (State->HoldingGun) {
+			UGuyAnimInstance* Animation = Cast<UGuyAnimInstance>(GetMesh()->GetAnimInstance());
+			if (Animation) {
+				Animation->ShotGun = true;
+				//Animation->ShotGun = false;
 			}
 		}
 	}

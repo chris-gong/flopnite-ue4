@@ -5,4 +5,5 @@
 AFortniteClonePlayerState::AFortniteClonePlayerState() {
 	InBuildMode = false;
 	BuildMode = FString("None");
+	HoldingGun = false;
 }

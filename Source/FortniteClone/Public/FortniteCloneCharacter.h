@@ -78,6 +78,10 @@ protected:
 	UFUNCTION()
 	void BuildStructure();
 
+	/* Set the animation variable as well as shoot a very small projectile from the gun*/
+	UFUNCTION()
+	void ShootGun();
+
 	/* Current preview of wall to be built in build mode*/
 	ABuildingActor* WallPreview;
 
