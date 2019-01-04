@@ -62,6 +62,14 @@ protected:
 	UFUNCTION()
 	void StopSprinting();
 
+	/* Sets iswalking variable in anim instance to true */
+	UFUNCTION()
+	void StartWalking();
+
+	/* Sets iswalking variable in anim instance to false */
+	UFUNCTION()
+	void StopWalking();
+
 	/* Show preview of where the wall will be built */
 	UFUNCTION()
 	void PreviewForwardWall();

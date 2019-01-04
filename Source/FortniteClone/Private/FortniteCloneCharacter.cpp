@@ -12,6 +12,7 @@
 #include "WeaponActor.h"
 #include "FortniteClonePlayerState.h"
 #include "BuildingActor.h"
+#include "GuyAnimInstance.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AFortniteCloneCharacter
@@ -66,6 +67,8 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAxis("MoveRight", this, &AFortniteCloneCharacter::MoveRight);
 
 	PlayerInputComponent->BindAction("PickUpItem", IE_Pressed, this, &AFortniteCloneCharacter::PickUpItem);
+	PlayerInputComponent->BindAction("Walk", IE_Pressed, this, &AFortniteCloneCharacter::StartWalking);
+	PlayerInputComponent->BindAction("Walk", IE_Released, this, &AFortniteCloneCharacter::StopWalking);
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AFortniteCloneCharacter::StartSprinting);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &AFortniteCloneCharacter::StopSprinting);
 	PlayerInputComponent->BindAction("PreviewForwardWall", IE_Pressed, this, &AFortniteCloneCharacter::PreviewForwardWall);
@@ -184,11 +187,33 @@ void AFortniteCloneCharacter::PickUpItem() {
 void AFortniteCloneCharacter::StartSprinting() {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "shift key pressed");
 	GetCharacterMovement()->MaxWalkSpeed = 1200.0;
+	UGuyAnimInstance* Animation = Cast<UGuyAnimInstance>(GetMesh()->GetAnimInstance());
+	if (Animation) {
+		Animation->IsRunning = true;
+	}
 }
 
 void AFortniteCloneCharacter::StopSprinting() {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "shift key released");
 	GetCharacterMovement()->MaxWalkSpeed = 300.0;
+	UGuyAnimInstance* Animation = Cast<UGuyAnimInstance>(GetMesh()->GetAnimInstance());
+	if (Animation) {
+		Animation->IsRunning = false;
+	}
+}
+
+void AFortniteCloneCharacter::StartWalking() {
+	UGuyAnimInstance* Animation = Cast<UGuyAnimInstance>(GetMesh()->GetAnimInstance());
+	if (Animation) {
+		Animation->IsWalking = true;
+	}
+}
+
+void AFortniteCloneCharacter::StopWalking() {
+	UGuyAnimInstance* Animation = Cast<UGuyAnimInstance>(GetMesh()->GetAnimInstance());
+	if (Animation) {
+		Animation->IsWalking = false;
+	}
 }
 
 void AFortniteCloneCharacter::PreviewForwardWall() {
