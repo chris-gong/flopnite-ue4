@@ -240,7 +240,13 @@ void AFortniteCloneCharacter::StartWalking() {
 
 void AFortniteCloneCharacter::StopWalking() {
 	UGuyAnimInstance* Animation = Cast<UGuyAnimInstance>(GetMesh()->GetAnimInstance());
-	if (Animation) {
+	APlayerController* LocalController = Cast<APlayerController>(GetController());
+	bool ADown = LocalController->IsInputKeyDown(EKeys::A);
+	bool WDown = LocalController->IsInputKeyDown(EKeys::W);
+	bool SDown = LocalController->IsInputKeyDown(EKeys::S);
+	bool DDown = LocalController->IsInputKeyDown(EKeys::D);
+	bool NoWalkingKeysDown = !ADown && !WDown && !SDown && !DDown;
+	if (Animation && NoWalkingKeysDown) {
 		Animation->IsWalking = false;
 	}
 }
