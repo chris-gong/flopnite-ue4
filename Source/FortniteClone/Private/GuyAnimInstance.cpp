@@ -10,5 +10,4 @@ UGuyAnimInstance::UGuyAnimInstance(const FObjectInitializer& ObjectInitializer)
 	IsWalking = false;
 	IsRunning = false;
 	HoldingGun = false;
-	ShotGun = false;
 };

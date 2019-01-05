@@ -39,6 +39,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Wall")
 	TSubclassOf<ABuildingActor> ForwardWallClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Shooting")
+	UAnimMontage* ShootingAnimation;
+
 protected:
 
 	/** Resets HMD orientation in VR. */
@@ -119,5 +122,7 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	// Tick function is called every frame
 	virtual void Tick(float DeltaTime) override;
+	// Override playanimmontage to use pawn mesh
+	virtual float PlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None) override;
 };
 

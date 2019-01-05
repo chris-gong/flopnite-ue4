@@ -109,6 +109,17 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 	}
 }
 
+float AFortniteCloneCharacter::PlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName)
+{
+	USkeletalMeshComponent* UseMesh = GetMesh();
+	if (AnimMontage && UseMesh && UseMesh->AnimScriptInstance)
+	{
+		return UseMesh->AnimScriptInstance->Montage_Play(AnimMontage, InPlayRate);
+	}
+
+	return 0.0f;
+}
+
 void AFortniteCloneCharacter::OnResetVR()
 {
 	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
@@ -175,13 +186,13 @@ void AFortniteCloneCharacter::PickUpItem() {
 		if (OutHit.GetActor()->IsA(AWeaponActor::StaticClass())) {
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "plz god");
 			// PICK UP WEAPON
-			FName WeaponSocketName = TEXT("RightHandMiddle4Socket");
-			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, true);
+			FName WeaponSocketName = TEXT("RightHandSocket");
+			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 
 			FRotator OutHitActorRotation = OutHit.GetActor()->GetActorRotation();
-			OutHitActorRotation.Pitch += 310.0;
-			OutHitActorRotation.Yaw += 270;
-			OutHitActorRotation.Roll += 0.0;
+			//OutHitActorRotation.Roll += 90.0;
+			//OutHitActorRotation.Pitch += 90.0;
+			//OutHitActorRotation.Yaw += 90;
 			OutHit.GetActor()->SetActorRotation(OutHitActorRotation);
 
 			UStaticMeshComponent* OutHitStaticMeshComponent = Cast<UStaticMeshComponent>(OutHit.GetActor()->GetComponentByClass(UStaticMeshComponent::StaticClass()));
@@ -190,6 +201,10 @@ void AFortniteCloneCharacter::PickUpItem() {
 			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 			if (State) {
 				State->HoldingGun = true;
+				UGuyAnimInstance* Animation = Cast<UGuyAnimInstance>(GetMesh()->GetAnimInstance());
+				if (Animation) {
+					Animation->HoldingGun = true;
+				}
 			}
 
 		}
@@ -279,10 +294,12 @@ void AFortniteCloneCharacter::ShootGun() {
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (State) {
 		if (State->HoldingGun) {
-			UGuyAnimInstance* Animation = Cast<UGuyAnimInstance>(GetMesh()->GetAnimInstance());
+			UAnimInstance* Animation = GetMesh()->GetAnimInstance();
 			if (Animation) {
-				Animation->ShotGun = true;
-				//Animation->ShotGun = false;
+				float Played = PlayAnimMontage(ShootingAnimation);
+				FString PlayedString = FString("Played ");
+				PlayedString.AppendInt(Played);
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, PlayedString);
 			}
 		}
 	}
