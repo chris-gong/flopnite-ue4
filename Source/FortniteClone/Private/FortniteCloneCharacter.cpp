@@ -224,7 +224,7 @@ void AFortniteCloneCharacter::StartSprinting() {
 
 void AFortniteCloneCharacter::StopSprinting() {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "shift key released");
-	GetCharacterMovement()->MaxWalkSpeed = 300.0;
+	GetCharacterMovement()->MaxWalkSpeed = 400.0;
 	UGuyAnimInstance* Animation = Cast<UGuyAnimInstance>(GetMesh()->GetAnimInstance());
 	if (Animation) {
 		Animation->IsRunning = false;
