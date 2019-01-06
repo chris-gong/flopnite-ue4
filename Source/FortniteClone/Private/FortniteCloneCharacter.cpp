@@ -12,7 +12,7 @@
 #include "WeaponActor.h"
 #include "FortniteClonePlayerState.h"
 #include "BuildingActor.h"
-#include "GuyAnimInstance.h"
+#include "ThirdPersonAnimInstance.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AFortniteCloneCharacter
@@ -186,7 +186,7 @@ void AFortniteCloneCharacter::PickUpItem() {
 		if (OutHit.GetActor()->IsA(AWeaponActor::StaticClass())) {
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "plz god");
 			// PICK UP WEAPON
-			FName WeaponSocketName = TEXT("RightHandSocket");
+			FName WeaponSocketName = TEXT("hand_right_socket");
 			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 
 			FRotator OutHitActorRotation = OutHit.GetActor()->GetActorRotation();
@@ -201,7 +201,7 @@ void AFortniteCloneCharacter::PickUpItem() {
 			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 			if (State) {
 				State->HoldingGun = true;
-				UGuyAnimInstance* Animation = Cast<UGuyAnimInstance>(GetMesh()->GetAnimInstance());
+				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 				if (Animation) {
 					Animation->HoldingGun = true;
 				}
@@ -216,7 +216,7 @@ void AFortniteCloneCharacter::PickUpItem() {
 void AFortniteCloneCharacter::StartSprinting() {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "shift key pressed");
 	GetCharacterMovement()->MaxWalkSpeed = 1200.0;
-	UGuyAnimInstance* Animation = Cast<UGuyAnimInstance>(GetMesh()->GetAnimInstance());
+	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	if (Animation) {
 		Animation->IsRunning = true;
 	}
@@ -225,21 +225,21 @@ void AFortniteCloneCharacter::StartSprinting() {
 void AFortniteCloneCharacter::StopSprinting() {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "shift key released");
 	GetCharacterMovement()->MaxWalkSpeed = 400.0;
-	UGuyAnimInstance* Animation = Cast<UGuyAnimInstance>(GetMesh()->GetAnimInstance());
+	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	if (Animation) {
 		Animation->IsRunning = false;
 	}
 }
 
 void AFortniteCloneCharacter::StartWalking() {
-	UGuyAnimInstance* Animation = Cast<UGuyAnimInstance>(GetMesh()->GetAnimInstance());
+	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	if (Animation) {
 		Animation->IsWalking = true;
 	}
 }
 
 void AFortniteCloneCharacter::StopWalking() {
-	UGuyAnimInstance* Animation = Cast<UGuyAnimInstance>(GetMesh()->GetAnimInstance());
+	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	APlayerController* LocalController = Cast<APlayerController>(GetController());
 	bool ADown = LocalController->IsInputKeyDown(EKeys::A);
 	bool WDown = LocalController->IsInputKeyDown(EKeys::W);
