@@ -22,4 +22,15 @@ class UThirdPersonAnimInstance : public UAnimInstance
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
 	bool HoldingGun;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
+	float Speed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
+	float AimPitch;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
+	float AimYaw;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
+	float InterpSpeed;
 };

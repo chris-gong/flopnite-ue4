@@ -106,6 +106,25 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 			}
 			WallPreview = GetWorld()->SpawnActor<ABuildingActor>(WallPreviewClass, GetActorLocation() + GetActorForwardVector() * 250, GetActorRotation().Add(0,90,0)); //set the new wall preview
 		}
+		if (State->HoldingGun) {
+			UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+			if (Animation) {
+				FRotator ControlRotation = GetControlRotation();
+				FRotator ActorRotation = GetActorRotation();
+
+				FRotator DeltaRotation = ControlRotation - ActorRotation;
+				DeltaRotation.Normalize();
+
+				FRotator AimRotation = FRotator(Animation->AimPitch, Animation->AimYaw, 0);
+				FRotator InterpolatedRotation = FMath::RInterpTo(AimRotation, DeltaRotation, DeltaTime, Animation->InterpSpeed);
+				
+				float NewPitch = FMath::ClampAngle(InterpolatedRotation.Pitch, -90, 90);
+				float NewYaw = FMath::ClampAngle(InterpolatedRotation.Yaw, -90, 90);
+				
+				Animation->AimPitch = NewPitch;
+				Animation->AimYaw = NewYaw;
+			}
+		}
 	}
 }
 
