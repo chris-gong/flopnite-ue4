@@ -14,4 +14,6 @@ UThirdPersonAnimInstance::UThirdPersonAnimInstance(const FObjectInitializer& Obj
 	AimPitch = 0.0;
 	AimYaw = 0.0;
 	InterpSpeed = 15.0;
+	TransformAlpha = 0.7;
+	CameraRotation = FRotator(0, 0, 0);
 };

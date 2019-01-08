@@ -98,7 +98,11 @@ void AFortniteCloneCharacter::BeginPlay() {
 
 void AFortniteCloneCharacter::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
+	GetCapsuleComponent()->SetWorldRotation(GetCameraBoom()->GetComponentRotation());
+
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+
 	if (State) {
 		if (State->InBuildMode && State->BuildMode == FString("ForwardWall")) {
 			if (WallPreview) {
@@ -107,7 +111,6 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 			WallPreview = GetWorld()->SpawnActor<ABuildingActor>(WallPreviewClass, GetActorLocation() + GetActorForwardVector() * 250, GetActorRotation().Add(0,90,0)); //set the new wall preview
 		}
 		if (State->HoldingGun) {
-			UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 			if (Animation) {
 				FRotator ControlRotation = GetControlRotation();
 				FRotator ActorRotation = GetActorRotation();
