@@ -65,18 +65,9 @@ protected:
 	UFUNCTION()
 	void StopSprinting();
 
-	/* Sets iswalking variable in anim instance to true and sets walking x and y values */
+	/* Sets iswalking variable in anim instance to true */
 	UFUNCTION()
-	void StartWalkingForward();
-
-	UFUNCTION()
-	void StartWalkingBackward();
-
-	UFUNCTION()
-	void StartWalkingLeft();
-
-	UFUNCTION()
-	void StartWalkingRight();
+	void StartWalking();
 
 	/* Sets iswalking variable in anim instance to false */
 	UFUNCTION()
