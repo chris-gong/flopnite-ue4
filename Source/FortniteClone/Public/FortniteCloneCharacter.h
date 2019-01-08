@@ -57,13 +57,9 @@ protected:
 	UFUNCTION()
 	void PickUpItem();
 
-	/* Start sprinting */
+	/* Start  and stop sprinting */
 	UFUNCTION()
-	void StartSprinting();
-
-	/* Stop sprinting */
-	UFUNCTION()
-	void StopSprinting();
+	void Sprint(float Value);
 
 	/* Sets iswalking variable in anim instance to true */
 	UFUNCTION()

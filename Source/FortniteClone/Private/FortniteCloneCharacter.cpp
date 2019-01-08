@@ -65,12 +65,11 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AFortniteCloneCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AFortniteCloneCharacter::MoveRight);
+	PlayerInputComponent->BindAxis("Sprint", this, &AFortniteCloneCharacter::Sprint);
 
 	PlayerInputComponent->BindAction("PickUpItem", IE_Pressed, this, &AFortniteCloneCharacter::PickUpItem);
 	PlayerInputComponent->BindAction("Walk", IE_Pressed, this, &AFortniteCloneCharacter::StartWalking);
 	PlayerInputComponent->BindAction("Walk", IE_Released, this, &AFortniteCloneCharacter::StopWalking);
-	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AFortniteCloneCharacter::StartSprinting);
-	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &AFortniteCloneCharacter::StopSprinting);
 	PlayerInputComponent->BindAction("PreviewForwardWall", IE_Pressed, this, &AFortniteCloneCharacter::PreviewForwardWall);
 	PlayerInputComponent->BindAction("BuildStructure", IE_Pressed, this, &AFortniteCloneCharacter::BuildStructure);
 	PlayerInputComponent->BindAction("ShootGun", IE_Pressed, this, &AFortniteCloneCharacter::ShootGun);
@@ -245,21 +244,30 @@ void AFortniteCloneCharacter::PickUpItem() {
 	}
 }
 
-void AFortniteCloneCharacter::StartSprinting() {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "shift key pressed");
-	GetCharacterMovement()->MaxWalkSpeed = 1200.0;
+void AFortniteCloneCharacter::Sprint(float Value) {
+	APlayerController* LocalController = Cast<APlayerController>(GetController());
+	bool ADown = LocalController->IsInputKeyDown(EKeys::A);
+	bool WDown = LocalController->IsInputKeyDown(EKeys::W);
+	bool SDown = LocalController->IsInputKeyDown(EKeys::S);
+	bool DDown = LocalController->IsInputKeyDown(EKeys::D);
+	bool OnlyAOrDDown = !WDown && !SDown && (ADown || DDown);
 	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	if (Animation) {
-		Animation->IsRunning = true;
-	}
-}
-
-void AFortniteCloneCharacter::StopSprinting() {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "shift key released");
-	GetCharacterMovement()->MaxWalkSpeed = 400.0;
-	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-	if (Animation) {
-		Animation->IsRunning = false;
+		if (Value == 0) {
+			GetCharacterMovement()->MaxWalkSpeed = 400.0;
+			Animation->IsRunning = false;
+		}
+		else {
+			// can only sprint if the w key is held down by itself or in combination with the a or d keys
+			if (!(OnlyAOrDDown || SDown) && WDown) {
+				GetCharacterMovement()->MaxWalkSpeed = 1000.0;
+				Animation->IsRunning = true;
+			}
+			else {
+				GetCharacterMovement()->MaxWalkSpeed = 400.0;
+				Animation->IsRunning = false;
+			}
+		}
 	}
 }
 
