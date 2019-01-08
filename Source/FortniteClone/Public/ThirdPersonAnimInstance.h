@@ -35,8 +35,8 @@ class UThirdPersonAnimInstance : public UAnimInstance
 	float InterpSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
-	float TransformAlpha;
+	float WalkingX;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
-	FRotator CameraRotation;
+	float WalkingY;
 };

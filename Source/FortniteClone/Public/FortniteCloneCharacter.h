@@ -65,13 +65,25 @@ protected:
 	UFUNCTION()
 	void StopSprinting();
 
-	/* Sets iswalking variable in anim instance to true */
+	/* Sets iswalking variable in anim instance to true and sets walking x and y values */
 	UFUNCTION()
-	void StartWalking();
+	void StartWalkingForward();
+
+	UFUNCTION()
+	void StartWalkingBackward();
+
+	UFUNCTION()
+	void StartWalkingLeft();
+
+	UFUNCTION()
+	void StartWalkingRight();
 
 	/* Sets iswalking variable in anim instance to false */
 	UFUNCTION()
 	void StopWalking();
+
+	UFUNCTION()
+	TArray<float> CalculateWalkingXY();
 
 	/* Show preview of where the wall will be built */
 	UFUNCTION()

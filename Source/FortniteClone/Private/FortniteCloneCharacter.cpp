@@ -67,7 +67,10 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAxis("MoveRight", this, &AFortniteCloneCharacter::MoveRight);
 
 	PlayerInputComponent->BindAction("PickUpItem", IE_Pressed, this, &AFortniteCloneCharacter::PickUpItem);
-	PlayerInputComponent->BindAction("Walk", IE_Pressed, this, &AFortniteCloneCharacter::StartWalking);
+	PlayerInputComponent->BindAction("WalkLeft", IE_Pressed, this, &AFortniteCloneCharacter::StartWalkingLeft);
+	PlayerInputComponent->BindAction("WalkRight", IE_Pressed, this, &AFortniteCloneCharacter::StartWalkingRight);
+	PlayerInputComponent->BindAction("WalkForward", IE_Pressed, this, &AFortniteCloneCharacter::StartWalkingForward);
+	PlayerInputComponent->BindAction("WalkBackward", IE_Pressed, this, &AFortniteCloneCharacter::StartWalkingBackward);
 	PlayerInputComponent->BindAction("Walk", IE_Released, this, &AFortniteCloneCharacter::StopWalking);
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AFortniteCloneCharacter::StartSprinting);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &AFortniteCloneCharacter::StopSprinting);
@@ -253,10 +256,59 @@ void AFortniteCloneCharacter::StopSprinting() {
 	}
 }
 
-void AFortniteCloneCharacter::StartWalking() {
+void AFortniteCloneCharacter::StartWalkingForward() {
 	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+	float X = 0;
+	float Y = 0;
+	TArray<float> Coords = CalculateWalkingXY();
+	X = Coords[0];
+	Y = Coords[1];
 	if (Animation) {
 		Animation->IsWalking = true;
+		Animation->WalkingX = X;
+		Animation->WalkingY = Y;
+	}
+}
+
+void AFortniteCloneCharacter::StartWalkingBackward() {
+	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+	float X = 0;
+	float Y = 0;
+	TArray<float> Coords = CalculateWalkingXY();
+	X = Coords[0];
+	Y = Coords[1];
+	if (Animation) {
+		Animation->IsWalking = true;
+		Animation->WalkingX = X;
+		Animation->WalkingY = Y;
+	}
+}
+
+void AFortniteCloneCharacter::StartWalkingLeft() {
+	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+	float X = 0;
+	float Y = 0;
+	TArray<float> Coords = CalculateWalkingXY();
+	X = Coords[0];
+	Y = Coords[1];
+	if (Animation) {
+		Animation->IsWalking = true;
+		Animation->WalkingX = X;
+		Animation->WalkingY = Y;
+	}
+}
+
+void AFortniteCloneCharacter::StartWalkingRight() {
+	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+	float X = 0;
+	float Y = 0;
+	TArray<float> Coords = CalculateWalkingXY();
+	X = Coords[0];
+	Y = Coords[1];
+	if (Animation) {
+		Animation->IsWalking = true;
+		Animation->WalkingX = X;
+		Animation->WalkingY = Y;
 	}
 }
 
@@ -268,9 +320,44 @@ void AFortniteCloneCharacter::StopWalking() {
 	bool SDown = LocalController->IsInputKeyDown(EKeys::S);
 	bool DDown = LocalController->IsInputKeyDown(EKeys::D);
 	bool NoWalkingKeysDown = !ADown && !WDown && !SDown && !DDown;
-	if (Animation && NoWalkingKeysDown) {
-		Animation->IsWalking = false;
+
+	float X = 0;
+	float Y = 0;
+	TArray<float> Coords = CalculateWalkingXY();
+	X = Coords[0];
+	Y = Coords[1];
+
+	if (Animation) {
+		if (NoWalkingKeysDown) {
+			Animation->IsWalking = false;
+		}
+		else {
+			Animation->WalkingX = X;
+			Animation->WalkingY = Y;
+		}
 	}
+}
+
+TArray<float> AFortniteCloneCharacter::CalculateWalkingXY() {
+	float X = 0;
+	float Y = 0;
+	APlayerController* LocalController = Cast<APlayerController>(GetController());
+	if (LocalController->IsInputKeyDown(EKeys::A)) {
+		X -= 90;
+	}
+	if (LocalController->IsInputKeyDown(EKeys::D)) {
+		X += 90;
+	}
+	if (LocalController->IsInputKeyDown(EKeys::W)) {
+		Y += 90;
+	}
+	if (LocalController->IsInputKeyDown(EKeys::S)) {
+		Y -= 90;
+	}
+	TArray<float> Coords;
+	Coords.Add(X);
+	Coords.Add(Y);
+	return Coords;
 }
 
 void AFortniteCloneCharacter::PreviewForwardWall() {
