@@ -239,6 +239,7 @@ void AFortniteCloneCharacter::PickUpItem() {
 				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 				if (Animation) {
 					Animation->HoldingGun = true;
+					Animation->HoldingWeaponType = 1;
 				}
 			}
 
@@ -370,9 +371,11 @@ void AFortniteCloneCharacter::ShootGun() {
 			UAnimInstance* Animation = GetMesh()->GetAnimInstance();
 			if (Animation) {
 				if (State->AimedIn) {
+					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "Iron sights shot");
 					PlayAnimMontage(IronsightsShootingAnimation);
 				}
 				else {
+					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "hip shot");
 					PlayAnimMontage(HipShootingAnimation);
 				}
 			}
@@ -384,7 +387,8 @@ void AFortniteCloneCharacter::AimGunIn() {
 	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	if (Animation && Animation->HoldingGun) {
 		Animation->AimedIn = true;
-		CameraBoom->TargetArmLength = 50;
+		Animation->HoldingWeaponType = 2;
+		CameraBoom->TargetArmLength = 100;
 	}
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (State && State->HoldingGun) {
@@ -396,6 +400,7 @@ void AFortniteCloneCharacter::AimGunOut() {
 	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	if (Animation && Animation->HoldingGun) {
 		Animation->AimedIn = false;
+		Animation->HoldingWeaponType = 1;
 		CameraBoom->TargetArmLength = 300;
 	}
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);

@@ -11,6 +11,7 @@ UThirdPersonAnimInstance::UThirdPersonAnimInstance(const FObjectInitializer& Obj
 	IsRunning = false;
 	HoldingGun = false;
 	AimedIn = false;
+	HoldingWeaponType = 0;
 	Speed = 0.0;
 	AimPitch = 0.0;
 	AimYaw = 0.0;
