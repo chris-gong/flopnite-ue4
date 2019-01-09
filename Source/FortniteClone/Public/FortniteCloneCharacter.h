@@ -7,6 +7,7 @@
 #include "FortniteCloneCharacter.generated.h"
 
 class ABuildingActor;
+class AWeaponActor;
 
 UCLASS(config=Game)
 class AFortniteCloneCharacter : public ACharacter
@@ -39,12 +40,15 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Wall")
 	TSubclassOf<ABuildingActor> ForwardWallClass;
 
+	/* Array of weapon classes */
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	TArray<TSubclassOf<AWeaponActor>> WeaponClasses;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Shooting")
 	UAnimMontage* HipShootingAnimation;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Shooting")
 	UAnimMontage* IronsightsShootingAnimation;
-
 
 protected:
 
@@ -94,8 +98,14 @@ protected:
 	UFUNCTION()
 	void AimGunOut();
 
-	/* Current preview of wall to be built in build mode*/
+	/* Current preview of wall to be built in build mode */
 	ABuildingActor* WallPreview;
+
+	/* The current weapon being held */
+	AWeaponActor* CurrentWeapon;
+
+	/* Index of the class in array to spawn the weapon */
+	int CurrentWeaponIndex; // 0 for pickaxe, 1 for assault rifle
 
 	/** 
 	 * Called via input to turn at a given rate. 

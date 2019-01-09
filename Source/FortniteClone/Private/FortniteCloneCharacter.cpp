@@ -48,6 +48,7 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	CurrentWeaponIndex = 0;
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 
@@ -212,6 +213,10 @@ void AFortniteCloneCharacter::MoveRight(float Value)
 }
 
 void AFortniteCloneCharacter::PickUpItem() {
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	if (State->InBuildMode) {
+		return; // can't pick up items while in build mode
+	}
 	FHitResult OutHit;
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
@@ -224,18 +229,20 @@ void AFortniteCloneCharacter::PickUpItem() {
 			FName WeaponSocketName = TEXT("hand_right_socket");
 			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 
-			FRotator OutHitActorRotation = OutHit.GetActor()->GetActorRotation();
+			//FRotator OutHitActorRotation = OutHit.GetActor()->GetActorRotation();
 			//OutHitActorRotation.Roll += 90.0;
 			//OutHitActorRotation.Pitch += 90.0;
 			//OutHitActorRotation.Yaw += 90;
-			OutHit.GetActor()->SetActorRotation(OutHitActorRotation);
-
+			//OutHit.GetActor()->SetActorRotation(OutHitActorRotation);
+			CurrentWeapon = Cast<AWeaponActor>(OutHit.GetActor());
+			CurrentWeaponIndex = 1;
 			UStaticMeshComponent* OutHitStaticMeshComponent = Cast<UStaticMeshComponent>(OutHit.GetActor()->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 			OutHitStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
 
-			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 			if (State) {
 				State->HoldingGun = true;
+				State->EquippedWeapons.Add(1); // need to change this for different weapons
+				State->CurrentWeapon = 1;
 				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 				if (Animation) {
 					Animation->HoldingGun = true;
@@ -258,7 +265,10 @@ void AFortniteCloneCharacter::Sprint(float Value) {
 	bool OnlyAOrDDown = !WDown && !SDown && (ADown || DDown);
 	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	if (Animation) {
-		if (Value == 0) {
+		if (Animation->AimedIn) {
+			GetCharacterMovement()->MaxWalkSpeed = 200.0;
+		}
+		else if (Value == 0) {
 			GetCharacterMovement()->MaxWalkSpeed = 400.0;
 			Animation->IsRunning = false;
 		}
@@ -330,6 +340,21 @@ void AFortniteCloneCharacter::PreviewForwardWall() {
 			if (WallPreview) {
 				WallPreview->Destroy(); //destroy the last wall preview
 			}
+			// equip weapon being held before
+			if (WeaponClasses[CurrentWeaponIndex]) {
+				FName WeaponSocketName = TEXT("hand_right_socket");
+				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+				CurrentWeapon = GetWorld()->SpawnActor<AWeaponActor>(WeaponClasses[CurrentWeaponIndex], GetActorLocation(), GetActorRotation());
+				UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+				WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
+				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+				if (Animation) {
+					Animation->HoldingGun = true;
+					Animation->AimedIn = false;
+					Animation->HoldingWeaponType = 1;
+					State->HoldingGun = true;
+				}
+			}
 		}
 		else if (State->InBuildMode) {
 			// switching to a different build mode
@@ -339,6 +364,18 @@ void AFortniteCloneCharacter::PreviewForwardWall() {
 			// getting into build mode
 			State->InBuildMode = true;
 			State->BuildMode = FString("ForwardWall");
+			State->HoldingGun = false;
+			State->AimedIn = false;
+			UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+			if (Animation) {
+				Animation->HoldingGun = false;
+				Animation->AimedIn = false;
+				Animation->HoldingWeaponType = 0;
+			}
+			// unequip weapon
+			if (CurrentWeapon) {
+				CurrentWeapon->Destroy();
+			}
 		}
 	}
 }
@@ -389,6 +426,7 @@ void AFortniteCloneCharacter::AimGunIn() {
 		Animation->AimedIn = true;
 		Animation->HoldingWeaponType = 2;
 		CameraBoom->TargetArmLength = 100;
+		GetCharacterMovement()->MaxWalkSpeed = 200.0;
 	}
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (State && State->HoldingGun) {
@@ -402,6 +440,7 @@ void AFortniteCloneCharacter::AimGunOut() {
 		Animation->AimedIn = false;
 		Animation->HoldingWeaponType = 1;
 		CameraBoom->TargetArmLength = 300;
+		GetCharacterMovement()->MaxWalkSpeed = 400.0;
 	}
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (State && State->HoldingGun) {

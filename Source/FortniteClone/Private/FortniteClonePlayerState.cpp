@@ -7,4 +7,6 @@ AFortniteClonePlayerState::AFortniteClonePlayerState() {
 	BuildMode = FString("None");
 	HoldingGun = false;
 	AimedIn = false;
+	EquippedWeapons.Add(0);
+	CurrentWeapon = 0;
 }
