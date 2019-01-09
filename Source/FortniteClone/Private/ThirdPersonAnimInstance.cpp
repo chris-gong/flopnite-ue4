@@ -10,10 +10,13 @@ UThirdPersonAnimInstance::UThirdPersonAnimInstance(const FObjectInitializer& Obj
 	IsWalking = false;
 	IsRunning = false;
 	HoldingGun = false;
+	AimedIn = false;
 	Speed = 0.0;
 	AimPitch = 0.0;
 	AimYaw = 0.0;
 	InterpSpeed = 15.0;
 	WalkingX = 0;
 	WalkingY = 0;
+	RunningX = 0;
+	RunningY = 0;
 };

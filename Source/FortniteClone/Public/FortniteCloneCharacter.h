@@ -40,7 +40,11 @@ public:
 	TSubclassOf<ABuildingActor> ForwardWallClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Shooting")
-	UAnimMontage* ShootingAnimation;
+	UAnimMontage* HipShootingAnimation;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Shooting")
+	UAnimMontage* IronsightsShootingAnimation;
+
 
 protected:
 
@@ -83,6 +87,12 @@ protected:
 	/* Set the animation variable as well as shoot a very small projectile from the gun*/
 	UFUNCTION()
 	void ShootGun();
+
+	UFUNCTION()
+	void AimGunIn();
+
+	UFUNCTION()
+	void AimGunOut();
 
 	/* Current preview of wall to be built in build mode*/
 	ABuildingActor* WallPreview;

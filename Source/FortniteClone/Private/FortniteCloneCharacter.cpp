@@ -73,6 +73,8 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAction("PreviewForwardWall", IE_Pressed, this, &AFortniteCloneCharacter::PreviewForwardWall);
 	PlayerInputComponent->BindAction("BuildStructure", IE_Pressed, this, &AFortniteCloneCharacter::BuildStructure);
 	PlayerInputComponent->BindAction("ShootGun", IE_Pressed, this, &AFortniteCloneCharacter::ShootGun);
+	PlayerInputComponent->BindAction("Ironsights", IE_Pressed, this, &AFortniteCloneCharacter::AimGunIn);
+	PlayerInputComponent->BindAction("Ironsights", IE_Released, this, &AFortniteCloneCharacter::AimGunOut);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
@@ -184,6 +186,7 @@ void AFortniteCloneCharacter::MoveForward(float Value)
 	if (Animation) {
 		//set blend space variable
 		Animation->WalkingY = Value * 90;
+		Animation->RunningY = Value * 90;
 	}
 }
 
@@ -204,6 +207,7 @@ void AFortniteCloneCharacter::MoveRight(float Value)
 	if (Animation) {
 		//set blend space variable
 		Animation->WalkingX = Value * 90;
+		Animation->RunningX = Value * 90;
 	}
 }
 
@@ -365,11 +369,37 @@ void AFortniteCloneCharacter::ShootGun() {
 		if (State->HoldingGun) {
 			UAnimInstance* Animation = GetMesh()->GetAnimInstance();
 			if (Animation) {
-				float Played = PlayAnimMontage(ShootingAnimation);
-				FString PlayedString = FString("Played ");
-				PlayedString.AppendInt(Played);
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, PlayedString);
+				if (State->AimedIn) {
+					PlayAnimMontage(IronsightsShootingAnimation);
+				}
+				else {
+					PlayAnimMontage(HipShootingAnimation);
+				}
 			}
 		}
+	}
+}
+
+void AFortniteCloneCharacter::AimGunIn() {
+	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+	if (Animation && Animation->HoldingGun) {
+		Animation->AimedIn = true;
+		CameraBoom->TargetArmLength = 50;
+	}
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	if (State && State->HoldingGun) {
+		State->AimedIn = true;
+	}
+}
+
+void AFortniteCloneCharacter::AimGunOut() {
+	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+	if (Animation && Animation->HoldingGun) {
+		Animation->AimedIn = false;
+		CameraBoom->TargetArmLength = 300;
+	}
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	if (State && State->HoldingGun) {
+		State->AimedIn = false;
 	}
 }
