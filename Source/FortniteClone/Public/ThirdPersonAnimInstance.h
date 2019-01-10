@@ -20,13 +20,13 @@ class UThirdPersonAnimInstance : public UAnimInstance
 	bool IsWalking;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
-	bool HoldingGun;
+	bool HoldingWeapon;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
 	bool AimedIn;
 
 	/* Value for blend poses by int in blueprint */
-	/* 0 for not holding anything, 1 for holding assault rifle on hip, 2 for holding assault rifle aimed into ironsights */
+	/* 0 for not holding anything, 1 for holding weapon on hip, 2 for holding weapon aimed into ironsights */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
 	int HoldingWeaponType;
 

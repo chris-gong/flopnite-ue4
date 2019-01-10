@@ -19,7 +19,7 @@ public:
 
 	bool InBuildMode;
 	FString BuildMode;
-	bool HoldingGun;
+	bool HoldingWeapon;
 	bool AimedIn;
 	TArray<int> EquippedWeapons; //0 for pickaxe, 1 for assault rifle
 	int CurrentWeapon;

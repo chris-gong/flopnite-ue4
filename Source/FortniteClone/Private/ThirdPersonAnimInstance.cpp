@@ -9,7 +9,7 @@ UThirdPersonAnimInstance::UThirdPersonAnimInstance(const FObjectInitializer& Obj
 {
 	IsWalking = false;
 	IsRunning = false;
-	HoldingGun = false;
+	HoldingWeapon = false;
 	AimedIn = false;
 	HoldingWeaponType = 0;
 	Speed = 0.0;
