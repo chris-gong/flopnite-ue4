@@ -8,5 +8,6 @@ AFortniteClonePlayerState::AFortniteClonePlayerState() {
 	HoldingWeapon = false;
 	AimedIn = false;
 	EquippedWeapons.Add(0);
+	EquippedWeapons.Add(3);
 	CurrentWeapon = 0;
 }
