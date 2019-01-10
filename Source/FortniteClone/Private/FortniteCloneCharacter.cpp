@@ -49,6 +49,7 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	CurrentWeaponIndex = 0;
+	BuildingPreview = NULL;
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 
@@ -71,7 +72,9 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAction("PickUpItem", IE_Pressed, this, &AFortniteCloneCharacter::PickUpItem);
 	PlayerInputComponent->BindAction("Walk", IE_Pressed, this, &AFortniteCloneCharacter::StartWalking);
 	PlayerInputComponent->BindAction("Walk", IE_Released, this, &AFortniteCloneCharacter::StopWalking);
-	PlayerInputComponent->BindAction("PreviewForwardWall", IE_Pressed, this, &AFortniteCloneCharacter::PreviewForwardWall);
+	PlayerInputComponent->BindAction("PreviewWall", IE_Pressed, this, &AFortniteCloneCharacter::PreviewWall);
+	PlayerInputComponent->BindAction("PreviewRamp", IE_Pressed, this, &AFortniteCloneCharacter::PreviewRamp);
+	PlayerInputComponent->BindAction("PreviewFloor", IE_Pressed, this, &AFortniteCloneCharacter::PreviewFloor);
 	PlayerInputComponent->BindAction("BuildStructure", IE_Pressed, this, &AFortniteCloneCharacter::BuildStructure);
 	PlayerInputComponent->BindAction("ShootGun", IE_Pressed, this, &AFortniteCloneCharacter::ShootGun);
 	PlayerInputComponent->BindAction("Ironsights", IE_Pressed, this, &AFortniteCloneCharacter::AimGunIn);
@@ -95,7 +98,6 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 
 void AFortniteCloneCharacter::BeginPlay() {
 	Super::BeginPlay();
-	WallPreview = NULL;
 }
 
 void AFortniteCloneCharacter::Tick(float DeltaTime) {
@@ -106,11 +108,23 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 
 	if (State) {
-		if (State->InBuildMode && State->BuildMode == FString("ForwardWall")) {
-			if (WallPreview) {
-				WallPreview->Destroy(); //destroy the last wall preview
+		if (State->InBuildMode && State->BuildMode == FString("Wall")) {
+			if (BuildingPreview) {
+				BuildingPreview->Destroy(); //destroy the last wall preview
 			}
-			WallPreview = GetWorld()->SpawnActor<ABuildingActor>(WallPreviewClass, GetActorLocation() + GetActorForwardVector() * 250, GetActorRotation().Add(0,90,0)); //set the new wall preview
+			BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(WallPreviewClass, GetActorLocation() + GetActorForwardVector() * 250, GetActorRotation().Add(0,90,0)); //set the new wall preview
+		}
+		if (State->InBuildMode && State->BuildMode == FString("Ramp")) {
+			if (BuildingPreview) {
+				BuildingPreview->Destroy(); //destroy the last wall preview
+			}
+			BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(RampPreviewClass, GetActorLocation() + GetActorForwardVector() * 250, GetActorRotation().Add(0, 90, 0)); //set the new wall preview
+		}
+		if (State->InBuildMode && State->BuildMode == FString("Floor")) {
+			if (BuildingPreview) {
+				BuildingPreview->Destroy(); //destroy the last wall preview
+			}
+			BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(FloorPreviewClass, GetActorLocation() + GetActorForwardVector() * 250, GetActorRotation().Add(0, 90, 0)); //set the new wall preview
 		}
 		if (State->HoldingGun) {
 			if (Animation) {
@@ -329,16 +343,16 @@ TArray<float> AFortniteCloneCharacter::CalculateWalkingXY() {
 	return Coords;
 }
 
-void AFortniteCloneCharacter::PreviewForwardWall() {
+void AFortniteCloneCharacter::PreviewWall() {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "x key pressed");
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (State) {
-		if (State->BuildMode == FString("ForwardWall")) {
+		if (State->BuildMode == FString("Wall")) {
 			// getting out of build mode
 			State->InBuildMode = false;
 			State->BuildMode = FString("None");
-			if (WallPreview) {
-				WallPreview->Destroy(); //destroy the last wall preview
+			if (BuildingPreview) {
+				BuildingPreview->Destroy(); //destroy the last wall preview
 			}
 			// equip weapon being held before
 			if (WeaponClasses[CurrentWeaponIndex]) {
@@ -358,12 +372,115 @@ void AFortniteCloneCharacter::PreviewForwardWall() {
 		}
 		else if (State->InBuildMode) {
 			// switching to a different build mode
-			State->BuildMode = FString("ForwardWall");
+			State->BuildMode = FString("Wall");
 		}
 		else {
 			// getting into build mode
 			State->InBuildMode = true;
-			State->BuildMode = FString("ForwardWall");
+			State->BuildMode = FString("Wall");
+			State->HoldingGun = false;
+			State->AimedIn = false;
+			UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+			if (Animation) {
+				Animation->HoldingGun = false;
+				Animation->AimedIn = false;
+				Animation->HoldingWeaponType = 0;
+			}
+			// unequip weapon
+			if (CurrentWeapon) {
+				CurrentWeapon->Destroy();
+			}
+		}
+	}
+}
+
+void AFortniteCloneCharacter::PreviewRamp() {
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "c key pressed");
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "c key presse2d");
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	if (State) {
+		if (State->BuildMode == FString("Ramp")) {
+			// getting out of build mode
+			State->InBuildMode = false;
+			State->BuildMode = FString("None");
+			if (BuildingPreview) {
+				BuildingPreview->Destroy(); //destroy the last wall preview
+			}
+			// equip weapon being held before
+			if (WeaponClasses[CurrentWeaponIndex]) {
+				FName WeaponSocketName = TEXT("hand_right_socket");
+				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+				CurrentWeapon = GetWorld()->SpawnActor<AWeaponActor>(WeaponClasses[CurrentWeaponIndex], GetActorLocation(), GetActorRotation());
+				UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+				WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
+				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+				if (Animation) {
+					Animation->HoldingGun = true;
+					Animation->AimedIn = false;
+					Animation->HoldingWeaponType = 1;
+					State->HoldingGun = true;
+				}
+			}
+		}
+		else if (State->InBuildMode) {
+			// switching to a different build mode
+			State->BuildMode = FString("Ramp");
+		}
+		else {
+			// getting into build mode
+			State->InBuildMode = true;
+			State->BuildMode = FString("Ramp");
+			State->HoldingGun = false;
+			State->AimedIn = false;
+			UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+			if (Animation) {
+				Animation->HoldingGun = false;
+				Animation->AimedIn = false;
+				Animation->HoldingWeaponType = 0;
+			}
+			// unequip weapon
+			if (CurrentWeapon) {
+				CurrentWeapon->Destroy();
+			}
+		}
+	}
+}
+
+void AFortniteCloneCharacter::PreviewFloor() {
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "f key pressed");
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	if (State) {
+		if (State->BuildMode == FString("Floor")) {
+			// getting out of build mode
+			State->InBuildMode = false;
+			State->BuildMode = FString("None");
+			if (BuildingPreview) {
+				BuildingPreview->Destroy(); //destroy the last wall preview
+			}
+			// equip weapon being held before
+			if (WeaponClasses[CurrentWeaponIndex]) {
+				FName WeaponSocketName = TEXT("hand_right_socket");
+				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+				CurrentWeapon = GetWorld()->SpawnActor<AWeaponActor>(WeaponClasses[CurrentWeaponIndex], GetActorLocation(), GetActorRotation());
+				UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+				WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
+				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+				if (Animation) {
+					Animation->HoldingGun = true;
+					Animation->AimedIn = false;
+					Animation->HoldingWeaponType = 1;
+					State->HoldingGun = true;
+				}
+			}
+		}
+		else if (State->InBuildMode) {
+			// switching to a different build mode
+			State->BuildMode = FString("Floor");
+		}
+		else {
+			// getting into build mode
+			State->InBuildMode = true;
+			State->BuildMode = FString("Floor");
 			State->HoldingGun = false;
 			State->AimedIn = false;
 			UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
@@ -383,9 +500,37 @@ void AFortniteCloneCharacter::PreviewForwardWall() {
 void AFortniteCloneCharacter::BuildStructure() {
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (State) {
-		if (State->InBuildMode && State->BuildMode == FString("ForwardWall")) {
+		if (State->InBuildMode && State->BuildMode == FString("Wall")) {
 			TArray<AActor*> OverlappingActors;
-			ABuildingActor* Wall = GetWorld()->SpawnActor<ABuildingActor>(ForwardWallClass, GetActorLocation() + GetActorForwardVector() * 250, GetActorRotation().Add(0, 90, 0));
+			ABuildingActor* Wall = GetWorld()->SpawnActor<ABuildingActor>(WallClass, GetActorLocation() + GetActorForwardVector() * 250, GetActorRotation().Add(0, 90, 0));
+
+			Wall->GetOverlappingActors(OverlappingActors);
+
+			for (int i = 0; i < OverlappingActors.Num(); i++) {
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString(OverlappingActors[i]->GetName()));
+			}
+
+			if (OverlappingActors.Num() == 0) {
+				Wall->Destroy();
+			}
+		}
+		else if (State->InBuildMode && State->BuildMode == FString("Ramp")) {
+			TArray<AActor*> OverlappingActors;
+			ABuildingActor* Wall = GetWorld()->SpawnActor<ABuildingActor>(RampClass, GetActorLocation() + GetActorForwardVector() * 250, GetActorRotation().Add(0, 90, 0));
+
+			Wall->GetOverlappingActors(OverlappingActors);
+
+			for (int i = 0; i < OverlappingActors.Num(); i++) {
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString(OverlappingActors[i]->GetName()));
+			}
+
+			if (OverlappingActors.Num() == 0) {
+				Wall->Destroy();
+			}
+		}
+		else if (State->InBuildMode && State->BuildMode == FString("Floor")) {
+			TArray<AActor*> OverlappingActors;
+			ABuildingActor* Wall = GetWorld()->SpawnActor<ABuildingActor>(FloorClass, GetActorLocation() + GetActorForwardVector() * 250, GetActorRotation().Add(0, 90, 0));
 
 			Wall->GetOverlappingActors(OverlappingActors);
 

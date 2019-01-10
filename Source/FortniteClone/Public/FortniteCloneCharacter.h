@@ -38,7 +38,23 @@ public:
 
 	/* Class for wall preview actor */
 	UPROPERTY(EditDefaultsOnly, Category = "Wall")
-	TSubclassOf<ABuildingActor> ForwardWallClass;
+	TSubclassOf<ABuildingActor> WallClass;
+
+	/* Class for wall preview actor */
+	UPROPERTY(EditDefaultsOnly, Category = "Ramp")
+	TSubclassOf<ABuildingActor> RampPreviewClass;
+
+	/* Class for wall preview actor */
+	UPROPERTY(EditDefaultsOnly, Category = "Ramp")
+	TSubclassOf<ABuildingActor> RampClass;
+
+	/* Class for wall preview actor */
+	UPROPERTY(EditDefaultsOnly, Category = "Floor")
+	TSubclassOf<ABuildingActor> FloorPreviewClass;
+
+	/* Class for wall preview actor */
+	UPROPERTY(EditDefaultsOnly, Category = "Floor")
+	TSubclassOf<ABuildingActor> FloorClass;
 
 	/* Array of weapon classes */
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
@@ -82,7 +98,15 @@ protected:
 
 	/* Show preview of where the wall will be built */
 	UFUNCTION()
-	void PreviewForwardWall();
+	void PreviewWall();
+
+	/* Show preview of where the ramp will be built */
+	UFUNCTION()
+	void PreviewRamp();
+
+	/* Show preview of where the floor will be built */
+	UFUNCTION()
+	void PreviewFloor();
 
 	/* When the wall is shown, you will have the option to attempt to build it*/
 	UFUNCTION()
@@ -99,7 +123,7 @@ protected:
 	void AimGunOut();
 
 	/* Current preview of wall to be built in build mode */
-	ABuildingActor* WallPreview;
+	ABuildingActor* BuildingPreview;
 
 	/* The current weapon being held */
 	AWeaponActor* CurrentWeapon;
