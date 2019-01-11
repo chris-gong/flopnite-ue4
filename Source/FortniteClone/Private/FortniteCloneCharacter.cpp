@@ -13,6 +13,7 @@
 #include "FortniteClonePlayerState.h"
 #include "BuildingActor.h"
 #include "ThirdPersonAnimInstance.h"
+#include "ProjectileActor.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AFortniteCloneCharacter
@@ -128,19 +129,19 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 			if (BuildingPreview) {
 				BuildingPreview->Destroy(); //destroy the last wall preview
 			}
-			BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(WallPreviewClass, GetActorLocation() + (GetActorForwardVector() * 150) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new wall preview
+			BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(WallPreviewClass, GetActorLocation() + (GetActorForwardVector() * 200) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new wall preview
 		}
 		if (State->InBuildMode && State->BuildMode == FString("Ramp")) {
 			if (BuildingPreview) {
 				BuildingPreview->Destroy(); //destroy the last wall preview
 			}
-			BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(RampPreviewClass, GetActorLocation() + (GetActorForwardVector() * 150) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new wall preview
+			BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(RampPreviewClass, GetActorLocation() + (GetActorForwardVector() * 100) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new wall preview
 		}
 		if (State->InBuildMode && State->BuildMode == FString("Floor")) {
 			if (BuildingPreview) {
 				BuildingPreview->Destroy(); //destroy the last wall preview
 			}
-			BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(FloorPreviewClass, GetActorLocation() + (GetActorForwardVector() * 150) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new wall preview
+			BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(FloorPreviewClass, GetActorLocation() + (GetActorForwardVector() * 120) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new wall preview
 		}
 		FRotator ControlRotation = GetControlRotation();
 		FRotator ActorRotation = GetActorRotation();
@@ -534,9 +535,9 @@ void AFortniteCloneCharacter::BuildStructure() {
 		FVector DirectionVector = FVector(0, Animation->AimYaw, Animation->AimPitch);
 		if (State->InBuildMode && State->BuildMode == FString("Wall")) {
 			TArray<AActor*> OverlappingActors;
-			ABuildingActor* Wall = GetWorld()->SpawnActor<ABuildingActor>(WallClass, GetActorLocation() + (GetActorForwardVector() * 150) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
+			ABuildingActor* Wall = GetWorld()->SpawnActor<ABuildingActor>(WallClass, GetActorLocation() + (GetActorForwardVector() * 200) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
 
-			Wall->GetOverlappingActors(OverlappingActors);
+			/*Wall->GetOverlappingActors(OverlappingActors);
 
 			for (int i = 0; i < OverlappingActors.Num(); i++) {
 				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString(OverlappingActors[i]->GetName()));
@@ -544,13 +545,13 @@ void AFortniteCloneCharacter::BuildStructure() {
 
 			if (OverlappingActors.Num() == 0) {
 				Wall->Destroy();
-			}
+			}*/
 		}
 		else if (State->InBuildMode && State->BuildMode == FString("Ramp")) {
 			TArray<AActor*> OverlappingActors;
-			ABuildingActor* Ramp = GetWorld()->SpawnActor<ABuildingActor>(RampClass, GetActorLocation() + (GetActorForwardVector() * 150) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
+			ABuildingActor* Ramp = GetWorld()->SpawnActor<ABuildingActor>(RampClass, GetActorLocation() + (GetActorForwardVector() * 100) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
 
-			Ramp->GetOverlappingActors(OverlappingActors);
+			/*Ramp->GetOverlappingActors(OverlappingActors);
 
 			for (int i = 0; i < OverlappingActors.Num(); i++) {
 				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString(OverlappingActors[i]->GetName()));
@@ -558,13 +559,13 @@ void AFortniteCloneCharacter::BuildStructure() {
 
 			if (OverlappingActors.Num() == 0) {
 				Ramp->Destroy();
-			}
+			}*/
 		}
 		else if (State->InBuildMode && State->BuildMode == FString("Floor")) {
 			TArray<AActor*> OverlappingActors;
-			ABuildingActor* Floor = GetWorld()->SpawnActor<ABuildingActor>(FloorClass, GetActorLocation() + (GetActorForwardVector() * 150) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
+			ABuildingActor* Floor = GetWorld()->SpawnActor<ABuildingActor>(FloorClass, GetActorLocation() + (GetActorForwardVector() * 120) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
 
-			Floor->GetOverlappingActors(OverlappingActors);
+			/*Floor->GetOverlappingActors(OverlappingActors);
 
 			for (int i = 0; i < OverlappingActors.Num(); i++) {
 				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString(OverlappingActors[i]->GetName()));
@@ -572,7 +573,7 @@ void AFortniteCloneCharacter::BuildStructure() {
 
 			if (OverlappingActors.Num() == 0) {
 				Floor->Destroy();
-			}
+			}*/
 		}
 	}
 }
@@ -583,16 +584,26 @@ void AFortniteCloneCharacter::ShootGun() {
 	if (State) {
 		if (State->HoldingWeapon && State->CurrentWeapon != 0) {
 			UAnimInstance* Animation = GetMesh()->GetAnimInstance();
-			if (Animation) {
+			UThirdPersonAnimInstance* AnimationInstance = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+			if (Animation && AnimationInstance) {
 				if (State->AimedIn) {
-					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "Iron sights shot");
 					PlayAnimMontage(IronsightsShootingAnimation);
 				}
 				else {
-					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "hip shot");
 					PlayAnimMontage(HipShootingAnimation);
+
 				}
+				FName WeaponSocketName = TEXT("hand_right_socket");
+				FRotator GunRotation = CurrentWeapon->GetActorRotation();
+				FVector GunForward = CurrentWeapon->GetActorForwardVector();
+				FVector BulletOffset = FVector(GunRotation.Roll, GunRotation.Pitch, GunRotation.Yaw);
+				AProjectileActor* Bullet = GetWorld()->SpawnActor<AProjectileActor>(CurrentWeapon->BulletClass, GetMesh()->GetSocketLocation(WeaponSocketName), GetMesh()->GetSocketRotation(WeaponSocketName));
+				//Bullet->GetRootComponent()->ComponentVelocity = FVector(0, 50, 50);
+				FVector ProjectileSpeed = FRotator(0, AnimationInstance->AimPitch, AnimationInstance->AimYaw).RotateVector(FVector(100, 0, 0));
+				Bullet->ProjectileMovementComponent->InitialSpeed = 1000.f;
+				Bullet->ProjectileMovementComponent->MaxSpeed = 1000.f;
 			}
+
 		}
 	}
 }

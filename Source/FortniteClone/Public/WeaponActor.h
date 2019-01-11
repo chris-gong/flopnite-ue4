@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "WeaponActor.generated.h"
 
+class AProjectileActor;
+
 UCLASS()
 class FORTNITECLONE_API AWeaponActor : public AActor
 {
@@ -23,4 +25,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	//associated bullet
+	UPROPERTY(EditDefaultsOnly, Category = "Bullet")
+	TSubclassOf<AProjectileActor> BulletClass;
 };
