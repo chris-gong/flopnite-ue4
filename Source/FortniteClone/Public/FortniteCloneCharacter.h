@@ -66,6 +66,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Shooting")
 	UAnimMontage* IronsightsShootingAnimation;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Health")
+	float Health;
+
 protected:
 
 	/** Resets HMD orientation in VR. */

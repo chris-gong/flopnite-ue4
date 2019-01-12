@@ -7,6 +7,7 @@
 #include "WeaponActor.generated.h"
 
 class AProjectileActor;
+class AFortniteCloneCharacter;
 
 UCLASS()
 class FORTNITECLONE_API AWeaponActor : public AActor
@@ -28,4 +29,9 @@ public:
 	//associated bullet
 	UPROPERTY(EditDefaultsOnly, Category = "Bullet")
 	TSubclassOf<AProjectileActor> BulletClass;
+
+	AFortniteCloneCharacter* Holder;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	float Damage; // Only applies for pickaxe
 };

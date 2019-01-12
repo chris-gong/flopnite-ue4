@@ -9,6 +9,7 @@
 
 class UProjectileMovementComponent;
 class USphereComponent;
+class AWeaponActor;
 
 UCLASS()
 class FORTNITECLONE_API AProjectileActor : public AActor
@@ -37,4 +38,9 @@ public:
 	/* called when projectile hits something */
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	AWeaponActor* Weapon;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	float Damage;
 };

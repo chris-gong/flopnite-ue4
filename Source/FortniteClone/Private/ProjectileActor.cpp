@@ -2,6 +2,9 @@
 
 #include "ProjectileActor.h"
 #include "Engine.h"
+#include "WeaponActor.h"
+#include "FortniteCloneCharacter.h"
+#include "BuildingActor.h"
 
 // Sets default values
 AProjectileActor::AProjectileActor()
@@ -18,8 +21,8 @@ AProjectileActor::AProjectileActor()
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
 	ProjectileMovementComponent->UpdatedComponent = CollisionComp;
 	ProjectileMovementComponent->ProjectileGravityScale = 0.01;
-	ProjectileMovementComponent->InitialSpeed = 41500.f;
-	ProjectileMovementComponent->MaxSpeed = 41500.f;
+	ProjectileMovementComponent->InitialSpeed = 4150000.f;
+	ProjectileMovementComponent->MaxSpeed = 4150000.f;
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
 }
 
@@ -38,6 +41,59 @@ void AProjectileActor::Tick(float DeltaTime)
 }
 
 void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "projectile overlapped");
+	if (OtherActor != NULL) {
+		//bullet should only destroy itself once it overlaps with an actor other than itself, the weapon it came from, and the holder of that weapon
+		if (OtherActor == (AActor*) Weapon || OtherActor == (AActor*) Weapon->Holder || OtherActor == this) {
+			return;
+		}
+		else {
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
+			if (OtherActor->IsA(AWeaponActor::StaticClass())) {
+				//if the weapon has no holder, then let the bullet keep going
+				AWeaponActor* WeaponActor = Cast<AWeaponActor>(OtherActor);
+				if (WeaponActor->Holder == NULL) {
+					return;
+				}
+				else {
+					AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(WeaponActor->Holder);
+					FortniteCloneCharacter->Health -= Damage;
+					if (FortniteCloneCharacter->Health <= 0) {
+						FortniteCloneCharacter->Destroy();
+					}
+					Destroy();
+				}
+			}
+			else if (OtherActor->IsA(ABuildingActor::StaticClass())) {
+				//make sure the buildingactor is not a preview, if it is a preview then let the bullet keep going
+				ABuildingActor* BuildingActor = Cast<ABuildingActor>(OtherActor);
+				if (BuildingActor->IsPreview) {
+					return;
+				}
+				else {
+					BuildingActor->Health -= Damage;
+					if (BuildingActor->Health <= 0) {
+						BuildingActor->Destroy();
+					}
+					Destroy();
+				}
+			}
+			else if (OtherActor->IsA(AFortniteCloneCharacter::StaticClass())) {
+				AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(OtherActor);
+				FortniteCloneCharacter->Health -= Damage;
+				if (FortniteCloneCharacter->Health <= 0) {
+					FortniteCloneCharacter->Destroy();
+				}
+				Destroy();
+			}
+			else if (OtherActor->IsA(AProjectileActor::StaticClass())) {
+				//let the bullet keep going if it collides with other bullets
+				return;
+			}
+			else {
+				Destroy();
+			}
+		}
+	}
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
 	//GetWorld()->DestroyActor(this);
 }

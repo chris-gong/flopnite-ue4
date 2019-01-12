@@ -15,11 +15,15 @@ public:
 	// Sets default values for this actor's properties
 	ABuildingActor();
 
+	UPROPERTY(EditDefaultsOnly, Category = "Health")
+	float Health;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Preview")
+	bool IsPreview;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-	int Health;
 
 public:	
 	// Called every frame

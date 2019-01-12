@@ -105,6 +105,8 @@ void AFortniteCloneCharacter::BeginPlay() {
 		CurrentWeapon = GetWorld()->SpawnActor<AWeaponActor>(WeaponClasses[CurrentWeaponIndex], GetActorLocation(), GetActorRotation());
 		UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 		WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
+		CurrentWeapon->Holder = this;
+
 		UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		if (Animation && State) {
@@ -267,6 +269,7 @@ void AFortniteCloneCharacter::PickUpItem() {
 			CurrentWeaponIndex = 1;
 			UStaticMeshComponent* OutHitStaticMeshComponent = Cast<UStaticMeshComponent>(OutHit.GetActor()->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 			OutHitStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
+			CurrentWeapon->Holder = this;
 
 			if (State) {
 				State->HoldingWeapon = true;
@@ -376,6 +379,8 @@ void AFortniteCloneCharacter::PreviewWall() {
 				CurrentWeapon = GetWorld()->SpawnActor<AWeaponActor>(WeaponClasses[CurrentWeaponIndex], GetActorLocation(), GetActorRotation());
 				UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 				WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
+				CurrentWeapon->Holder = this;
+				
 				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 				if (Animation) {
 					Animation->HoldingWeapon = true;
@@ -433,6 +438,8 @@ void AFortniteCloneCharacter::PreviewRamp() {
 				CurrentWeapon = GetWorld()->SpawnActor<AWeaponActor>(WeaponClasses[CurrentWeaponIndex], GetActorLocation(), GetActorRotation());
 				UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 				WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
+				CurrentWeapon->Holder = this;
+
 				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 				if (Animation) {
 					Animation->HoldingWeapon = true;
@@ -489,6 +496,8 @@ void AFortniteCloneCharacter::PreviewFloor() {
 				CurrentWeapon = GetWorld()->SpawnActor<AWeaponActor>(WeaponClasses[CurrentWeaponIndex], GetActorLocation(), GetActorRotation());
 				UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 				WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
+				CurrentWeapon->Holder = this;
+
 				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 				if (Animation) {
 					Animation->HoldingWeapon = true;
@@ -597,7 +606,17 @@ void AFortniteCloneCharacter::ShootGun() {
 				FRotator GunRotation = CurrentWeapon->GetActorRotation();
 				FVector GunForward = CurrentWeapon->GetActorForwardVector();
 				FVector BulletOffset = FVector(GunRotation.Roll, GunRotation.Pitch, GunRotation.Yaw);
-				AProjectileActor* Bullet = GetWorld()->SpawnActor<AProjectileActor>(CurrentWeapon->BulletClass, GetMesh()->GetSocketLocation(WeaponSocketName), GetMesh()->GetSocketRotation(WeaponSocketName));
+				FTransform SpawnTransform(GetMesh()->GetSocketRotation(WeaponSocketName), GetMesh()->GetSocketLocation(WeaponSocketName));
+				auto Bullet = Cast<AProjectileActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, CurrentWeapon->BulletClass, SpawnTransform));
+				if (Bullet != NULL)
+				{
+					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
+					Bullet->Weapon = CurrentWeapon;
+
+					UGameplayStatics::FinishSpawningActor(Bullet, SpawnTransform);
+				}
+				//AProjectileActor* Bullet = GetWorld()->SpawnActor<AProjectileActor>(CurrentWeapon->BulletClass, GetMesh()->GetSocketLocation(WeaponSocketName), GetMesh()->GetSocketRotation(WeaponSocketName));
+				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, CurrentWeapon->GetName());
 				//Bullet->GetRootComponent()->ComponentVelocity = FVector(0, 50, 50);
 				FVector ProjectileSpeed = FRotator(0, AnimationInstance->AimPitch, AnimationInstance->AimYaw).RotateVector(FVector(100, 0, 0));
 				Bullet->ProjectileMovementComponent->InitialSpeed = 1000.f;
