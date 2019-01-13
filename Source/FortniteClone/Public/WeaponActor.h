@@ -37,4 +37,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Bullet")
 	int MagazineSize; // Only applies to assault rifle and shotgun
+
+	UPROPERTY(EditDefaultsOnly, Category = "WeaponType")
+	int WeaponType; // 0 for pickaxe, 1 for assault rifle, 2 for shotgun
 };

@@ -21,6 +21,10 @@ class AFortniteCloneCharacter : public ACharacter
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
+
+	UPROPERTY(VisibleAnywhere, Category = "Trigger Capsule")
+	class UCapsuleComponent* TriggerCapsule;
+
 public:
 	AFortniteCloneCharacter();
 
@@ -61,10 +65,16 @@ public:
 	TArray<TSubclassOf<AWeaponActor>> WeaponClasses;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Shooting")
-	UAnimMontage* HipShootingAnimation;
+	UAnimMontage* RifleHipShootingAnimation;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Shooting")
-	UAnimMontage* IronsightsShootingAnimation;
+	UAnimMontage* RifleIronsightsShootingAnimation;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Shooting")
+	UAnimMontage* ShotgunHipShootingAnimation;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Shooting")
+	UAnimMontage* ShotgunIronsightsShootingAnimation;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Health")
 	float Health;
@@ -79,10 +89,6 @@ protected:
 
 	/** Called for side to side input */
 	void MoveRight(float Value);
-
-	/* Picks up an item if it is close enough */
-	UFUNCTION()
-	void PickUpItem();
 
 	/* Start  and stop sprinting */
 	UFUNCTION()
@@ -132,7 +138,7 @@ protected:
 	AWeaponActor* CurrentWeapon;
 
 	/* Index of the class in array to spawn the weapon */
-	int CurrentWeaponIndex; // 0 for pickaxe, 1 for assault rifle
+	int CurrentWeaponType; // 0 for pickaxe, 1 for assault rifle, 2 for shotgun
 
 	/** 
 	 * Called via input to turn at a given rate. 
@@ -170,5 +176,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	// Override playanimmontage to use pawn mesh
 	virtual float PlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None) override;
+	/* called when character touches something with its body */
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
 };
 

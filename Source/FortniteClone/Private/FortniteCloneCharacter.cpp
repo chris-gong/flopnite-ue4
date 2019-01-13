@@ -23,6 +23,13 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
+	// Set up capsule component for detecting overlap
+	TriggerCapsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Trigger Capsule"));
+	TriggerCapsule->InitCapsuleSize(42.f, 96.0f);;
+	TriggerCapsule->SetCollisionProfileName(TEXT("Trigger"));
+	TriggerCapsule->SetupAttachment(RootComponent);
+	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &AFortniteCloneCharacter::OnOverlapBegin);
+
 	// set our turn rates for input
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
@@ -49,7 +56,7 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
-	CurrentWeaponIndex = 0;
+	CurrentWeaponType = 0;
 	BuildingPreview = NULL;
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
@@ -70,7 +77,6 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAxis("MoveRight", this, &AFortniteCloneCharacter::MoveRight);
 	PlayerInputComponent->BindAxis("Sprint", this, &AFortniteCloneCharacter::Sprint);
 
-	PlayerInputComponent->BindAction("PickUpItem", IE_Pressed, this, &AFortniteCloneCharacter::PickUpItem);
 	PlayerInputComponent->BindAction("Walk", IE_Pressed, this, &AFortniteCloneCharacter::StartWalking);
 	PlayerInputComponent->BindAction("Walk", IE_Released, this, &AFortniteCloneCharacter::StopWalking);
 	PlayerInputComponent->BindAction("PreviewWall", IE_Pressed, this, &AFortniteCloneCharacter::PreviewWall);
@@ -99,10 +105,10 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 
 void AFortniteCloneCharacter::BeginPlay() {
 	Super::BeginPlay();
-	if (WeaponClasses[CurrentWeaponIndex]) {
+	if (WeaponClasses[CurrentWeaponType]) {
 		FName WeaponSocketName = TEXT("hand_right_socket");
 		FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
-		CurrentWeapon = GetWorld()->SpawnActor<AWeaponActor>(WeaponClasses[CurrentWeaponIndex], GetActorLocation(), GetActorRotation());
+		CurrentWeapon = GetWorld()->SpawnActor<AWeaponActor>(WeaponClasses[CurrentWeaponType], GetActorLocation(), GetActorRotation());
 		UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 		WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
 		CurrentWeapon->Holder = this;
@@ -159,6 +165,56 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 
 		Animation->AimPitch = NewPitch;
 		Animation->AimYaw = NewYaw;
+	}
+}
+
+void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
+	if (OtherActor != NULL && OtherActor != this) {
+		if (CurrentWeapon != NULL && OtherActor == (AActor*) CurrentWeapon) {
+			// if the character is overlapping with its weapon, dont do anything about it
+			return;
+		}
+		if (OtherActor->IsA(AWeaponActor::StaticClass())) {
+			AWeaponActor* WeaponActor = Cast<AWeaponActor>(OtherActor);
+			if (WeaponActor->WeaponType == 0) {
+				return; // do nothing if it's a pickaxe
+			}
+			if (WeaponActor->Holder != NULL) {
+				return; // do nothing if someone is holding the weapon
+			}
+			// pick up the item if the two conditions above are false
+			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+			if (State->InBuildMode) {
+				return; // can't pick up items while in build mode
+			}
+			// if the player already has a weapon of this type, do not equip it
+			if (State->EquippedWeapons.Contains(WeaponActor->WeaponType)) {
+				return;
+			}
+			// Destroy old weapon
+			CurrentWeapon->Destroy();
+			// PICK UP WEAPON
+			FName WeaponSocketName = TEXT("hand_right_socket");
+			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+
+			CurrentWeapon = WeaponActor;
+			CurrentWeaponType = WeaponActor->WeaponType;
+			CurrentWeapon->Holder = this;
+			UStaticMeshComponent* OutHitStaticMeshComponent = Cast<UStaticMeshComponent>(WeaponActor->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+			OutHitStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
+
+			if (State) {
+				State->HoldingWeapon = true;
+				State->EquippedWeapons.Add(WeaponActor->WeaponType);
+				State->CurrentWeapon = WeaponActor->WeaponType;
+				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+				if (Animation) {
+					Animation->HoldingWeapon = true;
+					Animation->HoldingWeaponType = 1;
+				}
+			}
+		}
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
 	}
 }
 
@@ -238,53 +294,6 @@ void AFortniteCloneCharacter::MoveRight(float Value)
 		//set blend space variable
 		Animation->WalkingX = Value * 90;
 		Animation->RunningX = Value * 90;
-	}
-}
-
-void AFortniteCloneCharacter::PickUpItem() {
-	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-	if (State->InBuildMode) {
-		return; // can't pick up items while in build mode
-	}
-	FHitResult OutHit;
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "e key pressed wut");
-	bool SomethingFound = GetWorld()->LineTraceSingleByChannel(OutHit, GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 500, ECC_WorldStatic, Params);
-	if (SomethingFound) {
-		if (OutHit.GetActor()->IsA(AWeaponActor::StaticClass())) {
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "plz god");
-			// Destroy old weapon
-			CurrentWeapon->Destroy();
-			// PICK UP WEAPON
-			FName WeaponSocketName = TEXT("hand_right_socket");
-			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
-
-			//FRotator OutHitActorRotation = OutHit.GetActor()->GetActorRotation();
-			//OutHitActorRotation.Roll += 90.0;
-			//OutHitActorRotation.Pitch += 90.0;
-			//OutHitActorRotation.Yaw += 90;
-			//OutHit.GetActor()->SetActorRotation(OutHitActorRotation);
-			CurrentWeapon = Cast<AWeaponActor>(OutHit.GetActor());
-			CurrentWeaponIndex = 1;
-			UStaticMeshComponent* OutHitStaticMeshComponent = Cast<UStaticMeshComponent>(OutHit.GetActor()->GetComponentByClass(UStaticMeshComponent::StaticClass()));
-			OutHitStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
-			CurrentWeapon->Holder = this;
-
-			if (State) {
-				State->HoldingWeapon = true;
-				State->EquippedWeapons.Add(1); // need to change this for different weapons
-				State->CurrentWeapon = 1;
-				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-				if (Animation) {
-					Animation->HoldingWeapon = true;
-					Animation->HoldingWeaponType = 1;
-				}
-			}
-
-		}
-		FString text = FString("Found ") + OutHit.GetActor()->GetName();
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, text);
 	}
 }
 
@@ -373,13 +382,22 @@ void AFortniteCloneCharacter::PreviewWall() {
 				BuildingPreview->Destroy(); //destroy the last wall preview
 			}
 			// equip weapon being held before
-			if (WeaponClasses[CurrentWeaponIndex]) {
+			if (WeaponClasses[CurrentWeaponType]) {
 				FName WeaponSocketName = TEXT("hand_right_socket");
 				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
-				CurrentWeapon = GetWorld()->SpawnActor<AWeaponActor>(WeaponClasses[CurrentWeaponIndex], GetActorLocation(), GetActorRotation());
+
+				FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
+				CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[CurrentWeaponType], SpawnTransform));
+				if (CurrentWeapon != NULL)
+				{
+					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
+					CurrentWeapon->Holder = this;
+
+					UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
+				}
+
 				UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 				WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
-				CurrentWeapon->Holder = this;
 				
 				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 				if (Animation) {
@@ -432,13 +450,22 @@ void AFortniteCloneCharacter::PreviewRamp() {
 				BuildingPreview->Destroy(); //destroy the last wall preview
 			}
 			// equip weapon being held before
-			if (WeaponClasses[CurrentWeaponIndex]) {
+			if (WeaponClasses[CurrentWeaponType]) {
 				FName WeaponSocketName = TEXT("hand_right_socket");
 				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
-				CurrentWeapon = GetWorld()->SpawnActor<AWeaponActor>(WeaponClasses[CurrentWeaponIndex], GetActorLocation(), GetActorRotation());
+
+				FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
+				CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[CurrentWeaponType], SpawnTransform));
+				if (CurrentWeapon != NULL)
+				{
+					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
+					CurrentWeapon->Holder = this;
+
+					UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
+				}
+
 				UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 				WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
-				CurrentWeapon->Holder = this;
 
 				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 				if (Animation) {
@@ -490,13 +517,22 @@ void AFortniteCloneCharacter::PreviewFloor() {
 				BuildingPreview->Destroy(); //destroy the last wall preview
 			}
 			// equip weapon being held before
-			if (WeaponClasses[CurrentWeaponIndex]) {
+			if (WeaponClasses[CurrentWeaponType]) {
 				FName WeaponSocketName = TEXT("hand_right_socket");
 				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
-				CurrentWeapon = GetWorld()->SpawnActor<AWeaponActor>(WeaponClasses[CurrentWeaponIndex], GetActorLocation(), GetActorRotation());
+
+				FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
+				CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[CurrentWeaponType], SpawnTransform));
+				if (CurrentWeapon != NULL)
+				{
+					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
+					CurrentWeapon->Holder = this;
+
+					UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
+				}
+
 				UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 				WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
-				CurrentWeapon->Holder = this;
 
 				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 				if (Animation) {
@@ -596,10 +632,20 @@ void AFortniteCloneCharacter::ShootGun() {
 			UThirdPersonAnimInstance* AnimationInstance = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 			if (Animation && AnimationInstance) {
 				if (State->AimedIn) {
-					PlayAnimMontage(IronsightsShootingAnimation);
+					if (State->CurrentWeapon == 1) {
+						PlayAnimMontage(RifleIronsightsShootingAnimation);
+					}
+					else if (State->CurrentWeapon == 2) {
+						PlayAnimMontage(ShotgunIronsightsShootingAnimation);
+					}
 				}
 				else {
-					PlayAnimMontage(HipShootingAnimation);
+					if (State->CurrentWeapon == 1) {
+						PlayAnimMontage(RifleHipShootingAnimation);
+					}
+					else if (State->CurrentWeapon == 2) {
+						PlayAnimMontage(ShotgunHipShootingAnimation);
+					}
 
 				}
 				FName WeaponSocketName = TEXT("hand_right_socket");
@@ -615,12 +661,6 @@ void AFortniteCloneCharacter::ShootGun() {
 
 					UGameplayStatics::FinishSpawningActor(Bullet, SpawnTransform);
 				}
-				//AProjectileActor* Bullet = GetWorld()->SpawnActor<AProjectileActor>(CurrentWeapon->BulletClass, GetMesh()->GetSocketLocation(WeaponSocketName), GetMesh()->GetSocketRotation(WeaponSocketName));
-				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, CurrentWeapon->GetName());
-				//Bullet->GetRootComponent()->ComponentVelocity = FVector(0, 50, 50);
-				FVector ProjectileSpeed = FRotator(0, AnimationInstance->AimPitch, AnimationInstance->AimYaw).RotateVector(FVector(100, 0, 0));
-				Bullet->ProjectileMovementComponent->InitialSpeed = 1000.f;
-				Bullet->ProjectileMovementComponent->MaxSpeed = 1000.f;
 			}
 
 		}

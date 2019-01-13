@@ -21,8 +21,8 @@ public:
 	FString BuildMode;
 	bool HoldingWeapon;
 	bool AimedIn;
-	TArray<int> EquippedWeapons; //0 for pickaxe, 1 for assault rifle
-	int CurrentWeapon;
+	TArray<int> EquippedWeapons; //0 for pickaxe, 1 for assault rifle, 2 for shotgun
+	int CurrentWeapon; //0 for pickaxe, 1 for assault rifle, 2 for shotgun
 
 protected:
 
