@@ -120,6 +120,7 @@ void AFortniteCloneCharacter::BeginPlay() {
 			Animation->AimedIn = false;
 			Animation->HoldingWeaponType = 1;
 			State->HoldingWeapon = true;
+			State->CurrentWeapon = 0;
 		}
 	}
 }
@@ -627,7 +628,7 @@ void AFortniteCloneCharacter::ShootGun() {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "shoot gun key pressed");
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (State) {
-		if (State->HoldingWeapon && State->CurrentWeapon != 0) {
+		if (State->HoldingWeapon) {
 			UAnimInstance* Animation = GetMesh()->GetAnimInstance();
 			UThirdPersonAnimInstance* AnimationInstance = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 			if (Animation && AnimationInstance) {
@@ -640,6 +641,9 @@ void AFortniteCloneCharacter::ShootGun() {
 					}
 				}
 				else {
+					if (State->CurrentWeapon == 0) {
+						PlayAnimMontage(PickaxeSwingingAnimation);
+					}
 					if (State->CurrentWeapon == 1) {
 						PlayAnimMontage(RifleHipShootingAnimation);
 					}
@@ -649,10 +653,12 @@ void AFortniteCloneCharacter::ShootGun() {
 
 				}
 				FName WeaponSocketName = TEXT("hand_right_socket");
-				FRotator GunRotation = CurrentWeapon->GetActorRotation();
-				FVector GunForward = CurrentWeapon->GetActorForwardVector();
-				FVector BulletOffset = FVector(GunRotation.Roll, GunRotation.Pitch, GunRotation.Yaw);
-				FTransform SpawnTransform(GetMesh()->GetSocketRotation(WeaponSocketName), GetMesh()->GetSocketLocation(WeaponSocketName));
+				FVector BulletLocation = GetMesh()->GetSocketLocation(WeaponSocketName);
+				FRotator BulletRotation = GetMesh()->GetSocketRotation(WeaponSocketName);
+				/*if (State->CurrentWeapon == 0) {
+					BulletRotation = GetActorRotation();
+				}*/
+				FTransform SpawnTransform(BulletRotation, BulletLocation);
 				auto Bullet = Cast<AProjectileActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, CurrentWeapon->BulletClass, SpawnTransform));
 				if (Bullet != NULL)
 				{
@@ -665,6 +671,10 @@ void AFortniteCloneCharacter::ShootGun() {
 
 		}
 	}
+}
+
+void AFortniteCloneCharacter::UseBandage() {
+
 }
 
 void AFortniteCloneCharacter::AimGunIn() {

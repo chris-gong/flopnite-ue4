@@ -76,8 +76,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Shooting")
 	UAnimMontage* ShotgunIronsightsShootingAnimation;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Pickaxe")
+	UAnimMontage* PickaxeSwingingAnimation;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Health")
 	float Health;
+
+	/* The current weapon being held */
+	AWeaponActor* CurrentWeapon;
 
 protected:
 
@@ -121,9 +127,13 @@ protected:
 	UFUNCTION()
 	void BuildStructure();
 
-	/* Set the animation variable as well as shoot a very small projectile from the gun*/
+	/* Set the animation variable as well as shoot a very small projectile from the gun or pickaxe*/
 	UFUNCTION()
 	void ShootGun();
+
+	/* Set the animation variable as well as shoot a very small projectile from the gun*/
+	UFUNCTION()
+	void UseBandage();
 
 	UFUNCTION()
 	void AimGunIn();
@@ -133,9 +143,6 @@ protected:
 
 	/* Current preview of wall to be built in build mode */
 	ABuildingActor* BuildingPreview;
-
-	/* The current weapon being held */
-	AWeaponActor* CurrentWeapon;
 
 	/* Index of the class in array to spawn the weapon */
 	int CurrentWeaponType; // 0 for pickaxe, 1 for assault rifle, 2 for shotgun

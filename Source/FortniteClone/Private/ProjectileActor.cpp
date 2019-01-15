@@ -58,6 +58,7 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 					AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(WeaponActor->Holder);
 					FortniteCloneCharacter->Health -= Damage;
 					if (FortniteCloneCharacter->Health <= 0) {
+						FortniteCloneCharacter->CurrentWeapon->Destroy();
 						FortniteCloneCharacter->Destroy();
 					}
 					Destroy();
@@ -81,6 +82,7 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 				AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(OtherActor);
 				FortniteCloneCharacter->Health -= Damage;
 				if (FortniteCloneCharacter->Health <= 0) {
+					FortniteCloneCharacter->CurrentWeapon->Destroy();
 					FortniteCloneCharacter->Destroy();
 				}
 				Destroy();

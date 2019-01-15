@@ -32,9 +32,6 @@ public:
 
 	AFortniteCloneCharacter* Holder;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Damage")
-	float Damage; // Only applies for pickaxe
-
 	UPROPERTY(EditDefaultsOnly, Category = "Bullet")
 	int MagazineSize; // Only applies to assault rifle and shotgun
 
