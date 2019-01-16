@@ -23,7 +23,9 @@ public:
 	bool HoldingBandage;
 	bool AimedIn;
 	TArray<int> EquippedWeapons; //0 for pickaxe, 1 for assault rifle, 2 for shotgun
-	int CurrentWeapon; //0 for pickaxe, 1 for assault rifle, 2 for shotgun
+	TArray<int> EquippedWeaponsAmmunition; //index 1 holds ammo for assault rifle, index 2 holds ammo for shotgun
+	int CurrentWeapon; //0 for pickaxe, 1 for assault rifle, 2 for shotgun, -1 for non weapons like bandages
+	int BandageCount;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
 	bool JustShotShotgun; // used to prevent player from spamming shotgun
 

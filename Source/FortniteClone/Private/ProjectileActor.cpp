@@ -5,6 +5,7 @@
 #include "WeaponActor.h"
 #include "FortniteCloneCharacter.h"
 #include "BuildingActor.h"
+#include "HealingActor.h"
 
 // Sets default values
 AProjectileActor::AProjectileActor()
@@ -58,8 +59,32 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 					AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(WeaponActor->Holder);
 					FortniteCloneCharacter->Health -= Damage;
 					if (FortniteCloneCharacter->Health <= 0) {
-						FortniteCloneCharacter->CurrentWeapon->Destroy();
-						FortniteCloneCharacter->Destroy();
+						if (WeaponActor) {
+							WeaponActor->Destroy();
+						}
+						if (FortniteCloneCharacter) {
+							FortniteCloneCharacter->Destroy();
+						}
+					}
+					Destroy();
+				}
+			}
+			else if (OtherActor->IsA(AHealingActor::StaticClass())) {
+				//if the healing item has no holder, then let the bullet keep going
+				AHealingActor* HealingActor = Cast<AHealingActor>(OtherActor);
+				if (HealingActor->Holder == NULL) {
+					return;
+				}
+				else {
+					AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(HealingActor->Holder);
+					FortniteCloneCharacter->Health -= Damage;
+					if (FortniteCloneCharacter->Health <= 0) {
+						if (HealingActor) {
+							HealingActor->Destroy();
+						}
+						if (FortniteCloneCharacter) {
+							FortniteCloneCharacter->Destroy();
+						}
 					}
 					Destroy();
 				}
@@ -73,7 +98,9 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 				else {
 					BuildingActor->Health -= Damage;
 					if (BuildingActor->Health <= 0) {
-						BuildingActor->Destroy();
+						if (BuildingActor) {
+							BuildingActor->Destroy();
+						}
 					}
 					Destroy();
 				}
@@ -82,8 +109,16 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 				AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(OtherActor);
 				FortniteCloneCharacter->Health -= Damage;
 				if (FortniteCloneCharacter->Health <= 0) {
-					FortniteCloneCharacter->CurrentWeapon->Destroy();
-					FortniteCloneCharacter->Destroy();
+
+					if (FortniteCloneCharacter && FortniteCloneCharacter->CurrentWeapon) {
+						FortniteCloneCharacter->CurrentWeapon->Destroy();
+					}
+					if (FortniteCloneCharacter && FortniteCloneCharacter->CurrentHealingItem) {
+						FortniteCloneCharacter->CurrentWeapon->Destroy();
+					}
+					if (FortniteCloneCharacter) {
+						FortniteCloneCharacter->Destroy();
+					}
 				}
 				Destroy();
 			}

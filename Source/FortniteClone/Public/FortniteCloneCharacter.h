@@ -8,6 +8,7 @@
 
 class ABuildingActor;
 class AWeaponActor;
+class AHealingActor;
 
 UCLASS(config=Game)
 class AFortniteCloneCharacter : public ACharacter
@@ -64,6 +65,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	TArray<TSubclassOf<AWeaponActor>> WeaponClasses;
 
+	/* Class for healing actor */
+	UPROPERTY(EditDefaultsOnly, Category = "Bandage")
+	TSubclassOf<AHealingActor> BandageClass;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Shooting")
 	UAnimMontage* RifleHipShootingAnimation;
 
@@ -79,11 +84,17 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Pickaxe")
 	UAnimMontage* PickaxeSwingingAnimation;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Pickaxe")
+	UAnimMontage* HealingAnimation;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Health")
 	float Health;
 
 	/* The current weapon being held */
 	AWeaponActor* CurrentWeapon;
+
+	/* The current healing item being held */
+	AHealingActor* CurrentHealingItem;
 
 protected:
 
@@ -149,11 +160,23 @@ protected:
 
 	UFUNCTION()
 	void ShotgunTimeOut();
+
+	UFUNCTION()
+	void HoldPickaxe();
+
+	UFUNCTION()
+	void HoldAssaultRifle();
+
+	UFUNCTION()
+	void HoldShotgun();
+
+	UFUNCTION()
+	void HoldBandage();
 	/* Current preview of wall to be built in build mode */
 	ABuildingActor* BuildingPreview;
 
 	/* Index of the class in array to spawn the weapon */
-	int CurrentWeaponType; // 0 for pickaxe, 1 for assault rifle, 2 for shotgun
+	int CurrentWeaponType; // 0 for pickaxe, 1 for assault rifle, 2 for shotgun, -1 for non weapon items
 
 	/** 
 	 * Called via input to turn at a given rate. 

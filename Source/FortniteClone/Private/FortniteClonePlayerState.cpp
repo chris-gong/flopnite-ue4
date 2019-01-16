@@ -8,8 +8,12 @@ AFortniteClonePlayerState::AFortniteClonePlayerState() {
 	HoldingWeapon = false;
 	HoldingBandage = false;
 	AimedIn = false;
-	EquippedWeapons.Add(0);
+	EquippedWeapons.Add(0); //pickaxe
+	EquippedWeaponsAmmunition.Add(0); // pickaxe
+	EquippedWeaponsAmmunition.Add(0); // assault rifle
+	EquippedWeaponsAmmunition.Add(0); // shotgun
 	CurrentWeapon = 0;
+	BandageCount = 0;
 	JustShotShotgun = false;
 	JustSwungPickaxe = false;
 	JustUsedBandage = false;

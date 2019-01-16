@@ -14,6 +14,7 @@
 #include "BuildingActor.h"
 #include "ThirdPersonAnimInstance.h"
 #include "ProjectileActor.h"
+#include "HealingActor.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AFortniteCloneCharacter
@@ -84,6 +85,11 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAction("PreviewFloor", IE_Pressed, this, &AFortniteCloneCharacter::PreviewFloor);
 	PlayerInputComponent->BindAction("BuildStructure", IE_Pressed, this, &AFortniteCloneCharacter::BuildStructure);
 	PlayerInputComponent->BindAction("ShootGun", IE_Pressed, this, &AFortniteCloneCharacter::ShootGun);
+	PlayerInputComponent->BindAction("UseBandage", IE_Pressed, this, &AFortniteCloneCharacter::UseBandage);
+	PlayerInputComponent->BindAction("HoldPickaxe", IE_Pressed, this, &AFortniteCloneCharacter::HoldPickaxe);
+	PlayerInputComponent->BindAction("HoldAssaultRifle", IE_Pressed, this, &AFortniteCloneCharacter::HoldAssaultRifle);
+	PlayerInputComponent->BindAction("HoldShotgun", IE_Pressed, this, &AFortniteCloneCharacter::HoldShotgun);
+	PlayerInputComponent->BindAction("HoldBandage", IE_Pressed, this, &AFortniteCloneCharacter::HoldBandage);
 	PlayerInputComponent->BindAction("Ironsights", IE_Pressed, this, &AFortniteCloneCharacter::AimGunIn);
 	PlayerInputComponent->BindAction("Ironsights", IE_Released, this, &AFortniteCloneCharacter::AimGunOut);
 
@@ -192,26 +198,70 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 			if (State->EquippedWeapons.Contains(WeaponActor->WeaponType)) {
 				return;
 			}
-			// Destroy old weapon
-			CurrentWeapon->Destroy();
+			// Destroy old weapon/healing item
+			if (CurrentWeapon) {
+				CurrentWeapon->Destroy();
+			}
+			if (CurrentHealingItem) {
+				CurrentHealingItem->Destroy();
+				CurrentHealingItem = NULL;
+			}
+
 			// PICK UP WEAPON
-			FName WeaponSocketName = TEXT("hand_right_socket");
+			FName BandageSocketName = TEXT("hand_right_socket");
 			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 
 			CurrentWeapon = WeaponActor;
 			CurrentWeaponType = WeaponActor->WeaponType;
 			CurrentWeapon->Holder = this;
 			UStaticMeshComponent* OutHitStaticMeshComponent = Cast<UStaticMeshComponent>(WeaponActor->GetComponentByClass(UStaticMeshComponent::StaticClass()));
-			OutHitStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
+			OutHitStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, BandageSocketName);
 
 			if (State) {
 				State->HoldingWeapon = true;
+				State->HoldingBandage = false;
 				State->EquippedWeapons.Add(WeaponActor->WeaponType);
 				State->CurrentWeapon = WeaponActor->WeaponType;
 				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 				if (Animation) {
 					Animation->HoldingWeapon = true;
 					Animation->HoldingWeaponType = 1;
+				}
+			}
+		}
+		else if (OtherActor->IsA(AHealingActor::StaticClass())) {
+			//pick up the item
+			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+			CurrentHealingItem = Cast<AHealingActor>(OtherActor);
+			if (CurrentHealingItem->Holder != NULL) {
+				return; // do nothing if someone is holding the weapon
+			}
+			if (State->InBuildMode) {
+				return; // can't pick up items while in build mode
+			}
+			// Destroy old weapon
+			if (CurrentWeapon) {
+				CurrentWeapon->Destroy();
+			}
+			// PICK UP BANDAGE
+			FName BandageSocketName = TEXT("hand_left_socket");
+			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+
+			CurrentWeapon = NULL;
+			CurrentWeaponType = -1;
+			CurrentHealingItem->Holder = this;
+			UStaticMeshComponent* OutHitStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentHealingItem->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+			OutHitStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, BandageSocketName);
+
+			if (State) {
+				State->HoldingWeapon = false;
+				State->HoldingBandage = true;
+				State->BandageCount++;
+				State->CurrentWeapon = -1;
+				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+				if (Animation) {
+					Animation->HoldingWeapon = false;
+					Animation->HoldingWeaponType = 0;
 				}
 			}
 		}
@@ -259,6 +309,12 @@ void AFortniteCloneCharacter::LookUpAtRate(float Rate)
 
 void AFortniteCloneCharacter::MoveForward(float Value)
 {
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	if (State) {
+		if (State->JustUsedBandage) {
+			return;
+		}
+	}
 	if ((Controller != NULL) && (Value != 0.0f))
 	{
 		// find out which way is forward
@@ -279,6 +335,12 @@ void AFortniteCloneCharacter::MoveForward(float Value)
 
 void AFortniteCloneCharacter::MoveRight(float Value)
 {
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	if (State) {
+		if (State->JustUsedBandage) {
+			return;
+		}
+	}
 	if ( (Controller != NULL) && (Value != 0.0f) )
 	{
 		// find out which way is right
@@ -375,6 +437,9 @@ void AFortniteCloneCharacter::PreviewWall() {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "x key pressed");
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (State) {
+		if (State->JustUsedBandage) {
+			return;
+		}
 		if (State->BuildMode == FString("Wall")) {
 			// getting out of build mode
 			State->InBuildMode = false;
@@ -383,7 +448,7 @@ void AFortniteCloneCharacter::PreviewWall() {
 				BuildingPreview->Destroy(); //destroy the last wall preview
 			}
 			// equip weapon being held before
-			if (WeaponClasses[CurrentWeaponType]) {
+			if (CurrentWeaponType > -1 && CurrentWeaponType < 3) {
 				FName WeaponSocketName = TEXT("hand_right_socket");
 				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 
@@ -405,12 +470,36 @@ void AFortniteCloneCharacter::PreviewWall() {
 					Animation->HoldingWeapon = true;
 					Animation->AimedIn = false;
 					State->HoldingWeapon = true;
-					if (State->CurrentWeapon != 0) {
-						Animation->HoldingWeaponType = 1;
-					}
-					else {
-						Animation->HoldingWeaponType = 0;
-					}
+					State->HoldingBandage = false;
+					State->CurrentWeapon = CurrentWeaponType;
+					Animation->HoldingWeaponType = 1;
+				}
+			}
+			else {
+				//equip bandage since current weapon was null
+				FName BandageSocketName = TEXT("hand_left_socket");
+				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+
+				FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
+				auto CurrentHealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
+				if (CurrentHealingItem != NULL)
+				{
+					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
+					CurrentHealingItem->Holder = this;
+
+					UGameplayStatics::FinishSpawningActor(CurrentHealingItem, SpawnTransform);
+				}
+
+				UStaticMeshComponent* HealingItemStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentHealingItem->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+				HealingItemStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, BandageSocketName);
+
+				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+				if (Animation) {
+					Animation->HoldingWeapon = false;
+					Animation->AimedIn = false;
+					State->HoldingWeapon = false;
+					State->HoldingBandage = true;
+					Animation->HoldingWeaponType = 0;
 				}
 			}
 		}
@@ -423,6 +512,7 @@ void AFortniteCloneCharacter::PreviewWall() {
 			State->InBuildMode = true;
 			State->BuildMode = FString("Wall");
 			State->HoldingWeapon = false;
+			State->HoldingBandage = false;
 			State->AimedIn = false;
 			UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 			if (Animation) {
@@ -430,9 +520,14 @@ void AFortniteCloneCharacter::PreviewWall() {
 				Animation->AimedIn = false;
 				Animation->HoldingWeaponType = 0;
 			}
-			// unequip weapon
+			// unequip weapon/healing item
 			if (CurrentWeapon) {
 				CurrentWeapon->Destroy();
+				CurrentWeapon = NULL;
+			}
+			if (CurrentHealingItem) {
+				CurrentHealingItem->Destroy();
+				CurrentHealingItem = NULL;
 			}
 		}
 	}
@@ -443,6 +538,9 @@ void AFortniteCloneCharacter::PreviewRamp() {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "c key presse2d");
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (State) {
+		if (State->JustUsedBandage) {
+			return;
+		}
 		if (State->BuildMode == FString("Ramp")) {
 			// getting out of build mode
 			State->InBuildMode = false;
@@ -451,7 +549,7 @@ void AFortniteCloneCharacter::PreviewRamp() {
 				BuildingPreview->Destroy(); //destroy the last wall preview
 			}
 			// equip weapon being held before
-			if (WeaponClasses[CurrentWeaponType]) {
+			if (CurrentWeaponType > -1 && CurrentWeaponType < 3) {
 				FName WeaponSocketName = TEXT("hand_right_socket");
 				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 
@@ -473,12 +571,36 @@ void AFortniteCloneCharacter::PreviewRamp() {
 					Animation->HoldingWeapon = true;
 					Animation->AimedIn = false;
 					State->HoldingWeapon = true;
-					if (State->CurrentWeapon != 0) {
-						Animation->HoldingWeaponType = 1;
-					}
-					else {
-						Animation->HoldingWeaponType = 0;
-					}
+					State->HoldingBandage = false;
+					State->CurrentWeapon = CurrentWeaponType;
+					Animation->HoldingWeaponType = 1;
+				}
+			}
+			else {
+				//equip bandage since current weapon was null
+				FName BandageSocketName = TEXT("hand_left_socket");
+				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+
+				FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
+				auto CurrentHealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
+				if (CurrentHealingItem != NULL)
+				{
+					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
+					CurrentHealingItem->Holder = this;
+
+					UGameplayStatics::FinishSpawningActor(CurrentHealingItem, SpawnTransform);
+				}
+
+				UStaticMeshComponent* HealingItemStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentHealingItem->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+				HealingItemStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, BandageSocketName);
+
+				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+				if (Animation) {
+					Animation->HoldingWeapon = false;
+					Animation->AimedIn = false;
+					State->HoldingWeapon = false;
+					State->HoldingBandage = true;
+					Animation->HoldingWeaponType = 0;
 				}
 			}
 		}
@@ -491,6 +613,7 @@ void AFortniteCloneCharacter::PreviewRamp() {
 			State->InBuildMode = true;
 			State->BuildMode = FString("Ramp");
 			State->HoldingWeapon = false;
+			State->HoldingBandage = false;
 			State->AimedIn = false;
 			UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 			if (Animation) {
@@ -498,9 +621,14 @@ void AFortniteCloneCharacter::PreviewRamp() {
 				Animation->AimedIn = false;
 				Animation->HoldingWeaponType = 0;
 			}
-			// unequip weapon
+			// unequip weapon/healing item
 			if (CurrentWeapon) {
 				CurrentWeapon->Destroy();
+				CurrentWeapon = NULL;
+			}
+			if (CurrentHealingItem) {
+				CurrentHealingItem->Destroy();
+				CurrentHealingItem = NULL;
 			}
 		}
 	}
@@ -510,6 +638,9 @@ void AFortniteCloneCharacter::PreviewFloor() {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "f key pressed");
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (State) {
+		if (State->JustUsedBandage) {
+			return;
+		}
 		if (State->BuildMode == FString("Floor")) {
 			// getting out of build mode
 			State->InBuildMode = false;
@@ -518,7 +649,7 @@ void AFortniteCloneCharacter::PreviewFloor() {
 				BuildingPreview->Destroy(); //destroy the last wall preview
 			}
 			// equip weapon being held before
-			if (WeaponClasses[CurrentWeaponType]) {
+			if (CurrentWeaponType > -1 && CurrentWeaponType < 3) {
 				FName WeaponSocketName = TEXT("hand_right_socket");
 				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 
@@ -541,12 +672,36 @@ void AFortniteCloneCharacter::PreviewFloor() {
 					Animation->AimedIn = false;
 					Animation->HoldingWeaponType = 1;
 					State->HoldingWeapon = true;
-					if (State->CurrentWeapon != 0) {
-						Animation->HoldingWeaponType = 1;
-					}
-					else {
-						Animation->HoldingWeaponType = 0;
-					}
+					State->HoldingBandage = false;
+					State->CurrentWeapon = CurrentWeaponType;
+					Animation->HoldingWeaponType = 1;
+				}
+			}
+			else {
+				//equip bandage since current weapon was null
+				FName BandageSocketName = TEXT("hand_left_socket");
+				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+
+				FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
+				auto CurrentHealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
+				if (CurrentHealingItem != NULL)
+				{
+					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
+					CurrentHealingItem->Holder = this;
+
+					UGameplayStatics::FinishSpawningActor(CurrentHealingItem, SpawnTransform);
+				}
+
+				UStaticMeshComponent* HealingItemStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentHealingItem->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+				HealingItemStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, BandageSocketName);
+
+				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+				if (Animation) {
+					Animation->HoldingWeapon = false;
+					Animation->AimedIn = false;
+					State->HoldingWeapon = false;
+					State->HoldingBandage = true;
+					Animation->HoldingWeaponType = 0;
 				}
 			}
 		}
@@ -559,6 +714,7 @@ void AFortniteCloneCharacter::PreviewFloor() {
 			State->InBuildMode = true;
 			State->BuildMode = FString("Floor");
 			State->HoldingWeapon = false;
+			State->HoldingBandage = false;
 			State->AimedIn = false;
 			UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 			if (Animation) {
@@ -566,9 +722,14 @@ void AFortniteCloneCharacter::PreviewFloor() {
 				Animation->AimedIn = false;
 				Animation->HoldingWeaponType = 0;
 			}
-			// unequip weapon
+			// unequip weapon/healing item
 			if (CurrentWeapon) {
 				CurrentWeapon->Destroy();
+				CurrentWeapon = NULL;
+			}
+			if (CurrentHealingItem) {
+				CurrentHealingItem->Destroy();
+				CurrentHealingItem = NULL;
 			}
 		}
 	}
@@ -654,7 +815,7 @@ void AFortniteCloneCharacter::ShootGun() {
 						PlayAnimMontage(PickaxeSwingingAnimation);
 						State->JustSwungPickaxe = true;
 						FTimerHandle PickaxeTimerHandle;
-						GetWorldTimerManager().SetTimer(PickaxeTimerHandle, this, &AFortniteCloneCharacter::PickaxeTimeOut, 0.6f, false);
+						GetWorldTimerManager().SetTimer(PickaxeTimerHandle, this, &AFortniteCloneCharacter::PickaxeTimeOut, 0.603f, false);
 					}
 					if (State->CurrentWeapon == 1) {
 						PlayAnimMontage(RifleHipShootingAnimation);
@@ -692,7 +853,24 @@ void AFortniteCloneCharacter::ShootGun() {
 }
 
 void AFortniteCloneCharacter::UseBandage() {
-
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	if (State && State->HoldingBandage) {
+		if (State->BandageCount < 1) {
+			return; // player has no bandages to use
+		}
+		UAnimInstance* Animation = GetMesh()->GetAnimInstance();
+		UThirdPersonAnimInstance* AnimationInstance = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+		if (Animation && AnimationInstance) {
+			if (State->JustUsedBandage) {
+				return;
+			}
+			PlayAnimMontage(HealingAnimation);
+			State->JustUsedBandage = true;
+			State->BandageCount--;
+			FTimerHandle BandageTimerHandle;
+			GetWorldTimerManager().SetTimer(BandageTimerHandle, this, &AFortniteCloneCharacter::BandageTimeOut, 3.321f, false);
+		}
+	}
 }
 
 void AFortniteCloneCharacter::AimGunIn() {
@@ -730,6 +908,190 @@ void AFortniteCloneCharacter::ShotgunTimeOut() {
 }
 
 void AFortniteCloneCharacter::BandageTimeOut() {
+	if (Health < 100) {
+		if (Health + 15 > 100) {
+			Health = 100;
+		}
+		else {
+			Health += 15;
+		}
+	}
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	State->JustUsedBandage = false;
+}
+
+void AFortniteCloneCharacter::HoldPickaxe() {
+	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	if (Animation && State) {
+		if (State->CurrentWeapon == 0 || State->JustUsedBandage) {
+			return; // already holding the pickaxe or currently healing
+		}
+		else {
+			if (CurrentWeapon) {
+				CurrentWeapon->Destroy();
+			}
+			if (CurrentHealingItem) {
+				CurrentHealingItem->Destroy();
+				CurrentHealingItem = NULL;
+			}
+			FName WeaponSocketName = TEXT("hand_right_socket");
+			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+
+			FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
+			CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[0], SpawnTransform));
+			if (CurrentWeapon != NULL)
+			{
+				//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
+				CurrentWeapon->Holder = this;
+
+				UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
+			}
+			CurrentWeaponType = 0;
+			UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+			WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
+
+			UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+			if (Animation) {
+				Animation->HoldingWeapon = true;
+				Animation->AimedIn = false;
+				Animation->HoldingWeaponType = 1;
+				State->HoldingWeapon = true;
+				State->HoldingBandage = false;
+				State->CurrentWeapon = 0;
+				Animation->HoldingWeaponType = 1;
+			}
+		}
+	}
+}
+
+void AFortniteCloneCharacter::HoldAssaultRifle() {
+	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	if (Animation && State) {
+		if (State->CurrentWeapon == 1 || !State->EquippedWeapons.Contains(1) || State->JustUsedBandage) {
+			return; // already holding the assault rifle or doesn't have one or is currently healing
+		}
+		else {
+			if (CurrentWeapon) {
+				CurrentWeapon->Destroy();
+			}
+			if (CurrentHealingItem) {
+				CurrentHealingItem->Destroy();
+				CurrentHealingItem = NULL;
+			}
+			FName WeaponSocketName = TEXT("hand_right_socket");
+			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+
+			FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
+			CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[1], SpawnTransform));
+			if (CurrentWeapon != NULL)
+			{
+				//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
+				CurrentWeapon->Holder = this;
+
+				UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
+			}
+			CurrentWeaponType = 1;
+			UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+			WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
+
+			UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+			if (Animation) {
+				Animation->HoldingWeapon = true;
+				Animation->AimedIn = false;
+				Animation->HoldingWeaponType = 1;
+				State->HoldingWeapon = true;
+				State->HoldingBandage = false;
+				State->CurrentWeapon = 1;
+				Animation->HoldingWeaponType = 1;
+			}
+		}
+	}
+}
+
+void AFortniteCloneCharacter::HoldShotgun() {
+	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	if (Animation && State) {
+		if (State->CurrentWeapon == 2 || !State->EquippedWeapons.Contains(2) || State->JustUsedBandage) {
+			return; // already holding the pickaxe or doesn't have one or is currently healing
+		}
+		else {
+			if (CurrentWeapon) {
+				CurrentWeapon->Destroy();
+			}
+			if (CurrentHealingItem) {
+				CurrentHealingItem->Destroy();
+				CurrentHealingItem = NULL;
+			}
+			FName WeaponSocketName = TEXT("hand_right_socket");
+			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+
+			FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
+			CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[2], SpawnTransform));
+			if (CurrentWeapon != NULL)
+			{
+				//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
+				CurrentWeapon->Holder = this;
+
+				UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
+			}
+			CurrentWeaponType = 2;
+			UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+			WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
+
+			UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+			if (Animation) {
+				Animation->HoldingWeapon = true;
+				Animation->AimedIn = false;
+				Animation->HoldingWeaponType = 1;
+				State->HoldingWeapon = true;
+				State->HoldingBandage = false;
+				State->CurrentWeapon = 2;
+				Animation->HoldingWeaponType = 1;
+			}
+		}
+	}
+}
+
+void AFortniteCloneCharacter::HoldBandage() {
+	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	if (Animation && State) {
+		if (CurrentWeaponType == -1) {
+			return; // already holding the bandages
+		}
+		else {
+			if (CurrentWeapon) {
+				CurrentWeapon->Destroy();
+			}
+			FName BandageSocketName = TEXT("hand_left_socket");
+			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+
+			FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
+			CurrentHealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
+			if (CurrentHealingItem != NULL)
+			{
+				//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
+				CurrentHealingItem->Holder = this;
+
+				UGameplayStatics::FinishSpawningActor(CurrentHealingItem, SpawnTransform);
+			}
+			CurrentWeaponType = -1;
+			UStaticMeshComponent* HealingItemStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentHealingItem->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+			HealingItemStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, BandageSocketName);
+
+			UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+			if (Animation) {
+				Animation->HoldingWeapon = false;
+				Animation->AimedIn = false;
+				Animation->HoldingWeaponType = 0;
+				State->HoldingWeapon = false;
+				State->HoldingBandage = true;
+				State->CurrentWeapon = -1;
+				Animation->HoldingWeaponType = 0;
+			}
+		}
+	}
 }
