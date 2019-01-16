@@ -20,9 +20,18 @@ public:
 	bool InBuildMode;
 	FString BuildMode;
 	bool HoldingWeapon;
+	bool HoldingBandage;
 	bool AimedIn;
 	TArray<int> EquippedWeapons; //0 for pickaxe, 1 for assault rifle, 2 for shotgun
 	int CurrentWeapon; //0 for pickaxe, 1 for assault rifle, 2 for shotgun
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
+	bool JustShotShotgun; // used to prevent player from spamming shotgun
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
+	bool JustSwungPickaxe; //used to prevent player from spamming pickaxe
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
+	bool JustUsedBandage; //used to prevent player from spamming bandage
 
 protected:
 

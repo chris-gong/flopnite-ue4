@@ -637,18 +637,36 @@ void AFortniteCloneCharacter::ShootGun() {
 						PlayAnimMontage(RifleIronsightsShootingAnimation);
 					}
 					else if (State->CurrentWeapon == 2) {
+						if (State->JustShotShotgun) {
+							return;
+						}
 						PlayAnimMontage(ShotgunIronsightsShootingAnimation);
+						State->JustShotShotgun = true;
+						FTimerHandle ShotgunTimerHandle;
+						GetWorldTimerManager().SetTimer(ShotgunTimerHandle, this, &AFortniteCloneCharacter::ShotgunTimeOut, 1.3f, false);
 					}
 				}
 				else {
 					if (State->CurrentWeapon == 0) {
+						if (State->JustSwungPickaxe) {
+							return;
+						}
 						PlayAnimMontage(PickaxeSwingingAnimation);
+						State->JustSwungPickaxe = true;
+						FTimerHandle PickaxeTimerHandle;
+						GetWorldTimerManager().SetTimer(PickaxeTimerHandle, this, &AFortniteCloneCharacter::PickaxeTimeOut, 0.6f, false);
 					}
 					if (State->CurrentWeapon == 1) {
 						PlayAnimMontage(RifleHipShootingAnimation);
 					}
 					else if (State->CurrentWeapon == 2) {
+						if (State->JustShotShotgun) {
+							return;
+						}
 						PlayAnimMontage(ShotgunHipShootingAnimation);
+						State->JustShotShotgun = true;
+						FTimerHandle ShotgunTimerHandle;
+						GetWorldTimerManager().SetTimer(ShotgunTimerHandle, this, &AFortniteCloneCharacter::ShotgunTimeOut, 1.3f, false);
 					}
 
 				}
@@ -699,4 +717,19 @@ void AFortniteCloneCharacter::AimGunOut() {
 		GetCharacterMovement()->MaxWalkSpeed = 400.0;
 		State->AimedIn = false;
 	}
+}
+
+void AFortniteCloneCharacter::PickaxeTimeOut() {
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	State->JustSwungPickaxe = false;
+}
+
+void AFortniteCloneCharacter::ShotgunTimeOut() {
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	State->JustShotShotgun = false;
+}
+
+void AFortniteCloneCharacter::BandageTimeOut() {
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	State->JustUsedBandage = false;
 }

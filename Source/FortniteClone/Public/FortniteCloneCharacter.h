@@ -141,6 +141,14 @@ protected:
 	UFUNCTION()
 	void AimGunOut();
 
+	UFUNCTION()
+	void BandageTimeOut();
+
+	UFUNCTION()
+	void PickaxeTimeOut();
+
+	UFUNCTION()
+	void ShotgunTimeOut();
 	/* Current preview of wall to be built in build mode */
 	ABuildingActor* BuildingPreview;
 

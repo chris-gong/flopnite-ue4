@@ -25,15 +25,6 @@ class UThirdPersonAnimInstance : public UAnimInstance
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
 	bool AimedIn;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
-	bool JustShotShotgun; // used to prevent player from spamming shotgun
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
-	bool JustSwungPickaxe; //used to prevent player from spamming pickaxe
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
-	bool JustUsedBandage; //used to prevent player from spamming bandage
-
 	/* Value for blend poses by int in blueprint */
 	/* 0 for not holding anything, 1 for holding weapon on hip, 2 for holding weapon aimed into ironsights */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
