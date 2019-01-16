@@ -583,43 +583,43 @@ void AFortniteCloneCharacter::BuildStructure() {
 			TArray<AActor*> OverlappingActors;
 			ABuildingActor* Wall = GetWorld()->SpawnActor<ABuildingActor>(WallClass, GetActorLocation() + (GetActorForwardVector() * 200) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
 
-			/*Wall->GetOverlappingActors(OverlappingActors);
+			Wall->GetOverlappingActors(OverlappingActors);
 
 			for (int i = 0; i < OverlappingActors.Num(); i++) {
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString(OverlappingActors[i]->GetName()));
+				//don't allow a player to build a structure that overlaps with another player
+				if (OverlappingActors[i]->IsA(AFortniteCloneCharacter::StaticClass())) {
+					Wall->Destroy();
+					break;
+				}
 			}
-
-			if (OverlappingActors.Num() == 0) {
-				Wall->Destroy();
-			}*/
 		}
 		else if (State->InBuildMode && State->BuildMode == FString("Ramp")) {
 			TArray<AActor*> OverlappingActors;
 			ABuildingActor* Ramp = GetWorld()->SpawnActor<ABuildingActor>(RampClass, GetActorLocation() + (GetActorForwardVector() * 100) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
 
-			/*Ramp->GetOverlappingActors(OverlappingActors);
+			Ramp->GetOverlappingActors(OverlappingActors);
 
 			for (int i = 0; i < OverlappingActors.Num(); i++) {
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString(OverlappingActors[i]->GetName()));
+				//don't allow a player to build a structure that overlaps with another player
+				if (OverlappingActors[i]->IsA(AFortniteCloneCharacter::StaticClass())) {
+					Ramp->Destroy();
+					break;
+				}
 			}
-
-			if (OverlappingActors.Num() == 0) {
-				Ramp->Destroy();
-			}*/
 		}
 		else if (State->InBuildMode && State->BuildMode == FString("Floor")) {
 			TArray<AActor*> OverlappingActors;
 			ABuildingActor* Floor = GetWorld()->SpawnActor<ABuildingActor>(FloorClass, GetActorLocation() + (GetActorForwardVector() * 120) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
 
-			/*Floor->GetOverlappingActors(OverlappingActors);
+			Floor->GetOverlappingActors(OverlappingActors);
 
 			for (int i = 0; i < OverlappingActors.Num(); i++) {
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString(OverlappingActors[i]->GetName()));
+				//don't allow a player to build a structure that overlaps with another player
+				if (OverlappingActors[i]->IsA(AFortniteCloneCharacter::StaticClass())) {
+					Floor->Destroy();
+					break;
+				}
 			}
-
-			if (OverlappingActors.Num() == 0) {
-				Floor->Destroy();
-			}*/
 		}
 	}
 }
