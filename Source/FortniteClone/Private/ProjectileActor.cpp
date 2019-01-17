@@ -18,7 +18,7 @@ AProjectileActor::AProjectileActor()
 	CollisionComp->SetCollisionProfileName("Projectile");
 	
 	RootComponent = CollisionComp;
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::SanitizeFloat(ProjectileSpeed));
+
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
 	ProjectileMovementComponent->UpdatedComponent = CollisionComp;
 	ProjectileMovementComponent->ProjectileGravityScale = 0.01;
