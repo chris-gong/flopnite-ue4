@@ -247,13 +247,16 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 				CurrentHealingItem->Destroy();
 				CurrentHealingItem = NULL;
 			}
+			
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
+			if (State->InBuildMode || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
+				return; // can't pick up items while in build mode or if just shot shotgun, swung pickaxe, used bandage, or reloaded
+			}
 			CurrentHealingItem = Cast<AHealingActor>(OtherActor);
 			if (CurrentHealingItem->Holder != NULL) {
 				return; // do nothing if someone is holding the weapon
 			}
-			if (State->InBuildMode || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
-				return; // can't pick up items while in build mode or if just shot shotgun, swung pickaxe, used bandage, or reloaded
-			}
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("didn't end early"));
 			// Destroy old weapon
 			if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
 				State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;

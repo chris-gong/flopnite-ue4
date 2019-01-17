@@ -22,8 +22,8 @@ AProjectileActor::AProjectileActor()
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
 	ProjectileMovementComponent->UpdatedComponent = CollisionComp;
 	ProjectileMovementComponent->ProjectileGravityScale = 0.01;
-	ProjectileMovementComponent->InitialSpeed = 35000.f;
-	ProjectileMovementComponent->MaxSpeed = 35000.f;
+	/*ProjectileMovementComponent->InitialSpeed = ProjectileSpeed;
+	ProjectileMovementComponent->MaxSpeed = ProjectileSpeed;*/
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
 }
 
