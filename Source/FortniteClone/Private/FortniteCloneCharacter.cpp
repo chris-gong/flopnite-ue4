@@ -1114,10 +1114,20 @@ void AFortniteCloneCharacter::HoldPickaxe() {
 	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (Animation && State) {
-		if (State->CurrentWeapon == 0 || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
-			return; // already holding the pickaxe or currently healing or currently reloading
+		if (State->CurrentWeapon == 0 && !State->InBuildMode) {
+			return; // currently holding a pickaxe while not in build mode
+		}
+		if (State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
+			return; // currently healing or currently reloading
 		}
 		else {
+			if (State->InBuildMode) {
+				State->InBuildMode = false;
+				State->BuildMode = FString("None");
+				if (BuildingPreview) {
+					BuildingPreview->Destroy(); //destroy the last wall preview
+				}
+			}
 			if (CurrentWeapon) {
 				State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
 				CurrentWeapon->Destroy();
@@ -1161,10 +1171,20 @@ void AFortniteCloneCharacter::HoldAssaultRifle() {
 	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (Animation && State) {
-		if (State->CurrentWeapon == 1 || !State->EquippedWeapons.Contains(1) || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
+		if (State->CurrentWeapon == 1 && !State->InBuildMode) {
+			return; // currently holding a assault rifle while not in build mode
+		}
+		if (!State->EquippedWeapons.Contains(1) || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
 			return; // already holding the assault rifle or doesn't have one or is currently healing or currently reloading
 		}
 		else {
+			if (State->InBuildMode) {
+				State->InBuildMode = false;
+				State->BuildMode = FString("None");
+				if (BuildingPreview) {
+					BuildingPreview->Destroy(); //destroy the last wall preview
+				}
+			}
 			if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
 				State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
 			}
@@ -1210,10 +1230,20 @@ void AFortniteCloneCharacter::HoldShotgun() {
 	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (Animation && State) {
-		if (State->CurrentWeapon == 2 || !State->EquippedWeapons.Contains(2) || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
+		if (State->CurrentWeapon == 2 && !State->InBuildMode) {
+			return; // currently holding a shotgun while not in build mode
+		}
+		if (State->CurrentWeapon == 2 || !State->EquippedWeapons.Contains(2) || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun && !State->InBuildMode) {
 			return; // already holding the pickaxe or doesn't have one or is currently healing or currently reloading
 		}
 		else {
+			if (State->InBuildMode) {
+				State->InBuildMode = false;
+				State->BuildMode = FString("None");
+				if (BuildingPreview) {
+					BuildingPreview->Destroy(); //destroy the last wall preview
+				}
+			}
 			if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
 				State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
 			}
@@ -1262,19 +1292,24 @@ void AFortniteCloneCharacter::HoldBandage() {
 		if (State->JustReloadedRifle || State->JustReloadedShotgun) {
 			return; //currently reloading weapons
 		}
-		if (CurrentWeaponType == -1) {
-			return; // already holding the bandages
+		if (CurrentWeaponType == -1 && !State->InBuildMode) {
+			return; // already holding the bandages while not in build mode
 		}
 		else {
+			if (State->InBuildMode) {
+				State->InBuildMode = false;
+				State->BuildMode = FString("None");
+				if (BuildingPreview) {
+					BuildingPreview->Destroy(); //destroy the last wall preview
+				}
+			}
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(CurrentWeaponType));
 			if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
 				State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
 			}
 			if (CurrentWeapon) {
 				CurrentWeapon->Destroy();
 				CurrentWeapon = NULL;
-			}
-			if (CurrentWeaponType > 0 && CurrentWeaponType < 3) {
-				State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
 			}
 			FName BandageSocketName = TEXT("hand_left_socket");
 			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
