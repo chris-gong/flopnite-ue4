@@ -44,6 +44,15 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	float Damage;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Lifespan")
+	float Lifespan; //used to distinguish range or projectile 
+
+	UPROPERTY(EditDefaultsOnly, Category = "Speed")
+	float ProjectileSpeed; //used to distinguish range or projectile 
+
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	int ProjectileType; // 0 for pickaxe, 1 for assault rifle, 2 for shotgun, will be used for determining the lifespan of the projectile
+
+	UFUNCTION()
+	void SelfDestruct();
 };

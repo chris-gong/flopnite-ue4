@@ -18,12 +18,12 @@ AProjectileActor::AProjectileActor()
 	CollisionComp->SetCollisionProfileName("Projectile");
 	
 	RootComponent = CollisionComp;
-
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::SanitizeFloat(ProjectileSpeed));
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
 	ProjectileMovementComponent->UpdatedComponent = CollisionComp;
 	ProjectileMovementComponent->ProjectileGravityScale = 0.01;
-	ProjectileMovementComponent->InitialSpeed = 4150000.f;
-	ProjectileMovementComponent->MaxSpeed = 4150000.f;
+	ProjectileMovementComponent->InitialSpeed = 35000.f;
+	ProjectileMovementComponent->MaxSpeed = 35000.f;
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
 }
 
@@ -32,6 +32,8 @@ void AProjectileActor::BeginPlay()
 {
 	Super::BeginPlay();
 	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AProjectileActor::OnOverlapBegin);	// set up a notification for when this component hits something blocking
+	FTimerHandle LifeTimerHandle;
+	GetWorldTimerManager().SetTimer(LifeTimerHandle, this, &AProjectileActor::SelfDestruct, Lifespan, false);
 }
 
 // Called every frame
@@ -133,4 +135,8 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 	}
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
 	//GetWorld()->DestroyActor(this);
+}
+
+void AProjectileActor::SelfDestruct() {
+	Destroy();
 }

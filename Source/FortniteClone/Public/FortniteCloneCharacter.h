@@ -84,8 +84,20 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Pickaxe")
 	UAnimMontage* PickaxeSwingingAnimation;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Pickaxe")
+	UPROPERTY(EditDefaultsOnly, Category = "Healing")
 	UAnimMontage* HealingAnimation;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Reload")
+	UAnimMontage* RifleHipReloadAnimation;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Reload")
+	UAnimMontage* ShotgunHipReloadAnimation;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Reload")
+	UAnimMontage* RifleIronsightsReloadAnimation;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Reload")
+	UAnimMontage* ShotgunIronsightsReloadAnimation;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Health")
 	float Health;
@@ -153,6 +165,9 @@ protected:
 	void AimGunOut();
 
 	UFUNCTION()
+	void Reload();
+
+	UFUNCTION()
 	void BandageTimeOut();
 
 	UFUNCTION()
@@ -160,6 +175,12 @@ protected:
 
 	UFUNCTION()
 	void ShotgunTimeOut();
+
+	UFUNCTION()
+	void RifleReloadTimeOut();
+
+	UFUNCTION()
+	void ShotgunReloadTimeOut();
 
 	UFUNCTION()
 	void HoldPickaxe();

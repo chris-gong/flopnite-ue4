@@ -12,9 +12,14 @@ AFortniteClonePlayerState::AFortniteClonePlayerState() {
 	EquippedWeaponsAmmunition.Add(0); // pickaxe
 	EquippedWeaponsAmmunition.Add(0); // assault rifle
 	EquippedWeaponsAmmunition.Add(0); // shotgun
+	EquippedWeaponsClips.Add(0); // pickaxe
+	EquippedWeaponsClips.Add(0); // assault rifle
+	EquippedWeaponsClips.Add(0); // shotgun
 	CurrentWeapon = 0;
 	BandageCount = 0;
 	JustShotShotgun = false;
 	JustSwungPickaxe = false;
 	JustUsedBandage = false;
+	JustReloadedRifle = false;
+	JustReloadedShotgun = false;
 }

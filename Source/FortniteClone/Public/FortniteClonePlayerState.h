@@ -24,16 +24,16 @@ public:
 	bool AimedIn;
 	TArray<int> EquippedWeapons; //0 for pickaxe, 1 for assault rifle, 2 for shotgun
 	TArray<int> EquippedWeaponsAmmunition; //index 1 holds ammo for assault rifle, index 2 holds ammo for shotgun
+	//below will be used primarily for keeping track of how many bullets in a clip while switching between guns and building
+	TArray<int> EquippedWeaponsClips; //index 1 holds current magazine clip count for assault rifle, index 2 holds current magazine clip count for shotgun
 	int CurrentWeapon; //0 for pickaxe, 1 for assault rifle, 2 for shotgun, -1 for non weapons like bandages
 	int BandageCount;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
+
 	bool JustShotShotgun; // used to prevent player from spamming shotgun
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
 	bool JustSwungPickaxe; //used to prevent player from spamming pickaxe
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
-	bool JustUsedBandage; //used to prevent player from spamming bandage
+	bool JustUsedBandage; //used to prevent player from spamming bandage and doing other things while reloadingreloa
+	bool JustReloadedRifle; //used to prevent player from doing other things while reloading
+	bool JustReloadedShotgun; //used to prevent player from doing other things while reloading
 
 protected:
 

@@ -15,6 +15,7 @@
 #include "ThirdPersonAnimInstance.h"
 #include "ProjectileActor.h"
 #include "HealingActor.h"
+#include "AmmunitionActor.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AFortniteCloneCharacter
@@ -86,6 +87,7 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAction("BuildStructure", IE_Pressed, this, &AFortniteCloneCharacter::BuildStructure);
 	PlayerInputComponent->BindAction("ShootGun", IE_Pressed, this, &AFortniteCloneCharacter::ShootGun);
 	PlayerInputComponent->BindAction("UseBandage", IE_Pressed, this, &AFortniteCloneCharacter::UseBandage);
+	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AFortniteCloneCharacter::Reload);
 	PlayerInputComponent->BindAction("HoldPickaxe", IE_Pressed, this, &AFortniteCloneCharacter::HoldPickaxe);
 	PlayerInputComponent->BindAction("HoldAssaultRifle", IE_Pressed, this, &AFortniteCloneCharacter::HoldAssaultRifle);
 	PlayerInputComponent->BindAction("HoldShotgun", IE_Pressed, this, &AFortniteCloneCharacter::HoldShotgun);
@@ -181,6 +183,10 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 			// if the character is overlapping with its weapon, dont do anything about it
 			return;
 		}
+		if (CurrentHealingItem != NULL && OtherActor == (AActor*)CurrentHealingItem) {
+			// if the character is overlapping with its healing item, dont do anything about it
+			return;
+		}
 		if (OtherActor->IsA(AWeaponActor::StaticClass())) {
 			AWeaponActor* WeaponActor = Cast<AWeaponActor>(OtherActor);
 			if (WeaponActor->WeaponType == 0) {
@@ -191,16 +197,20 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 			}
 			// pick up the item if the two conditions above are false
 			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-			if (State->InBuildMode) {
-				return; // can't pick up items while in build mode
+			if (State->InBuildMode || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
+				return; // can't pick up items while in build mode or if just shot shotgun, swung pickaxe, used bandage, or reloaded
 			}
 			// if the player already has a weapon of this type, do not equip it
 			if (State->EquippedWeapons.Contains(WeaponActor->WeaponType)) {
 				return;
 			}
 			// Destroy old weapon/healing item
+			if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
+				State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
+			}
 			if (CurrentWeapon) {
 				CurrentWeapon->Destroy();
+				CurrentWeapon = NULL;
 			}
 			if (CurrentHealingItem) {
 				CurrentHealingItem->Destroy();
@@ -214,6 +224,7 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 			CurrentWeapon = WeaponActor;
 			CurrentWeaponType = WeaponActor->WeaponType;
 			CurrentWeapon->Holder = this;
+			CurrentWeapon->CurrentBulletCount = CurrentWeapon->MagazineSize;
 			UStaticMeshComponent* OutHitStaticMeshComponent = Cast<UStaticMeshComponent>(WeaponActor->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 			OutHitStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, BandageSocketName);
 
@@ -232,18 +243,26 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 		else if (OtherActor->IsA(AHealingActor::StaticClass())) {
 			//pick up the item
 			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+			if (CurrentHealingItem) {
+				CurrentHealingItem->Destroy();
+				CurrentHealingItem = NULL;
+			}
 			CurrentHealingItem = Cast<AHealingActor>(OtherActor);
 			if (CurrentHealingItem->Holder != NULL) {
 				return; // do nothing if someone is holding the weapon
 			}
-			if (State->InBuildMode) {
-				return; // can't pick up items while in build mode
+			if (State->InBuildMode || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
+				return; // can't pick up items while in build mode or if just shot shotgun, swung pickaxe, used bandage, or reloaded
 			}
 			// Destroy old weapon
+			if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
+				State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
+			}
 			if (CurrentWeapon) {
 				CurrentWeapon->Destroy();
+				CurrentWeapon = NULL;
 			}
-			// PICK UP BANDAGE
+			// PICK UP BANDAGE 
 			FName BandageSocketName = TEXT("hand_left_socket");
 			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 
@@ -264,6 +283,15 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 					Animation->HoldingWeaponType = 0;
 				}
 			}
+		}
+		else if (OtherActor->IsA(AAmmunitionActor::StaticClass())) {
+			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+			AAmmunitionActor* Ammo = Cast<AAmmunitionActor>(OtherActor);
+			if (State) {
+				// increment ammo count
+				State->EquippedWeaponsAmmunition[Ammo->WeaponType] += Ammo->BulletCount;
+			}
+			Ammo->Destroy();
 		}
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
 	}
@@ -434,11 +462,11 @@ TArray<float> AFortniteCloneCharacter::CalculateWalkingXY() {
 }
 
 void AFortniteCloneCharacter::PreviewWall() {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "x key pressed");
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "x key pressed");
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (State) {
-		if (State->JustUsedBandage) {
-			return;
+		if (State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
+			return; //currently healing or reloading
 		}
 		if (State->BuildMode == FString("Wall")) {
 			// getting out of build mode
@@ -458,7 +486,9 @@ void AFortniteCloneCharacter::PreviewWall() {
 				{
 					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
 					CurrentWeapon->Holder = this;
-
+					if (CurrentWeaponType > 0 && CurrentWeaponType < 3) {
+						CurrentWeapon->CurrentBulletCount = State->EquippedWeaponsClips[CurrentWeaponType];
+					}
 					UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
 				}
 
@@ -521,6 +551,9 @@ void AFortniteCloneCharacter::PreviewWall() {
 				Animation->HoldingWeaponType = 0;
 			}
 			// unequip weapon/healing item
+			if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
+				State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
+			}
 			if (CurrentWeapon) {
 				CurrentWeapon->Destroy();
 				CurrentWeapon = NULL;
@@ -534,12 +567,12 @@ void AFortniteCloneCharacter::PreviewWall() {
 }
 
 void AFortniteCloneCharacter::PreviewRamp() {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "c key pressed");
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "c key presse2d");
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "c key pressed");
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "c key presse2d");
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (State) {
-		if (State->JustUsedBandage) {
-			return;
+		if (State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
+			return; //currently healing or reloading
 		}
 		if (State->BuildMode == FString("Ramp")) {
 			// getting out of build mode
@@ -559,7 +592,9 @@ void AFortniteCloneCharacter::PreviewRamp() {
 				{
 					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
 					CurrentWeapon->Holder = this;
-
+					if (CurrentWeaponType > 0 && CurrentWeaponType < 3) {
+						CurrentWeapon->CurrentBulletCount = State->EquippedWeaponsClips[CurrentWeaponType];
+					}
 					UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
 				}
 
@@ -622,6 +657,9 @@ void AFortniteCloneCharacter::PreviewRamp() {
 				Animation->HoldingWeaponType = 0;
 			}
 			// unequip weapon/healing item
+			if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
+				State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
+			}
 			if (CurrentWeapon) {
 				CurrentWeapon->Destroy();
 				CurrentWeapon = NULL;
@@ -635,11 +673,11 @@ void AFortniteCloneCharacter::PreviewRamp() {
 }
 
 void AFortniteCloneCharacter::PreviewFloor() {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "f key pressed");
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "f key pressed");
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (State) {
-		if (State->JustUsedBandage) {
-			return;
+		if (State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
+			return; //currently healing or reloading
 		}
 		if (State->BuildMode == FString("Floor")) {
 			// getting out of build mode
@@ -659,7 +697,9 @@ void AFortniteCloneCharacter::PreviewFloor() {
 				{
 					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
 					CurrentWeapon->Holder = this;
-
+					if (CurrentWeaponType > 0 && CurrentWeaponType < 3) {
+						CurrentWeapon->CurrentBulletCount = State->EquippedWeaponsClips[CurrentWeaponType];
+					}
 					UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
 				}
 
@@ -723,6 +763,9 @@ void AFortniteCloneCharacter::PreviewFloor() {
 				Animation->HoldingWeaponType = 0;
 			}
 			// unequip weapon/healing item
+			if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
+				State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
+			}
 			if (CurrentWeapon) {
 				CurrentWeapon->Destroy();
 				CurrentWeapon = NULL;
@@ -789,19 +832,30 @@ void AFortniteCloneCharacter::ShootGun() {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "shoot gun key pressed");
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (State) {
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Current weapon ") + FString::FromInt(State->CurrentWeapon));
 		if (State->HoldingWeapon) {
+			if (State->CurrentWeapon > 0 && State->CurrentWeapon < 3 && CurrentWeapon->CurrentBulletCount <= 0) {
+				// no bullets in magazine, need to reload
+				Reload();
+				return; 
+			}
+			if (State->JustReloadedRifle || State->JustReloadedShotgun) {
+				return; //currently reloading
+			}
 			UAnimInstance* Animation = GetMesh()->GetAnimInstance();
 			UThirdPersonAnimInstance* AnimationInstance = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 			if (Animation && AnimationInstance) {
 				if (State->AimedIn) {
 					if (State->CurrentWeapon == 1) {
 						PlayAnimMontage(RifleIronsightsShootingAnimation);
+						CurrentWeapon->CurrentBulletCount--;
 					}
 					else if (State->CurrentWeapon == 2) {
 						if (State->JustShotShotgun) {
 							return;
 						}
 						PlayAnimMontage(ShotgunIronsightsShootingAnimation);
+						CurrentWeapon->CurrentBulletCount--;
 						State->JustShotShotgun = true;
 						FTimerHandle ShotgunTimerHandle;
 						GetWorldTimerManager().SetTimer(ShotgunTimerHandle, this, &AFortniteCloneCharacter::ShotgunTimeOut, 1.3f, false);
@@ -809,6 +863,7 @@ void AFortniteCloneCharacter::ShootGun() {
 				}
 				else {
 					if (State->CurrentWeapon == 0) {
+						//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "pickaxe swung");
 						if (State->JustSwungPickaxe) {
 							return;
 						}
@@ -819,12 +874,14 @@ void AFortniteCloneCharacter::ShootGun() {
 					}
 					if (State->CurrentWeapon == 1) {
 						PlayAnimMontage(RifleHipShootingAnimation);
+						CurrentWeapon->CurrentBulletCount--;
 					}
 					else if (State->CurrentWeapon == 2) {
 						if (State->JustShotShotgun) {
 							return;
 						}
 						PlayAnimMontage(ShotgunHipShootingAnimation);
+						CurrentWeapon->CurrentBulletCount--;
 						State->JustShotShotgun = true;
 						FTimerHandle ShotgunTimerHandle;
 						GetWorldTimerManager().SetTimer(ShotgunTimerHandle, this, &AFortniteCloneCharacter::ShotgunTimeOut, 1.3f, false);
@@ -873,6 +930,125 @@ void AFortniteCloneCharacter::UseBandage() {
 	}
 }
 
+void AFortniteCloneCharacter::Reload() {
+	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	if (Animation && State) {
+		if (State->CurrentWeapon > 2 || State->CurrentWeapon < 1) {
+			return; // can only reload if holding a assault rifle or shotgun
+		}
+		if (State->JustShotShotgun || State->JustReloadedRifle || State->JustReloadedShotgun) {
+			return; // currently reloading or just shot
+		}
+		UAnimInstance* Animation = GetMesh()->GetAnimInstance();
+		UThirdPersonAnimInstance* AnimationInstance = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+		if (Animation && AnimationInstance) {
+			if (State->AimedIn) {
+				if (State->CurrentWeapon == 1) {
+					if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] <= 0) {
+						return; // no ammo left
+					}
+
+					int BulletsNeeded = CurrentWeapon->MagazineSize - CurrentWeapon->CurrentBulletCount;
+					if (BulletsNeeded == 0) {
+						return; // magazine is full
+					}
+
+					if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] < BulletsNeeded) {
+						BulletsNeeded = State->EquippedWeaponsAmmunition[State->CurrentWeapon];
+						State->EquippedWeaponsAmmunition[State->CurrentWeapon] = 0;
+					}
+					else{
+						State->EquippedWeaponsAmmunition[State->CurrentWeapon] -= BulletsNeeded;
+					}
+					PlayAnimMontage(RifleIronsightsReloadAnimation);
+					CurrentWeapon->CurrentBulletCount += BulletsNeeded;
+					State->JustReloadedRifle = true;
+					FTimerHandle RifleTimerHandle;
+					GetWorldTimerManager().SetTimer(RifleTimerHandle, this, &AFortniteCloneCharacter::RifleReloadTimeOut, 2.167f, false);
+				}
+				else if (State->CurrentWeapon == 2) {
+					if (State->JustShotShotgun) {
+						return;
+					}
+					if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] <= 0) {
+						return; // no ammo left
+					}
+
+					int BulletsNeeded = CurrentWeapon->MagazineSize - CurrentWeapon->CurrentBulletCount;
+					if (BulletsNeeded == 0) {
+						return; // magazine is full
+					}
+
+					if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] < BulletsNeeded) {
+						BulletsNeeded = State->EquippedWeaponsAmmunition[State->CurrentWeapon];
+						State->EquippedWeaponsAmmunition[State->CurrentWeapon] = 0;
+					}
+					else {
+						State->EquippedWeaponsAmmunition[State->CurrentWeapon] -= BulletsNeeded;
+					}
+					PlayAnimMontage(ShotgunIronsightsReloadAnimation);
+					CurrentWeapon->CurrentBulletCount += BulletsNeeded;
+					State->JustReloadedShotgun = true;
+					FTimerHandle ShotgunTimerHandle;
+					GetWorldTimerManager().SetTimer(ShotgunTimerHandle, this, &AFortniteCloneCharacter::ShotgunReloadTimeOut, 4.3f, false);
+				}
+			}
+			else {
+				if (State->CurrentWeapon == 1) {
+					if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] <= 0) {
+						return; // no ammo left
+					}
+					int BulletsNeeded = CurrentWeapon->MagazineSize - CurrentWeapon->CurrentBulletCount;
+					if (BulletsNeeded == 0) {
+						return; // magazine is full
+					}
+					//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(State->EquippedWeaponsAmmunition[State->CurrentWeapon]));
+					if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] < BulletsNeeded) {
+						BulletsNeeded = State->EquippedWeaponsAmmunition[State->CurrentWeapon];
+						State->EquippedWeaponsAmmunition[State->CurrentWeapon] = 0;
+					}
+					else {
+						State->EquippedWeaponsAmmunition[State->CurrentWeapon] -= BulletsNeeded;
+					}
+					PlayAnimMontage(RifleHipReloadAnimation);
+					CurrentWeapon->CurrentBulletCount += BulletsNeeded;
+					//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(CurrentWeapon->CurrentBulletCount));
+					State->JustReloadedRifle = true;
+					FTimerHandle RifleTimerHandle;
+					GetWorldTimerManager().SetTimer(RifleTimerHandle, this, &AFortniteCloneCharacter::RifleReloadTimeOut, 2.167f, false);
+				}
+				else if (State->CurrentWeapon == 2) {
+					if (State->JustShotShotgun) {
+						return;
+					}
+					if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] <= 0) {
+						return; // no ammo left
+					}
+					int BulletsNeeded = CurrentWeapon->MagazineSize - CurrentWeapon->CurrentBulletCount;
+					if (BulletsNeeded == 0) {
+						return; // magazine is full
+					}
+
+					if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] < BulletsNeeded) {
+						BulletsNeeded = State->EquippedWeaponsAmmunition[State->CurrentWeapon];
+						State->EquippedWeaponsAmmunition[State->CurrentWeapon] = 0;
+					}
+					else {
+						State->EquippedWeaponsAmmunition[State->CurrentWeapon] -= BulletsNeeded;
+					}
+					PlayAnimMontage(ShotgunHipReloadAnimation);
+					CurrentWeapon->CurrentBulletCount += BulletsNeeded;
+					State->JustReloadedShotgun = true;
+					FTimerHandle ShotgunTimerHandle;
+					GetWorldTimerManager().SetTimer(ShotgunTimerHandle, this, &AFortniteCloneCharacter::ShotgunReloadTimeOut, 4.3f, false);
+				}
+
+			}
+		}
+	}
+}
+
 void AFortniteCloneCharacter::AimGunIn() {
 	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
@@ -907,6 +1083,17 @@ void AFortniteCloneCharacter::ShotgunTimeOut() {
 	State->JustShotShotgun = false;
 }
 
+void AFortniteCloneCharacter::RifleReloadTimeOut() {
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	State->JustReloadedRifle= false;
+}
+
+void AFortniteCloneCharacter::ShotgunReloadTimeOut() {
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	State->JustReloadedShotgun = false;
+}
+
+
 void AFortniteCloneCharacter::BandageTimeOut() {
 	if (Health < 100) {
 		if (Health + 15 > 100) {
@@ -924,12 +1111,14 @@ void AFortniteCloneCharacter::HoldPickaxe() {
 	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (Animation && State) {
-		if (State->CurrentWeapon == 0 || State->JustUsedBandage) {
-			return; // already holding the pickaxe or currently healing
+		if (State->CurrentWeapon == 0 || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
+			return; // already holding the pickaxe or currently healing or currently reloading
 		}
 		else {
 			if (CurrentWeapon) {
+				State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
 				CurrentWeapon->Destroy();
+				CurrentWeapon = NULL;
 			}
 			if (CurrentHealingItem) {
 				CurrentHealingItem->Destroy();
@@ -940,6 +1129,7 @@ void AFortniteCloneCharacter::HoldPickaxe() {
 
 			FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 			CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[0], SpawnTransform));
+			CurrentWeaponType = 0;
 			if (CurrentWeapon != NULL)
 			{
 				//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
@@ -947,7 +1137,6 @@ void AFortniteCloneCharacter::HoldPickaxe() {
 
 				UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
 			}
-			CurrentWeaponType = 0;
 			UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 			WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
 
@@ -969,12 +1158,16 @@ void AFortniteCloneCharacter::HoldAssaultRifle() {
 	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (Animation && State) {
-		if (State->CurrentWeapon == 1 || !State->EquippedWeapons.Contains(1) || State->JustUsedBandage) {
-			return; // already holding the assault rifle or doesn't have one or is currently healing
+		if (State->CurrentWeapon == 1 || !State->EquippedWeapons.Contains(1) || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
+			return; // already holding the assault rifle or doesn't have one or is currently healing or currently reloading
 		}
 		else {
+			if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
+				State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
+			}
 			if (CurrentWeapon) {
 				CurrentWeapon->Destroy();
+				CurrentWeapon = NULL;
 			}
 			if (CurrentHealingItem) {
 				CurrentHealingItem->Destroy();
@@ -985,14 +1178,14 @@ void AFortniteCloneCharacter::HoldAssaultRifle() {
 
 			FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 			CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[1], SpawnTransform));
+			CurrentWeaponType = 1;
 			if (CurrentWeapon != NULL)
 			{
 				//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
 				CurrentWeapon->Holder = this;
-
+				CurrentWeapon->CurrentBulletCount = State->EquippedWeaponsClips[CurrentWeaponType];
 				UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
 			}
-			CurrentWeaponType = 1;
 			UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 			WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
 
@@ -1014,12 +1207,16 @@ void AFortniteCloneCharacter::HoldShotgun() {
 	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (Animation && State) {
-		if (State->CurrentWeapon == 2 || !State->EquippedWeapons.Contains(2) || State->JustUsedBandage) {
-			return; // already holding the pickaxe or doesn't have one or is currently healing
+		if (State->CurrentWeapon == 2 || !State->EquippedWeapons.Contains(2) || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
+			return; // already holding the pickaxe or doesn't have one or is currently healing or currently reloading
 		}
 		else {
+			if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
+				State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
+			}
 			if (CurrentWeapon) {
 				CurrentWeapon->Destroy();
+				CurrentWeapon = NULL;
 			}
 			if (CurrentHealingItem) {
 				CurrentHealingItem->Destroy();
@@ -1030,14 +1227,14 @@ void AFortniteCloneCharacter::HoldShotgun() {
 
 			FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 			CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[2], SpawnTransform));
+			CurrentWeaponType = 2;
 			if (CurrentWeapon != NULL)
 			{
 				//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
 				CurrentWeapon->Holder = this;
-
+				CurrentWeapon->CurrentBulletCount = State->EquippedWeaponsClips[CurrentWeaponType];
 				UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
 			}
-			CurrentWeaponType = 2;
 			UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 			WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
 
@@ -1059,18 +1256,29 @@ void AFortniteCloneCharacter::HoldBandage() {
 	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (Animation && State) {
+		if (State->JustReloadedRifle || State->JustReloadedShotgun) {
+			return; //currently reloading weapons
+		}
 		if (CurrentWeaponType == -1) {
 			return; // already holding the bandages
 		}
 		else {
+			if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
+				State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
+			}
 			if (CurrentWeapon) {
 				CurrentWeapon->Destroy();
+				CurrentWeapon = NULL;
+			}
+			if (CurrentWeaponType > 0 && CurrentWeaponType < 3) {
+				State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
 			}
 			FName BandageSocketName = TEXT("hand_left_socket");
 			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 
 			FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 			CurrentHealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
+			CurrentWeaponType = -1;
 			if (CurrentHealingItem != NULL)
 			{
 				//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
@@ -1078,7 +1286,6 @@ void AFortniteCloneCharacter::HoldBandage() {
 
 				UGameplayStatics::FinishSpawningActor(CurrentHealingItem, SpawnTransform);
 			}
-			CurrentWeaponType = -1;
 			UStaticMeshComponent* HealingItemStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentHealingItem->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 			HealingItemStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, BandageSocketName);
 
