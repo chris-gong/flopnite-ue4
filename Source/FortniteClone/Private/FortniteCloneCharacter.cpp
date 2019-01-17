@@ -59,6 +59,7 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	CurrentWeaponType = 0;
+	CurrentBuildingMaterial = 0;
 	BuildingPreview = NULL;
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
@@ -85,6 +86,7 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAction("PreviewRamp", IE_Pressed, this, &AFortniteCloneCharacter::PreviewRamp);
 	PlayerInputComponent->BindAction("PreviewFloor", IE_Pressed, this, &AFortniteCloneCharacter::PreviewFloor);
 	PlayerInputComponent->BindAction("BuildStructure", IE_Pressed, this, &AFortniteCloneCharacter::BuildStructure);
+	PlayerInputComponent->BindAction("SwitchBuildingMaterial", IE_Pressed, this, &AFortniteCloneCharacter::SwitchBuildingMaterial);
 	PlayerInputComponent->BindAction("ShootGun", IE_Pressed, this, &AFortniteCloneCharacter::ShootGun);
 	PlayerInputComponent->BindAction("UseBandage", IE_Pressed, this, &AFortniteCloneCharacter::UseBandage);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AFortniteCloneCharacter::Reload);
@@ -146,19 +148,19 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 			if (BuildingPreview) {
 				BuildingPreview->Destroy(); //destroy the last wall preview
 			}
-			BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(WallPreviewClass, GetActorLocation() + (GetActorForwardVector() * 200) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new wall preview
+			BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(WallPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 200) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new wall preview
 		}
 		if (State->InBuildMode && State->BuildMode == FString("Ramp")) {
 			if (BuildingPreview) {
 				BuildingPreview->Destroy(); //destroy the last wall preview
 			}
-			BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(RampPreviewClass, GetActorLocation() + (GetActorForwardVector() * 100) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new wall preview
+			BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(RampPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 100) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new wall preview
 		}
 		if (State->InBuildMode && State->BuildMode == FString("Floor")) {
 			if (BuildingPreview) {
 				BuildingPreview->Destroy(); //destroy the last wall preview
 			}
-			BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(FloorPreviewClass, GetActorLocation() + (GetActorForwardVector() * 120) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new wall preview
+			BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(FloorPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 120) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new wall preview
 		}
 		FRotator ControlRotation = GetControlRotation();
 		FRotator ActorRotation = GetActorRotation();
@@ -788,7 +790,7 @@ void AFortniteCloneCharacter::BuildStructure() {
 		FVector DirectionVector = FVector(0, Animation->AimYaw, Animation->AimPitch);
 		if (State->InBuildMode && State->BuildMode == FString("Wall")) {
 			TArray<AActor*> OverlappingActors;
-			ABuildingActor* Wall = GetWorld()->SpawnActor<ABuildingActor>(WallClass, GetActorLocation() + (GetActorForwardVector() * 200) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
+			ABuildingActor* Wall = GetWorld()->SpawnActor<ABuildingActor>(WallClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 200) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
 
 			Wall->GetOverlappingActors(OverlappingActors);
 
@@ -802,7 +804,7 @@ void AFortniteCloneCharacter::BuildStructure() {
 		}
 		else if (State->InBuildMode && State->BuildMode == FString("Ramp")) {
 			TArray<AActor*> OverlappingActors;
-			ABuildingActor* Ramp = GetWorld()->SpawnActor<ABuildingActor>(RampClass, GetActorLocation() + (GetActorForwardVector() * 100) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
+			ABuildingActor* Ramp = GetWorld()->SpawnActor<ABuildingActor>(RampClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 100) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
 
 			Ramp->GetOverlappingActors(OverlappingActors);
 
@@ -816,7 +818,7 @@ void AFortniteCloneCharacter::BuildStructure() {
 		}
 		else if (State->InBuildMode && State->BuildMode == FString("Floor")) {
 			TArray<AActor*> OverlappingActors;
-			ABuildingActor* Floor = GetWorld()->SpawnActor<ABuildingActor>(FloorClass, GetActorLocation() + (GetActorForwardVector() * 120) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
+			ABuildingActor* Floor = GetWorld()->SpawnActor<ABuildingActor>(FloorClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 120) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
 
 			Floor->GetOverlappingActors(OverlappingActors);
 
@@ -827,6 +829,18 @@ void AFortniteCloneCharacter::BuildStructure() {
 					break;
 				}
 			}
+		}
+	}
+}
+
+void AFortniteCloneCharacter::SwitchBuildingMaterial() {
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	if (State && State->InBuildMode) {
+		if (CurrentBuildingMaterial == 2) {
+			CurrentBuildingMaterial = 0;
+		}
+		else {
+			CurrentBuildingMaterial++;
 		}
 	}
 }
@@ -873,7 +887,7 @@ void AFortniteCloneCharacter::ShootGun() {
 						PlayAnimMontage(PickaxeSwingingAnimation);
 						State->JustSwungPickaxe = true;
 						FTimerHandle PickaxeTimerHandle;
-						GetWorldTimerManager().SetTimer(PickaxeTimerHandle, this, &AFortniteCloneCharacter::PickaxeTimeOut, 0.603f, false);
+						GetWorldTimerManager().SetTimer(PickaxeTimerHandle, this, &AFortniteCloneCharacter::PickaxeTimeOut, 0.403f, false);
 					}
 					if (State->CurrentWeapon == 1) {
 						PlayAnimMontage(RifleHipShootingAnimation);

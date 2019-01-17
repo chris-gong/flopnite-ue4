@@ -39,27 +39,27 @@ public:
 
 	/* Class for wall preview actor */
 	UPROPERTY(EditDefaultsOnly, Category = "Wall")
-	TSubclassOf<ABuildingActor> WallPreviewClass;
+	TArray<TSubclassOf<ABuildingActor>> WallPreviewClasses;
 
 	/* Class for wall preview actor */
 	UPROPERTY(EditDefaultsOnly, Category = "Wall")
-	TSubclassOf<ABuildingActor> WallClass;
+	TArray<TSubclassOf<ABuildingActor>> WallClasses;
 
 	/* Class for wall preview actor */
 	UPROPERTY(EditDefaultsOnly, Category = "Ramp")
-	TSubclassOf<ABuildingActor> RampPreviewClass;
+	TArray<TSubclassOf<ABuildingActor>> RampPreviewClasses;
 
 	/* Class for wall preview actor */
 	UPROPERTY(EditDefaultsOnly, Category = "Ramp")
-	TSubclassOf<ABuildingActor> RampClass;
+	TArray<TSubclassOf<ABuildingActor>> RampClasses;
 
 	/* Class for wall preview actor */
 	UPROPERTY(EditDefaultsOnly, Category = "Floor")
-	TSubclassOf<ABuildingActor> FloorPreviewClass;
+	TArray<TSubclassOf<ABuildingActor>> FloorPreviewClasses;
 
 	/* Class for wall preview actor */
 	UPROPERTY(EditDefaultsOnly, Category = "Floor")
-	TSubclassOf<ABuildingActor> FloorClass;
+	TArray<TSubclassOf<ABuildingActor>> FloorClasses;
 
 	/* Array of weapon classes */
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
@@ -150,6 +150,9 @@ protected:
 	UFUNCTION()
 	void BuildStructure();
 
+	UFUNCTION()
+	void SwitchBuildingMaterial();
+
 	/* Set the animation variable as well as shoot a very small projectile from the gun or pickaxe*/
 	UFUNCTION()
 	void ShootGun();
@@ -199,6 +202,8 @@ protected:
 	/* Index of the class in array to spawn the weapon */
 	int CurrentWeaponType; // 0 for pickaxe, 1 for assault rifle, 2 for shotgun, -1 for non weapon items
 
+	/* Index of the class in array to spawn structure */
+	int CurrentBuildingMaterial; // 0 for wood, 1 for stone, 2 for steel
 	/** 
 	 * Called via input to turn at a given rate. 
 	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
