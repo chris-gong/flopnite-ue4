@@ -38,6 +38,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Items")
 	TSubclassOf<UUserWidget> ItemsWidgetClass;
 
+	UPROPERTY(EditAnywhere, Category = "Items")
+	TSubclassOf<UUserWidget> KillsWidgetClass;
+
 	UPROPERTY(EditAnywhere, Category = "Widget")
 	UUserWidget* CurrentWidget;
 };

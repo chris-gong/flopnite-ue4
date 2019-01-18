@@ -16,6 +16,8 @@ AFortniteCloneHUD::AFortniteCloneHUD()
 	MaterialsWidgetClass = MaterialBarObj.Class;
 	static ConstructorHelpers::FClassFinder<UUserWidget> ItemBarObj(TEXT("/Game/UI/Widgets/UI_Items"));
 	ItemsWidgetClass = ItemBarObj.Class;
+	static ConstructorHelpers::FClassFinder<UUserWidget> KillBarObj(TEXT("/Game/UI/Widgets/UI_KillCount"));
+	KillsWidgetClass = KillBarObj.Class;
 }
 
 void AFortniteCloneHUD::DrawHUD()
@@ -62,6 +64,16 @@ void AFortniteCloneHUD::BeginPlay()
 	if (ItemsWidgetClass != nullptr)
 	{
 		CurrentWidget = CreateWidget<UUserWidget>(GetWorld(), ItemsWidgetClass);
+
+		if (CurrentWidget)
+		{
+			CurrentWidget->AddToViewport();
+		}
+	}
+
+	if (KillsWidgetClass != nullptr)
+	{
+		CurrentWidget = CreateWidget<UUserWidget>(GetWorld(), KillsWidgetClass);
 
 		if (CurrentWidget)
 		{

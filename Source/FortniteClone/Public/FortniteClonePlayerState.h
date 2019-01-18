@@ -29,6 +29,7 @@ public:
 	TArray<int> MaterialCounts; //index 0 holds count for wood, index 1 holds count for stone, index 2 holds count for steel
 	int CurrentWeapon; //0 for pickaxe, 1 for assault rifle, 2 for shotgun, -1 for non weapons like bandages
 	int BandageCount;
+	int KillCount;
 
 	bool JustShotRifle; // used to prevent player from spamming rifle
 	bool JustShotShotgun; // used to prevent player from spamming shotgun

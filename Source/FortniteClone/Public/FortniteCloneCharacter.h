@@ -125,6 +125,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Items")
 	int GetBandageCount();
 
+	UFUNCTION(BlueprintPure, Category = "Kills")
+	int GetKillCount();
+
 	/* The current weapon being held */
 	UPROPERTY()
 	AWeaponActor* CurrentWeapon;

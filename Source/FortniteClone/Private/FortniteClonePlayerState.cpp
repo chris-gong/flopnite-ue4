@@ -26,4 +26,5 @@ AFortniteClonePlayerState::AFortniteClonePlayerState() {
 	JustUsedBandage = false;
 	JustReloadedRifle = false;
 	JustReloadedShotgun = false;
+	KillCount = 0;
 }

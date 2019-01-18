@@ -10,6 +10,7 @@
 class UProjectileMovementComponent;
 class USphereComponent;
 class AWeaponActor;
+class AFortniteCloneCharacter;
 
 UCLASS()
 class FORTNITECLONE_API AProjectileActor : public AActor
@@ -40,6 +41,8 @@ public:
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	AWeaponActor* Weapon;
+
+	AFortniteCloneCharacter* WeaponHolder;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	float Damage;

@@ -48,49 +48,71 @@ void AProjectileActor::Tick(float DeltaTime)
 void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	if (OtherActor != nullptr) {
 		//bullet should only destroy itself once it overlaps with an actor other than itself, the weapon it came from, and the holder of that weapon
-		if (OtherActor == (AActor*) Weapon || OtherActor == (AActor*) Weapon->Holder || OtherActor == this) {
+		if (OtherActor == (AActor*) Weapon || OtherActor == (AActor*) WeaponHolder || OtherActor == this) {
 			return;
 		}
 		else {
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
 			if (OtherActor->IsA(AWeaponActor::StaticClass())) {
 				//if the weapon has no holder, then let the bullet keep going
 				AWeaponActor* WeaponActor = Cast<AWeaponActor>(OtherActor);
-				if (WeaponActor->Holder == nullptr) {
-					return;
-				}
-				else {
-					AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(WeaponActor->Holder);
-					FortniteCloneCharacter->Health -= Damage;
-					if (FortniteCloneCharacter->Health <= 0) {
-						if (WeaponActor) {
-							WeaponActor->Destroy();
-						}
-						if (FortniteCloneCharacter) {
-							FortniteCloneCharacter->Destroy();
-						}
+				if (WeaponActor) {
+					if (WeaponActor->Holder == nullptr) {
+						return;
 					}
-					Destroy();
+					else {
+						AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(WeaponActor->Holder);
+						if (FortniteCloneCharacter) {
+							FortniteCloneCharacter->Health -= Damage;
+							if (FortniteCloneCharacter->Health <= 0) {
+								if (WeaponActor) {
+									WeaponActor->Destroy();
+								}
+								if (FortniteCloneCharacter) {
+									FortniteCloneCharacter->Destroy();
+								}
+								FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(WeaponHolder);
+								if (FortniteCloneCharacter) {
+									AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(FortniteCloneCharacter->GetController()->PlayerState);
+									if (State) {
+										State->KillCount++;
+									}
+								}
+							}
+						}
+						Destroy();
+					}
 				}
 			}
 			else if (OtherActor->IsA(AHealingActor::StaticClass())) {
 				//if the healing item has no holder, then let the bullet keep going
 				AHealingActor* HealingActor = Cast<AHealingActor>(OtherActor);
-				if (HealingActor->Holder == nullptr) {
-					return;
-				}
-				else {
-					AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(HealingActor->Holder);
-					FortniteCloneCharacter->Health -= Damage;
-					if (FortniteCloneCharacter->Health <= 0) {
-						if (HealingActor) {
-							HealingActor->Destroy();
-						}
-						if (FortniteCloneCharacter) {
-							FortniteCloneCharacter->Destroy();
-						}
+				if (HealingActor) {
+					if (HealingActor->Holder == nullptr) {
+						return;
 					}
-					Destroy();
+					else {
+						AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(HealingActor->Holder);
+						if (FortniteCloneCharacter) {
+							FortniteCloneCharacter->Health -= Damage;
+							if (FortniteCloneCharacter->Health <= 0) {
+								if (HealingActor) {
+									HealingActor->Destroy();
+								}
+								if (FortniteCloneCharacter) {
+									FortniteCloneCharacter->Destroy();
+								}
+								FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(WeaponHolder);
+								if (FortniteCloneCharacter) {
+									AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(FortniteCloneCharacter->GetController()->PlayerState);
+									if (State) {
+										State->KillCount++;
+									}
+								}
+							}
+						}
+						Destroy();
+					}
 				}
 			}
 			else if (OtherActor->IsA(ABuildingActor::StaticClass())) {
@@ -111,20 +133,28 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 			}
 			else if (OtherActor->IsA(AFortniteCloneCharacter::StaticClass())) {
 				AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(OtherActor);
-				FortniteCloneCharacter->Health -= Damage;
-				if (FortniteCloneCharacter->Health <= 0) {
-
-					if (FortniteCloneCharacter && FortniteCloneCharacter->CurrentWeapon) {
-						FortniteCloneCharacter->CurrentWeapon->Destroy();
+				if (FortniteCloneCharacter) {
+					FortniteCloneCharacter->Health -= Damage;
+					if (FortniteCloneCharacter->Health <= 0) {
+						if (FortniteCloneCharacter && FortniteCloneCharacter->CurrentWeapon) {
+							FortniteCloneCharacter->CurrentWeapon->Destroy();
+						}
+						if (FortniteCloneCharacter && FortniteCloneCharacter->CurrentHealingItem) {
+							FortniteCloneCharacter->CurrentHealingItem->Destroy();
+						}
+						if (FortniteCloneCharacter) {
+							FortniteCloneCharacter->Destroy();
+						}
+						FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(WeaponHolder);
+						if (FortniteCloneCharacter) {
+							AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(FortniteCloneCharacter->GetController()->PlayerState);
+							if (State) {
+								State->KillCount++;
+							}
+						}
 					}
-					if (FortniteCloneCharacter && FortniteCloneCharacter->CurrentHealingItem) {
-						FortniteCloneCharacter->CurrentWeapon->Destroy();
-					}
-					if (FortniteCloneCharacter) {
-						FortniteCloneCharacter->Destroy();
-					}
+					Destroy();
 				}
-				Destroy();
 			}
 			else if (OtherActor->IsA(AProjectileActor::StaticClass())) {
 				//let the bullet keep going if it collides with other bullets
@@ -132,19 +162,23 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 			}
 			else if (OtherActor->IsA(AMaterialActor::StaticClass())) {
 				AMaterialActor* MaterialActor = Cast<AMaterialActor>(OtherActor);
-				MaterialActor->Health -= Damage;
-				if (ProjectileType == 0) {
-					//increase the counts of the owner of the weapon that shot the projectile
-					AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(Weapon->Holder);
-					AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(FortniteCloneCharacter->GetController()->PlayerState);
-					if (State) {
-						State->MaterialCounts[MaterialActor->MaterialType] += MaterialActor->MaterialCount;
+				if (MaterialActor) {
+					MaterialActor->Health -= Damage;
+					if (ProjectileType == 0) {
+						//increase the counts of the owner of the weapon that shot the projectile
+						AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(WeaponHolder);
+						if (FortniteCloneCharacter) {
+							AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(FortniteCloneCharacter->GetController()->PlayerState);
+							if (State) {
+								State->MaterialCounts[MaterialActor->MaterialType] += MaterialActor->MaterialCount;
+							}
+						}
 					}
+					if (MaterialActor->Health <= 0) {
+						MaterialActor->Destroy();
+					}
+					Destroy();
 				}
-				if (MaterialActor->Health <= 0) {
-					MaterialActor->Destroy();
-				}
-				Destroy();
 			}
 			else {
 				Destroy();

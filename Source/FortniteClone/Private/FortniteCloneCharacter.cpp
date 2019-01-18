@@ -277,7 +277,7 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 				CurrentHealingItem = nullptr;
 			}
 			
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
 			if (State->InBuildMode || State->JustShotRifle || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
 				return; // can't pick up items while in build mode or if just shot rifle, shot shotgun, swung pickaxe, used bandage, or reloaded
 			}
@@ -500,6 +500,9 @@ void AFortniteCloneCharacter::PreviewWall() {
 		if (State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
 			return; //currently healing or reloading
 		}
+		if (State->HoldingWeapon && State->AimedIn) {
+			return; // currently aimed down sight
+		}
 		if (State->BuildMode == FString("Wall")) {
 			// getting out of build mode
 			State->InBuildMode = false;
@@ -606,6 +609,9 @@ void AFortniteCloneCharacter::PreviewRamp() {
 		if (State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
 			return; //currently healing or reloading
 		}
+		if (State->HoldingWeapon && State->AimedIn) {
+			return; // currently aimed down sight
+		}
 		if (State->BuildMode == FString("Ramp")) {
 			// getting out of build mode
 			State->InBuildMode = false;
@@ -710,6 +716,9 @@ void AFortniteCloneCharacter::PreviewFloor() {
 	if (State) {
 		if (State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun || State->JustSwungPickaxe) {
 			return; //currently healing or reloading or swinging pickaxe
+		}
+		if (State->HoldingWeapon && State->AimedIn) {
+			return; // currently aimed down sight
 		}
 		if (State->BuildMode == FString("Floor")) {
 			// getting out of build mode
@@ -964,6 +973,7 @@ void AFortniteCloneCharacter::ShootGun() {
 				{
 					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
 					Bullet->Weapon = CurrentWeapon;
+					Bullet->WeaponHolder = this;
 
 					UGameplayStatics::FinishSpawningActor(Bullet, SpawnTransform);
 				}
@@ -1193,6 +1203,9 @@ void AFortniteCloneCharacter::HoldPickaxe() {
 		if (State->CurrentWeapon == 0 && !State->InBuildMode) {
 			return; // currently holding a pickaxe while not in build mode
 		}
+		if (State->HoldingWeapon && State->AimedIn) {
+			return; // currently aimed down sight
+		}
 		if (State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
 			return; // currently healing or currently reloading
 		}
@@ -1249,6 +1262,9 @@ void AFortniteCloneCharacter::HoldAssaultRifle() {
 	if (Animation && State) {
 		if (State->CurrentWeapon == 1 && !State->InBuildMode) {
 			return; // currently holding a assault rifle while not in build mode
+		}
+		if (State->HoldingWeapon && State->AimedIn) {
+			return; // currently aimed down sight
 		}
 		if (!State->EquippedWeapons.Contains(1) || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun || State->JustSwungPickaxe) {
 			return; // already holding the assault rifle or doesn't have one or is currently healing or currently reloading or swinging pickaxe
@@ -1309,7 +1325,10 @@ void AFortniteCloneCharacter::HoldShotgun() {
 		if (State->CurrentWeapon == 2 && !State->InBuildMode) {
 			return; // currently holding a shotgun while not in build mode
 		}
-		if (State->CurrentWeapon == 2 || !State->EquippedWeapons.Contains(2) || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun ||State->JustSwungPickaxe) {
+		if (State->HoldingWeapon && State->AimedIn) {
+			return; // currently aimed down sight
+		}
+		if (!State->EquippedWeapons.Contains(2) || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun ||State->JustSwungPickaxe) {
 			return; // already holding the pickaxe or doesn't have one or is currently healing or currently reloading or swinging pickaxe
 		}
 		else {
@@ -1368,6 +1387,9 @@ void AFortniteCloneCharacter::HoldBandage() {
 		if (State->JustReloadedRifle || State->JustReloadedShotgun ||State->JustSwungPickaxe) {
 			return; //currently reloading weapons or s winging pickaxe
 		}
+		if (State->HoldingWeapon && State->AimedIn) {
+			return; // currently aimed down sight
+		}
 		if (CurrentWeaponType == -1 && !State->InBuildMode) {
 			return; // already holding the bandages while not in build mode
 		}
@@ -1379,7 +1401,7 @@ void AFortniteCloneCharacter::HoldBandage() {
 					BuildingPreview->Destroy(); //destroy the last wall preview
 				}
 			}
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(CurrentWeaponType));
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(CurrentWeaponType));
 			if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
 				State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
 			}
@@ -1449,4 +1471,9 @@ int AFortniteCloneCharacter::GetShotgunAmmoCount() {
 int AFortniteCloneCharacter::GetBandageCount() {
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	return State->BandageCount;
+}
+
+int AFortniteCloneCharacter::GetKillCount() {
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	return State->KillCount;
 }
