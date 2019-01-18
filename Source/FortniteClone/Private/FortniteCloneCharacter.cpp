@@ -148,19 +148,25 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 			if (BuildingPreview) {
 				BuildingPreview->Destroy(); //destroy the last wall preview
 			}
-			BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(WallPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 200) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new wall preview
+			if (WallPreviewClasses[CurrentBuildingMaterial]) {
+				BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(WallPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 200) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new wall preview
+			}
 		}
 		if (State->InBuildMode && State->BuildMode == FString("Ramp")) {
 			if (BuildingPreview) {
 				BuildingPreview->Destroy(); //destroy the last wall preview
 			}
-			BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(RampPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 100) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new wall preview
+			if (RampPreviewClasses[CurrentBuildingMaterial]) {
+				BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(RampPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 100) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new ramp preview
+			}
 		}
 		if (State->InBuildMode && State->BuildMode == FString("Floor")) {
 			if (BuildingPreview) {
 				BuildingPreview->Destroy(); //destroy the last wall preview
 			}
-			BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(FloorPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 120) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new wall preview
+			if (FloorPreviewClasses[CurrentBuildingMaterial]) {
+				BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(FloorPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 120) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new floor preview
+			}
 		}
 		FRotator ControlRotation = GetControlRotation();
 		FRotator ActorRotation = GetActorRotation();
@@ -805,6 +811,7 @@ void AFortniteCloneCharacter::BuildStructure() {
 		}
 		else if (State->InBuildMode && State->BuildMode == FString("Ramp") && State->MaterialCounts[CurrentBuildingMaterial] >= 10) {
 			TArray<AActor*> OverlappingActors;
+
 			ABuildingActor* Ramp = GetWorld()->SpawnActor<ABuildingActor>(RampClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 100) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
 
 			Ramp->GetOverlappingActors(OverlappingActors);
