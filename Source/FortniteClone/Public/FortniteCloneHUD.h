@@ -7,6 +7,7 @@
 #include "FortniteCloneHUD.generated.h"
 
 class UUserWidget;
+class UTexture2D;
 
 /**
  * 
@@ -19,15 +20,24 @@ class FORTNITECLONE_API AFortniteCloneHUD : public AHUD
 public:
 	AFortniteCloneHUD();
 
-	/** Primary draw call for the HUD */
+	/* Primary draw call for the HUD */
 	virtual void DrawHUD() override;
 
 	virtual void BeginPlay() override;
 
 private:
-	UPROPERTY(EditAnywhere, Category = "Health")
-	TSubclassOf<UUserWidget> HUDWidgetClass;
+	/* Crosshair Asset */
+	UTexture2D* CrosshairTexture;
 
 	UPROPERTY(EditAnywhere, Category = "Health")
+	TSubclassOf<UUserWidget> HealthWidgetClass;
+
+	UPROPERTY(EditAnywhere, Category = "Materials")
+	TSubclassOf<UUserWidget> MaterialsWidgetClass;
+
+	UPROPERTY(EditAnywhere, Category = "Items")
+	TSubclassOf<UUserWidget> ItemsWidgetClass;
+
+	UPROPERTY(EditAnywhere, Category = "Widget")
 	UUserWidget* CurrentWidget;
 };

@@ -107,6 +107,24 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Health")
 	float GetHealth();
 
+	UFUNCTION(BlueprintPure, Category = "Material")
+	int GetWoodMaterialCount();
+
+	UFUNCTION(BlueprintPure, Category = "Material")
+	int GetStoneMaterialCount();
+
+	UFUNCTION(BlueprintPure, Category = "Material")
+	int GetSteelMaterialCount();
+
+	UFUNCTION(BlueprintPure, Category = "Items")
+	int GetAssaultRifleAmmoCount();
+
+	UFUNCTION(BlueprintPure, Category = "Items")
+	int GetShotgunAmmoCount();
+
+	UFUNCTION(BlueprintPure, Category = "Items")
+	int GetBandageCount();
+
 	/* The current weapon being held */
 	UPROPERTY()
 	AWeaponActor* CurrentWeapon;

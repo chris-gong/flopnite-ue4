@@ -251,7 +251,8 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 			CurrentWeapon = WeaponActor;
 			CurrentWeaponType = WeaponActor->WeaponType;
 			CurrentWeapon->Holder = this;
-			CurrentWeapon->CurrentBulletCount = CurrentWeapon->MagazineSize;
+			int MagazineSize = CurrentWeapon->MagazineSize;
+			CurrentWeapon->CurrentBulletCount = MagazineSize;
 			UStaticMeshComponent* OutHitStaticMeshComponent = Cast<UStaticMeshComponent>(WeaponActor->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 			OutHitStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, BandageSocketName);
 
@@ -260,6 +261,7 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 				State->HoldingBandage = false;
 				State->EquippedWeapons.Add(WeaponActor->WeaponType);
 				State->CurrentWeapon = WeaponActor->WeaponType;
+				State->EquippedWeaponsClips[CurrentWeaponType] = MagazineSize;
 				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 				if (Animation) {
 					Animation->HoldingWeapon = true;
@@ -898,6 +900,7 @@ void AFortniteCloneCharacter::ShootGun() {
 						}
 						PlayAnimMontage(RifleIronsightsShootingAnimation);
 						CurrentWeapon->CurrentBulletCount--;
+						State->EquippedWeaponsClips[CurrentWeaponType]--;
 						State->JustShotRifle = true;
 						FTimerHandle RifleTimerHandle;
 						GetWorldTimerManager().SetTimer(RifleTimerHandle, this, &AFortniteCloneCharacter::RifleTimeOut, 0.233f, false);
@@ -908,6 +911,7 @@ void AFortniteCloneCharacter::ShootGun() {
 						}
 						PlayAnimMontage(ShotgunIronsightsShootingAnimation);
 						CurrentWeapon->CurrentBulletCount--;
+						State->EquippedWeaponsClips[CurrentWeaponType]--;
 						State->JustShotShotgun = true;
 						FTimerHandle ShotgunTimerHandle;
 						GetWorldTimerManager().SetTimer(ShotgunTimerHandle, this, &AFortniteCloneCharacter::ShotgunTimeOut, 1.3f, false);
@@ -930,6 +934,7 @@ void AFortniteCloneCharacter::ShootGun() {
 						}
 						PlayAnimMontage(RifleHipShootingAnimation);
 						CurrentWeapon->CurrentBulletCount--;
+						State->EquippedWeaponsClips[CurrentWeaponType]--;
 						State->JustShotRifle = true;
 						FTimerHandle RifleTimerHandle;
 						GetWorldTimerManager().SetTimer(RifleTimerHandle, this, &AFortniteCloneCharacter::RifleTimeOut, 0.233f, false);
@@ -940,6 +945,7 @@ void AFortniteCloneCharacter::ShootGun() {
 						}
 						PlayAnimMontage(ShotgunHipShootingAnimation);
 						CurrentWeapon->CurrentBulletCount--;
+						State->EquippedWeaponsClips[CurrentWeaponType]--;
 						State->JustShotShotgun = true;
 						FTimerHandle ShotgunTimerHandle;
 						GetWorldTimerManager().SetTimer(ShotgunTimerHandle, this, &AFortniteCloneCharacter::ShotgunTimeOut, 1.3f, false);
@@ -1024,6 +1030,7 @@ void AFortniteCloneCharacter::Reload() {
 					}
 					PlayAnimMontage(RifleIronsightsReloadAnimation);
 					CurrentWeapon->CurrentBulletCount += BulletsNeeded;
+					State->EquippedWeaponsClips[State->CurrentWeapon] += BulletsNeeded;
 					State->JustReloadedRifle = true;
 					FTimerHandle RifleTimerHandle;
 					GetWorldTimerManager().SetTimer(RifleTimerHandle, this, &AFortniteCloneCharacter::RifleReloadTimeOut, 2.167f, false);
@@ -1050,6 +1057,7 @@ void AFortniteCloneCharacter::Reload() {
 					}
 					PlayAnimMontage(ShotgunIronsightsReloadAnimation);
 					CurrentWeapon->CurrentBulletCount += BulletsNeeded;
+					State->EquippedWeaponsClips[State->CurrentWeapon] += BulletsNeeded;
 					State->JustReloadedShotgun = true;
 					FTimerHandle ShotgunTimerHandle;
 					GetWorldTimerManager().SetTimer(ShotgunTimerHandle, this, &AFortniteCloneCharacter::ShotgunReloadTimeOut, 4.3f, false);
@@ -1077,6 +1085,7 @@ void AFortniteCloneCharacter::Reload() {
 					}
 					PlayAnimMontage(RifleHipReloadAnimation);
 					CurrentWeapon->CurrentBulletCount += BulletsNeeded;
+					State->EquippedWeaponsClips[State->CurrentWeapon] += BulletsNeeded;
 					//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(CurrentWeapon->CurrentBulletCount));
 					State->JustReloadedRifle = true;
 					FTimerHandle RifleTimerHandle;
@@ -1103,6 +1112,7 @@ void AFortniteCloneCharacter::Reload() {
 					}
 					PlayAnimMontage(ShotgunHipReloadAnimation);
 					CurrentWeapon->CurrentBulletCount += BulletsNeeded;
+					State->EquippedWeaponsClips[State->CurrentWeapon] += BulletsNeeded;
 					State->JustReloadedShotgun = true;
 					FTimerHandle ShotgunTimerHandle;
 					GetWorldTimerManager().SetTimer(ShotgunTimerHandle, this, &AFortniteCloneCharacter::ShotgunReloadTimeOut, 4.3f, false);
@@ -1409,4 +1419,34 @@ void AFortniteCloneCharacter::HoldBandage() {
 
 float AFortniteCloneCharacter::GetHealth() {
 	return Health;
+}
+
+int AFortniteCloneCharacter::GetWoodMaterialCount() {
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	return State->MaterialCounts[0];
+}
+
+int AFortniteCloneCharacter::GetStoneMaterialCount() {
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	return State->MaterialCounts[1];
+}
+
+int AFortniteCloneCharacter::GetSteelMaterialCount() {
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	return State->MaterialCounts[2];
+}
+
+int AFortniteCloneCharacter::GetAssaultRifleAmmoCount() {
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	return State->EquippedWeaponsAmmunition[1] + State->EquippedWeaponsClips[1];
+}
+
+int AFortniteCloneCharacter::GetShotgunAmmoCount() {
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	return State->EquippedWeaponsAmmunition[2] + State->EquippedWeaponsClips[2];
+}
+
+int AFortniteCloneCharacter::GetBandageCount() {
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	return State->BandageCount;
 }
