@@ -681,8 +681,8 @@ void AFortniteCloneCharacter::PreviewFloor() {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "f key pressed");
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (State) {
-		if (State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
-			return; //currently healing or reloading
+		if (State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun || State->JustSwungPickaxe) {
+			return; //currently healing or reloading or swinging pickaxe
 		}
 		if (State->BuildMode == FString("Floor")) {
 			// getting out of build mode
@@ -788,7 +788,7 @@ void AFortniteCloneCharacter::BuildStructure() {
 	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	if (State) {
 		FVector DirectionVector = FVector(0, Animation->AimYaw, Animation->AimPitch);
-		if (State->InBuildMode && State->BuildMode == FString("Wall")) {
+		if (State->InBuildMode && State->BuildMode == FString("Wall") && State->MaterialCounts[CurrentBuildingMaterial] >= 10) {
 			TArray<AActor*> OverlappingActors;
 			ABuildingActor* Wall = GetWorld()->SpawnActor<ABuildingActor>(WallClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 200) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
 
@@ -798,11 +798,12 @@ void AFortniteCloneCharacter::BuildStructure() {
 				//don't allow a player to build a structure that overlaps with another player
 				if (OverlappingActors[i]->IsA(AFortniteCloneCharacter::StaticClass())) {
 					Wall->Destroy();
-					break;
+					return;
 				}
 			}
+			State->MaterialCounts[CurrentBuildingMaterial] -= 10;
 		}
-		else if (State->InBuildMode && State->BuildMode == FString("Ramp")) {
+		else if (State->InBuildMode && State->BuildMode == FString("Ramp") && State->MaterialCounts[CurrentBuildingMaterial] >= 10) {
 			TArray<AActor*> OverlappingActors;
 			ABuildingActor* Ramp = GetWorld()->SpawnActor<ABuildingActor>(RampClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 100) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
 
@@ -812,11 +813,12 @@ void AFortniteCloneCharacter::BuildStructure() {
 				//don't allow a player to build a structure that overlaps with another player
 				if (OverlappingActors[i]->IsA(AFortniteCloneCharacter::StaticClass())) {
 					Ramp->Destroy();
-					break;
+					return;
 				}
 			}
+			State->MaterialCounts[CurrentBuildingMaterial] -= 10;
 		}
-		else if (State->InBuildMode && State->BuildMode == FString("Floor")) {
+		else if (State->InBuildMode && State->BuildMode == FString("Floor") && State->MaterialCounts[CurrentBuildingMaterial] >= 10) {
 			TArray<AActor*> OverlappingActors;
 			ABuildingActor* Floor = GetWorld()->SpawnActor<ABuildingActor>(FloorClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 120) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
 
@@ -826,9 +828,10 @@ void AFortniteCloneCharacter::BuildStructure() {
 				//don't allow a player to build a structure that overlaps with another player
 				if (OverlappingActors[i]->IsA(AFortniteCloneCharacter::StaticClass())) {
 					Floor->Destroy();
-					break;
+					return;
 				}
 			}
+			State->MaterialCounts[CurrentBuildingMaterial] -= 10;
 		}
 	}
 }
@@ -1188,8 +1191,8 @@ void AFortniteCloneCharacter::HoldAssaultRifle() {
 		if (State->CurrentWeapon == 1 && !State->InBuildMode) {
 			return; // currently holding a assault rifle while not in build mode
 		}
-		if (!State->EquippedWeapons.Contains(1) || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
-			return; // already holding the assault rifle or doesn't have one or is currently healing or currently reloading
+		if (!State->EquippedWeapons.Contains(1) || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun || State->JustSwungPickaxe) {
+			return; // already holding the assault rifle or doesn't have one or is currently healing or currently reloading or swinging pickaxe
 		}
 		else {
 			if (State->InBuildMode) {
@@ -1247,8 +1250,8 @@ void AFortniteCloneCharacter::HoldShotgun() {
 		if (State->CurrentWeapon == 2 && !State->InBuildMode) {
 			return; // currently holding a shotgun while not in build mode
 		}
-		if (State->CurrentWeapon == 2 || !State->EquippedWeapons.Contains(2) || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun && !State->InBuildMode) {
-			return; // already holding the pickaxe or doesn't have one or is currently healing or currently reloading
+		if (State->CurrentWeapon == 2 || !State->EquippedWeapons.Contains(2) || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun ||State->JustSwungPickaxe) {
+			return; // already holding the pickaxe or doesn't have one or is currently healing or currently reloading or swinging pickaxe
 		}
 		else {
 			if (State->InBuildMode) {
@@ -1303,8 +1306,8 @@ void AFortniteCloneCharacter::HoldBandage() {
 	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (Animation && State) {
-		if (State->JustReloadedRifle || State->JustReloadedShotgun) {
-			return; //currently reloading weapons
+		if (State->JustReloadedRifle || State->JustReloadedShotgun ||State->JustSwungPickaxe) {
+			return; //currently reloading weapons or s winging pickaxe
 		}
 		if (CurrentWeaponType == -1 && !State->InBuildMode) {
 			return; // already holding the bandages while not in build mode

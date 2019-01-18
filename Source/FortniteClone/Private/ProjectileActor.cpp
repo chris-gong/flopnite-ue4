@@ -6,6 +6,8 @@
 #include "FortniteCloneCharacter.h"
 #include "BuildingActor.h"
 #include "HealingActor.h"
+#include "MaterialActor.h"
+#include "FortniteClonePlayerState.h"
 
 // Sets default values
 AProjectileActor::AProjectileActor()
@@ -127,6 +129,22 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 			else if (OtherActor->IsA(AProjectileActor::StaticClass())) {
 				//let the bullet keep going if it collides with other bullets
 				return;
+			}
+			else if (OtherActor->IsA(AMaterialActor::StaticClass())) {
+				AMaterialActor* MaterialActor = Cast<AMaterialActor>(OtherActor);
+				MaterialActor->Health -= Damage;
+				if (ProjectileType == 0) {
+					//increase the counts of the owner of the weapon that shot the projectile
+					AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(Weapon->Holder);
+					AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(FortniteCloneCharacter->GetController()->PlayerState);
+					if (State) {
+						State->MaterialCounts[MaterialActor->MaterialType] += MaterialActor->MaterialCount;
+					}
+				}
+				if (MaterialActor->Health <= 0) {
+					MaterialActor->Destroy();
+				}
+				Destroy();
 			}
 			else {
 				Destroy();

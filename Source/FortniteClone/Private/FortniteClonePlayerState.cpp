@@ -15,6 +15,9 @@ AFortniteClonePlayerState::AFortniteClonePlayerState() {
 	EquippedWeaponsClips.Add(0); // pickaxe
 	EquippedWeaponsClips.Add(0); // assault rifle
 	EquippedWeaponsClips.Add(0); // shotgun
+	MaterialCounts.Add(0); // wood
+	MaterialCounts.Add(0); // stone
+	MaterialCounts.Add(0); // steel
 	CurrentWeapon = 0;
 	BandageCount = 0;
 	JustShotShotgun = false;
