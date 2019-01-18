@@ -9,10 +9,10 @@
 AFortniteCloneHUD::AFortniteCloneHUD()
 {
 
-	//static ConstructorHelpers::FClassFinder<UUserWidget> HealthBarObj(TEXT("/Game/UI/Health_UI"));
-	//HUDWidgetClass = HealthBarObj.Class;
+	static ConstructorHelpers::FClassFinder<UUserWidget> HealthBarObj(TEXT("/Game/UI/Health_UI"));
+	HUDWidgetClass = HealthBarObj.Class;
 }
-/*
+
 void AFortniteCloneHUD::DrawHUD()
 {
 	Super::DrawHUD();
@@ -31,4 +31,4 @@ void AFortniteCloneHUD::BeginPlay()
 			CurrentWidget->AddToViewport();
 		}
 	}
-}*/
+}

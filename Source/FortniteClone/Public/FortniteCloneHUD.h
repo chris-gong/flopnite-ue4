@@ -20,15 +20,14 @@ public:
 	AFortniteCloneHUD();
 
 	/** Primary draw call for the HUD */
-	//virtual void DrawHUD() override;
+	virtual void DrawHUD() override;
 
-	//virtual void BeginPlay() override;
+	virtual void BeginPlay() override;
 
 private:
-	/*UPROPERTY(EditAnywhere, Category = "Health")
+	UPROPERTY(EditAnywhere, Category = "Health")
 	TSubclassOf<UUserWidget> HUDWidgetClass;
 
 	UPROPERTY(EditAnywhere, Category = "Health")
-	UUserWidget* CurrentWidget;*/
-	
+	UUserWidget* CurrentWidget;
 };

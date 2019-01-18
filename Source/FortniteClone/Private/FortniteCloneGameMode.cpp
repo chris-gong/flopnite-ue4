@@ -3,6 +3,8 @@
 #include "FortniteCloneGameMode.h"
 #include "FortniteCloneCharacter.h"
 #include "FortniteClonePlayerState.h"
+#include "FortniteCloneHUD.h"
+#include "Kismet/GameplayStatics.h"
 #include "UObject/ConstructorHelpers.h"
 
 AFortniteCloneGameMode::AFortniteCloneGameMode()
@@ -13,6 +15,6 @@ AFortniteCloneGameMode::AFortniteCloneGameMode()
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 		PlayerStateClass = AFortniteClonePlayerState::StaticClass();
-		//HUDClass = AFortniteCloneHUD::StaticClass();
+		HUDClass = AFortniteCloneHUD::StaticClass();
 	}
 }
