@@ -46,7 +46,7 @@ void AProjectileActor::Tick(float DeltaTime)
 }
 
 void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
-	if (OtherActor != NULL) {
+	if (OtherActor != nullptr) {
 		//bullet should only destroy itself once it overlaps with an actor other than itself, the weapon it came from, and the holder of that weapon
 		if (OtherActor == (AActor*) Weapon || OtherActor == (AActor*) Weapon->Holder || OtherActor == this) {
 			return;
@@ -56,7 +56,7 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 			if (OtherActor->IsA(AWeaponActor::StaticClass())) {
 				//if the weapon has no holder, then let the bullet keep going
 				AWeaponActor* WeaponActor = Cast<AWeaponActor>(OtherActor);
-				if (WeaponActor->Holder == NULL) {
+				if (WeaponActor->Holder == nullptr) {
 					return;
 				}
 				else {
@@ -76,7 +76,7 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 			else if (OtherActor->IsA(AHealingActor::StaticClass())) {
 				//if the healing item has no holder, then let the bullet keep going
 				AHealingActor* HealingActor = Cast<AHealingActor>(OtherActor);
-				if (HealingActor->Holder == NULL) {
+				if (HealingActor->Holder == nullptr) {
 					return;
 				}
 				else {

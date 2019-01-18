@@ -13,5 +13,6 @@ AFortniteCloneGameMode::AFortniteCloneGameMode()
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 		PlayerStateClass = AFortniteClonePlayerState::StaticClass();
+		//HUDClass = AFortniteCloneHUD::StaticClass();
 	}
 }

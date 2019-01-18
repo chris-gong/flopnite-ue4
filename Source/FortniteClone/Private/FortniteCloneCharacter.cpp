@@ -17,6 +17,7 @@
 #include "HealingActor.h"
 #include "AmmunitionActor.h"
 
+DEFINE_LOG_CATEGORY(LogMyGame);
 //////////////////////////////////////////////////////////////////////////
 // AFortniteCloneCharacter
 
@@ -60,7 +61,7 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 
 	CurrentWeaponType = 0;
 	CurrentBuildingMaterial = 0;
-	BuildingPreview = NULL;
+	BuildingPreview = nullptr;
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 
@@ -148,24 +149,42 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 			if (BuildingPreview) {
 				BuildingPreview->Destroy(); //destroy the last wall preview
 			}
-			if (WallPreviewClasses[CurrentBuildingMaterial]) {
-				BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(WallPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 200) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new wall preview
+			FString LogMsg = FString("Current building material ") + FString::FromInt(CurrentBuildingMaterial);
+			UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+			if (CurrentBuildingMaterial >= 0 && CurrentBuildingMaterial <= 2) {
+				if (WallPreviewClasses.IsValidIndex(CurrentBuildingMaterial)) {
+					if (WallPreviewClasses[CurrentBuildingMaterial] != nullptr) {
+						BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(WallPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 200) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new wall preview
+					}
+				}
 			}
 		}
 		if (State->InBuildMode && State->BuildMode == FString("Ramp")) {
 			if (BuildingPreview) {
 				BuildingPreview->Destroy(); //destroy the last wall preview
 			}
-			if (RampPreviewClasses[CurrentBuildingMaterial]) {
-				BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(RampPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 100) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new ramp preview
+			FString LogMsg = FString("Current building material ") + FString::FromInt(CurrentBuildingMaterial);
+			UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+			if (CurrentBuildingMaterial >= 0 && CurrentBuildingMaterial <= 2) {
+				if (RampPreviewClasses.IsValidIndex(CurrentBuildingMaterial)) {
+					if (RampPreviewClasses[CurrentBuildingMaterial] != nullptr) {
+						BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(RampPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 100) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new ramp preview
+					}
+				}
 			}
 		}
 		if (State->InBuildMode && State->BuildMode == FString("Floor")) {
 			if (BuildingPreview) {
 				BuildingPreview->Destroy(); //destroy the last wall preview
 			}
-			if (FloorPreviewClasses[CurrentBuildingMaterial]) {
-				BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(FloorPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 120) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new floor preview
+			FString LogMsg = FString("Current building material ") + FString::FromInt(CurrentBuildingMaterial);
+			UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+			if (CurrentBuildingMaterial >= 0 && CurrentBuildingMaterial <= 2) {
+				if (FloorPreviewClasses.IsValidIndex(CurrentBuildingMaterial)) {
+					if (FloorPreviewClasses[CurrentBuildingMaterial] != nullptr) {
+						BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(FloorPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 120) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new floor preview
+					}
+				}
 			}
 		}
 		FRotator ControlRotation = GetControlRotation();
@@ -186,12 +205,12 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 }
 
 void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
-	if (OtherActor != NULL && OtherActor != this) {
-		if (CurrentWeapon != NULL && OtherActor == (AActor*) CurrentWeapon) {
+	if (OtherActor != nullptr && OtherActor != this) {
+		if (CurrentWeapon != nullptr && OtherActor == (AActor*) CurrentWeapon) {
 			// if the character is overlapping with its weapon, dont do anything about it
 			return;
 		}
-		if (CurrentHealingItem != NULL && OtherActor == (AActor*)CurrentHealingItem) {
+		if (CurrentHealingItem != nullptr && OtherActor == (AActor*)CurrentHealingItem) {
 			// if the character is overlapping with its healing item, dont do anything about it
 			return;
 		}
@@ -200,7 +219,7 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 			if (WeaponActor->WeaponType == 0) {
 				return; // do nothing if it's a pickaxe
 			}
-			if (WeaponActor->Holder != NULL) {
+			if (WeaponActor->Holder != nullptr) {
 				return; // do nothing if someone is holding the weapon
 			}
 			// pick up the item if the two conditions above are false
@@ -218,11 +237,11 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 			}
 			if (CurrentWeapon) {
 				CurrentWeapon->Destroy();
-				CurrentWeapon = NULL;
+				CurrentWeapon = nullptr;
 			}
 			if (CurrentHealingItem) {
 				CurrentHealingItem->Destroy();
-				CurrentHealingItem = NULL;
+				CurrentHealingItem = nullptr;
 			}
 
 			// PICK UP WEAPON
@@ -253,7 +272,7 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 			if (CurrentHealingItem) {
 				CurrentHealingItem->Destroy();
-				CurrentHealingItem = NULL;
+				CurrentHealingItem = nullptr;
 			}
 			
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
@@ -261,7 +280,7 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 				return; // can't pick up items while in build mode or if just shot shotgun, swung pickaxe, used bandage, or reloaded
 			}
 			CurrentHealingItem = Cast<AHealingActor>(OtherActor);
-			if (CurrentHealingItem->Holder != NULL) {
+			if (CurrentHealingItem->Holder != nullptr) {
 				return; // do nothing if someone is holding the weapon
 			}
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("didn't end early"));
@@ -271,13 +290,13 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 			}
 			if (CurrentWeapon) {
 				CurrentWeapon->Destroy();
-				CurrentWeapon = NULL;
+				CurrentWeapon = nullptr;
 			}
 			// PICK UP BANDAGE 
 			FName BandageSocketName = TEXT("hand_left_socket");
 			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 
-			CurrentWeapon = NULL;
+			CurrentWeapon = nullptr;
 			CurrentWeaponType = -1;
 			CurrentHealingItem->Holder = this;
 			UStaticMeshComponent* OutHitStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentHealingItem->GetComponentByClass(UStaticMeshComponent::StaticClass()));
@@ -354,7 +373,7 @@ void AFortniteCloneCharacter::MoveForward(float Value)
 			return;
 		}
 	}
-	if ((Controller != NULL) && (Value != 0.0f))
+	if ((Controller != nullptr) && (Value != 0.0f))
 	{
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -380,7 +399,7 @@ void AFortniteCloneCharacter::MoveRight(float Value)
 			return;
 		}
 	}
-	if ( (Controller != NULL) && (Value != 0.0f) )
+	if ( (Controller != nullptr) && (Value != 0.0f) )
 	{
 		// find out which way is right
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -412,17 +431,17 @@ void AFortniteCloneCharacter::Sprint(float Value) {
 			GetCharacterMovement()->MaxWalkSpeed = 200.0;
 		}
 		else if (Value == 0) {
-			GetCharacterMovement()->MaxWalkSpeed = 400.0;
+			GetCharacterMovement()->MaxWalkSpeed = 450.0;
 			Animation->IsRunning = false;
 		}
 		else {
 			// can only sprint if the w key is held down by itself or in combination with the a or d keys
 			if (!(OnlyAOrDDown || SDown) && WDown) {
-				GetCharacterMovement()->MaxWalkSpeed = 1000.0;
+				GetCharacterMovement()->MaxWalkSpeed = 900.0;
 				Animation->IsRunning = true;
 			}
 			else {
-				GetCharacterMovement()->MaxWalkSpeed = 400.0;
+				GetCharacterMovement()->MaxWalkSpeed = 450.0;
 				Animation->IsRunning = false;
 			}
 		}
@@ -493,7 +512,7 @@ void AFortniteCloneCharacter::PreviewWall() {
 
 				FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 				CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[CurrentWeaponType], SpawnTransform));
-				if (CurrentWeapon != NULL)
+				if (CurrentWeapon != nullptr)
 				{
 					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
 					CurrentWeapon->Holder = this;
@@ -523,7 +542,7 @@ void AFortniteCloneCharacter::PreviewWall() {
 
 				FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 				auto CurrentHealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
-				if (CurrentHealingItem != NULL)
+				if (CurrentHealingItem != nullptr)
 				{
 					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
 					CurrentHealingItem->Holder = this;
@@ -567,11 +586,11 @@ void AFortniteCloneCharacter::PreviewWall() {
 			}
 			if (CurrentWeapon) {
 				CurrentWeapon->Destroy();
-				CurrentWeapon = NULL;
+				CurrentWeapon = nullptr;
 			}
 			if (CurrentHealingItem) {
 				CurrentHealingItem->Destroy();
-				CurrentHealingItem = NULL;
+				CurrentHealingItem = nullptr;
 			}
 		}
 	}
@@ -599,7 +618,7 @@ void AFortniteCloneCharacter::PreviewRamp() {
 
 				FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 				CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[CurrentWeaponType], SpawnTransform));
-				if (CurrentWeapon != NULL)
+				if (CurrentWeapon != nullptr)
 				{
 					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
 					CurrentWeapon->Holder = this;
@@ -629,7 +648,7 @@ void AFortniteCloneCharacter::PreviewRamp() {
 
 				FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 				auto CurrentHealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
-				if (CurrentHealingItem != NULL)
+				if (CurrentHealingItem != nullptr)
 				{
 					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
 					CurrentHealingItem->Holder = this;
@@ -673,11 +692,11 @@ void AFortniteCloneCharacter::PreviewRamp() {
 			}
 			if (CurrentWeapon) {
 				CurrentWeapon->Destroy();
-				CurrentWeapon = NULL;
+				CurrentWeapon = nullptr;
 			}
 			if (CurrentHealingItem) {
 				CurrentHealingItem->Destroy();
-				CurrentHealingItem = NULL;
+				CurrentHealingItem = nullptr;
 			}
 		}
 	}
@@ -704,7 +723,7 @@ void AFortniteCloneCharacter::PreviewFloor() {
 
 				FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 				CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[CurrentWeaponType], SpawnTransform));
-				if (CurrentWeapon != NULL)
+				if (CurrentWeapon != nullptr)
 				{
 					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
 					CurrentWeapon->Holder = this;
@@ -735,7 +754,7 @@ void AFortniteCloneCharacter::PreviewFloor() {
 
 				FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 				auto CurrentHealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
-				if (CurrentHealingItem != NULL)
+				if (CurrentHealingItem != nullptr)
 				{
 					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
 					CurrentHealingItem->Holder = this;
@@ -779,11 +798,11 @@ void AFortniteCloneCharacter::PreviewFloor() {
 			}
 			if (CurrentWeapon) {
 				CurrentWeapon->Destroy();
-				CurrentWeapon = NULL;
+				CurrentWeapon = nullptr;
 			}
 			if (CurrentHealingItem) {
 				CurrentHealingItem->Destroy();
-				CurrentHealingItem = NULL;
+				CurrentHealingItem = nullptr;
 			}
 		}
 	}
@@ -923,7 +942,7 @@ void AFortniteCloneCharacter::ShootGun() {
 				}*/
 				FTransform SpawnTransform(BulletRotation, BulletLocation);
 				auto Bullet = Cast<AProjectileActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, CurrentWeapon->BulletClass, SpawnTransform));
-				if (Bullet != NULL)
+				if (Bullet != nullptr)
 				{
 					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
 					Bullet->Weapon = CurrentWeapon;
@@ -1095,7 +1114,7 @@ void AFortniteCloneCharacter::AimGunOut() {
 		Animation->AimedIn = false;
 		Animation->HoldingWeaponType = 1;
 		CameraBoom->TargetArmLength = 300;
-		GetCharacterMovement()->MaxWalkSpeed = 400.0;
+		GetCharacterMovement()->MaxWalkSpeed = 450.0;
 		State->AimedIn = false;
 	}
 }
@@ -1155,11 +1174,11 @@ void AFortniteCloneCharacter::HoldPickaxe() {
 			if (CurrentWeapon) {
 				State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
 				CurrentWeapon->Destroy();
-				CurrentWeapon = NULL;
+				CurrentWeapon = nullptr;
 			}
 			if (CurrentHealingItem) {
 				CurrentHealingItem->Destroy();
-				CurrentHealingItem = NULL;
+				CurrentHealingItem = nullptr;
 			}
 			FName WeaponSocketName = TEXT("hand_right_socket");
 			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
@@ -1167,7 +1186,7 @@ void AFortniteCloneCharacter::HoldPickaxe() {
 			FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 			CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[0], SpawnTransform));
 			CurrentWeaponType = 0;
-			if (CurrentWeapon != NULL)
+			if (CurrentWeapon != nullptr)
 			{
 				//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
 				CurrentWeapon->Holder = this;
@@ -1214,11 +1233,11 @@ void AFortniteCloneCharacter::HoldAssaultRifle() {
 			}
 			if (CurrentWeapon) {
 				CurrentWeapon->Destroy();
-				CurrentWeapon = NULL;
+				CurrentWeapon = nullptr;
 			}
 			if (CurrentHealingItem) {
 				CurrentHealingItem->Destroy();
-				CurrentHealingItem = NULL;
+				CurrentHealingItem = nullptr;
 			}
 			FName WeaponSocketName = TEXT("hand_right_socket");
 			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
@@ -1226,7 +1245,7 @@ void AFortniteCloneCharacter::HoldAssaultRifle() {
 			FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 			CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[1], SpawnTransform));
 			CurrentWeaponType = 1;
-			if (CurrentWeapon != NULL)
+			if (CurrentWeapon != nullptr)
 			{
 				//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
 				CurrentWeapon->Holder = this;
@@ -1273,11 +1292,11 @@ void AFortniteCloneCharacter::HoldShotgun() {
 			}
 			if (CurrentWeapon) {
 				CurrentWeapon->Destroy();
-				CurrentWeapon = NULL;
+				CurrentWeapon = nullptr;
 			}
 			if (CurrentHealingItem) {
 				CurrentHealingItem->Destroy();
-				CurrentHealingItem = NULL;
+				CurrentHealingItem = nullptr;
 			}
 			FName WeaponSocketName = TEXT("hand_right_socket");
 			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
@@ -1285,7 +1304,7 @@ void AFortniteCloneCharacter::HoldShotgun() {
 			FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 			CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[2], SpawnTransform));
 			CurrentWeaponType = 2;
-			if (CurrentWeapon != NULL)
+			if (CurrentWeapon != nullptr)
 			{
 				//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
 				CurrentWeapon->Holder = this;
@@ -1333,7 +1352,7 @@ void AFortniteCloneCharacter::HoldBandage() {
 			}
 			if (CurrentWeapon) {
 				CurrentWeapon->Destroy();
-				CurrentWeapon = NULL;
+				CurrentWeapon = nullptr;
 			}
 			FName BandageSocketName = TEXT("hand_left_socket");
 			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
@@ -1341,7 +1360,7 @@ void AFortniteCloneCharacter::HoldBandage() {
 			FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 			CurrentHealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
 			CurrentWeaponType = -1;
-			if (CurrentHealingItem != NULL)
+			if (CurrentHealingItem != nullptr)
 			{
 				//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
 				CurrentHealingItem->Holder = this;
@@ -1363,4 +1382,8 @@ void AFortniteCloneCharacter::HoldBandage() {
 			}
 		}
 	}
+}
+
+float AFortniteCloneCharacter::GetHealth() {
+	return Health;
 }

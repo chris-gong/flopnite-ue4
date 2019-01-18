@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "FortniteCloneCharacter.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogMyGame, Log, All);
+
 class ABuildingActor;
 class AWeaponActor;
 class AHealingActor;
@@ -102,10 +104,15 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Health")
 	float Health;
 
+	UFUNCTION(BlueprintPure, Category = "Health")
+	float GetHealth();
+
 	/* The current weapon being held */
+	UPROPERTY()
 	AWeaponActor* CurrentWeapon;
 
 	/* The current healing item being held */
+	UPROPERTY()
 	AHealingActor* CurrentHealingItem;
 
 protected:
@@ -197,12 +204,16 @@ protected:
 	UFUNCTION()
 	void HoldBandage();
 	/* Current preview of wall to be built in build mode */
+
+	UPROPERTY()
 	ABuildingActor* BuildingPreview;
 
 	/* Index of the class in array to spawn the weapon */
+	UPROPERTY()
 	int CurrentWeaponType; // 0 for pickaxe, 1 for assault rifle, 2 for shotgun, -1 for non weapon items
 
 	/* Index of the class in array to spawn structure */
+	UPROPERTY()
 	int CurrentBuildingMaterial; // 0 for wood, 1 for stone, 2 for steel
 	/** 
 	 * Called via input to turn at a given rate. 
