@@ -184,6 +184,9 @@ protected:
 	void PickaxeTimeOut();
 
 	UFUNCTION()
+	void RifleTimeOut();
+
+	UFUNCTION()
 	void ShotgunTimeOut();
 
 	UFUNCTION()

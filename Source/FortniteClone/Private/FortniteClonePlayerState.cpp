@@ -20,6 +20,7 @@ AFortniteClonePlayerState::AFortniteClonePlayerState() {
 	MaterialCounts.Add(0); // steel
 	CurrentWeapon = 0;
 	BandageCount = 0;
+	JustShotRifle = false;
 	JustShotShotgun = false;
 	JustSwungPickaxe = false;
 	JustUsedBandage = false;

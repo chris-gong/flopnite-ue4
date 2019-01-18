@@ -30,6 +30,7 @@ public:
 	int CurrentWeapon; //0 for pickaxe, 1 for assault rifle, 2 for shotgun, -1 for non weapons like bandages
 	int BandageCount;
 
+	bool JustShotRifle; // used to prevent player from spamming rifle
 	bool JustShotShotgun; // used to prevent player from spamming shotgun
 	bool JustSwungPickaxe; //used to prevent player from spamming pickaxe
 	bool JustUsedBandage; //used to prevent player from spamming bandage and doing other things while reloadingreloa

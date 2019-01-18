@@ -224,8 +224,8 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 			}
 			// pick up the item if the two conditions above are false
 			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-			if (State->InBuildMode || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
-				return; // can't pick up items while in build mode or if just shot shotgun, swung pickaxe, used bandage, or reloaded
+			if (State->InBuildMode || State->JustShotRifle || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
+				return; // can't pick up items while in build mode or if just shot rifle, shot shotgun, swung pickaxe, used bandage, or reloaded
 			}
 			// if the player already has a weapon of this type, do not equip it
 			if (State->EquippedWeapons.Contains(WeaponActor->WeaponType)) {
@@ -276,8 +276,8 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 			}
 			
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
-			if (State->InBuildMode || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
-				return; // can't pick up items while in build mode or if just shot shotgun, swung pickaxe, used bandage, or reloaded
+			if (State->InBuildMode || State->JustShotRifle || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
+				return; // can't pick up items while in build mode or if just shot rifle, shot shotgun, swung pickaxe, used bandage, or reloaded
 			}
 			CurrentHealingItem = Cast<AHealingActor>(OtherActor);
 			if (CurrentHealingItem->Holder != nullptr) {
@@ -893,8 +893,14 @@ void AFortniteCloneCharacter::ShootGun() {
 			if (Animation && AnimationInstance) {
 				if (State->AimedIn) {
 					if (State->CurrentWeapon == 1) {
+						if (State->JustShotRifle) {
+							return;
+						}
 						PlayAnimMontage(RifleIronsightsShootingAnimation);
 						CurrentWeapon->CurrentBulletCount--;
+						State->JustShotRifle = true;
+						FTimerHandle RifleTimerHandle;
+						GetWorldTimerManager().SetTimer(RifleTimerHandle, this, &AFortniteCloneCharacter::RifleTimeOut, 0.233f, false);
 					}
 					else if (State->CurrentWeapon == 2) {
 						if (State->JustShotShotgun) {
@@ -919,8 +925,14 @@ void AFortniteCloneCharacter::ShootGun() {
 						GetWorldTimerManager().SetTimer(PickaxeTimerHandle, this, &AFortniteCloneCharacter::PickaxeTimeOut, 0.403f, false);
 					}
 					if (State->CurrentWeapon == 1) {
+						if (State->JustShotRifle) {
+							return;
+						}
 						PlayAnimMontage(RifleHipShootingAnimation);
 						CurrentWeapon->CurrentBulletCount--;
+						State->JustShotRifle = true;
+						FTimerHandle RifleTimerHandle;
+						GetWorldTimerManager().SetTimer(RifleTimerHandle, this, &AFortniteCloneCharacter::RifleTimeOut, 0.233f, false);
 					}
 					else if (State->CurrentWeapon == 2) {
 						if (State->JustShotShotgun) {
@@ -983,7 +995,7 @@ void AFortniteCloneCharacter::Reload() {
 		if (State->CurrentWeapon > 2 || State->CurrentWeapon < 1) {
 			return; // can only reload if holding a assault rifle or shotgun
 		}
-		if (State->JustShotShotgun || State->JustReloadedRifle || State->JustReloadedShotgun) {
+		if (State->JustShotRifle || State->JustShotShotgun || State->JustReloadedRifle || State->JustReloadedShotgun) {
 			return; // currently reloading or just shot
 		}
 		UAnimInstance* Animation = GetMesh()->GetAnimInstance();
@@ -991,6 +1003,9 @@ void AFortniteCloneCharacter::Reload() {
 		if (Animation && AnimationInstance) {
 			if (State->AimedIn) {
 				if (State->CurrentWeapon == 1) {
+					if (State->JustShotRifle) {
+						return;
+					}
 					if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] <= 0) {
 						return; // no ammo left
 					}
@@ -1042,6 +1057,9 @@ void AFortniteCloneCharacter::Reload() {
 			}
 			else {
 				if (State->CurrentWeapon == 1) {
+					if (State->JustShotRifle) {
+						return;
+					}
 					if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] <= 0) {
 						return; // no ammo left
 					}
@@ -1122,6 +1140,11 @@ void AFortniteCloneCharacter::AimGunOut() {
 void AFortniteCloneCharacter::PickaxeTimeOut() {
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	State->JustSwungPickaxe = false;
+}
+
+void AFortniteCloneCharacter::RifleTimeOut() {
+	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	State->JustShotRifle = false;
 }
 
 void AFortniteCloneCharacter::ShotgunTimeOut() {
