@@ -8,6 +8,7 @@
 
 class UUserWidget;
 class UTexture2D;
+class UWidgetAnimation;
 
 /**
  * 
@@ -25,8 +26,9 @@ public:
 
 	virtual void BeginPlay() override;
 
+	void DrawHitMarker();
+
 private:
-	/* Crosshair Asset */
 	UTexture2D* CrosshairTexture;
 
 	UPROPERTY(EditAnywhere, Category = "Health")
@@ -41,6 +43,12 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Items")
 	TSubclassOf<UUserWidget> KillsWidgetClass;
 
+	UPROPERTY(EditAnywhere, Category = "HitMarker")
+	TSubclassOf<UUserWidget> HitMarkerWidgetClass;
+
 	UPROPERTY(EditAnywhere, Category = "Widget")
 	UUserWidget* CurrentWidget;
+
+	UPROPERTY(EditAnywhere, Category = "Animations")
+	UWidgetAnimation* HitMarkerAnimation;
 };

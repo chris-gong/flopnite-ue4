@@ -967,15 +967,20 @@ void AFortniteCloneCharacter::ShootGun() {
 				/*if (State->CurrentWeapon == 0) {
 					BulletRotation = GetActorRotation();
 				}*/
-				FTransform SpawnTransform(BulletRotation, BulletLocation);
-				auto Bullet = Cast<AProjectileActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, CurrentWeapon->BulletClass, SpawnTransform));
-				if (Bullet != nullptr)
-				{
-					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
-					Bullet->Weapon = CurrentWeapon;
-					Bullet->WeaponHolder = this;
+				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+				if (Animation) {
+					FVector DirectionVector = FVector(0, Animation->AimYaw * 70, Animation->AimPitch * 20);
+					FRotator DirectionRotation = FRotator(BulletRotation.Pitch, GetActorRotation().Yaw, BulletRotation.Roll);
+					FTransform SpawnTransform(BulletRotation + FRotator(1,-0.5,0), BulletLocation);
+					auto Bullet = Cast<AProjectileActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, CurrentWeapon->BulletClass, SpawnTransform));
+					if (Bullet != nullptr)
+					{
+						//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
+						Bullet->Weapon = CurrentWeapon;
+						Bullet->WeaponHolder = this;
 
-					UGameplayStatics::FinishSpawningActor(Bullet, SpawnTransform);
+						UGameplayStatics::FinishSpawningActor(Bullet, SpawnTransform);
+					}
 				}
 			}
 

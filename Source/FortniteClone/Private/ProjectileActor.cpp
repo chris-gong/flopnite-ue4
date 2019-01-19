@@ -8,6 +8,7 @@
 #include "HealingActor.h"
 #include "MaterialActor.h"
 #include "FortniteClonePlayerState.h"
+#include "FortniteCloneHUD.h"
 
 // Sets default values
 AProjectileActor::AProjectileActor()
@@ -23,7 +24,7 @@ AProjectileActor::AProjectileActor()
 
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
 	ProjectileMovementComponent->UpdatedComponent = CollisionComp;
-	ProjectileMovementComponent->ProjectileGravityScale = 0.01;
+	ProjectileMovementComponent->ProjectileGravityScale = 0.0;
 	/*ProjectileMovementComponent->InitialSpeed = ProjectileSpeed;
 	ProjectileMovementComponent->MaxSpeed = ProjectileSpeed;*/
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
@@ -47,12 +48,13 @@ void AProjectileActor::Tick(float DeltaTime)
 
 void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	if (OtherActor != nullptr) {
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
 		//bullet should only destroy itself once it overlaps with an actor other than itself, the weapon it came from, and the holder of that weapon
-		if (OtherActor == (AActor*) Weapon || OtherActor == (AActor*) WeaponHolder || OtherActor == this) {
+		if ((Weapon && OtherActor == (AActor*) Weapon) || (WeaponHolder && OtherActor == (AActor*) WeaponHolder) || OtherActor == this) {
 			return;
 		}
 		else {
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
 			if (OtherActor->IsA(AWeaponActor::StaticClass())) {
 				//if the weapon has no holder, then let the bullet keep going
 				AWeaponActor* WeaponActor = Cast<AWeaponActor>(OtherActor);
@@ -64,6 +66,11 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 						AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(WeaponActor->Holder);
 						if (FortniteCloneCharacter) {
 							FortniteCloneCharacter->Health -= Damage;
+							if (WeaponHolder) {
+								// draw hitmarker
+								AFortniteCloneHUD* FortniteCloneHUD = Cast<AFortniteCloneHUD>(Cast<APlayerController>(WeaponHolder->GetController())->GetHUD());
+								FortniteCloneHUD->DrawHitMarker();
+							}
 							if (FortniteCloneCharacter->Health <= 0) {
 								if (WeaponActor) {
 									WeaponActor->Destroy();
@@ -95,6 +102,11 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 						AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(HealingActor->Holder);
 						if (FortniteCloneCharacter) {
 							FortniteCloneCharacter->Health -= Damage;
+							if (WeaponHolder) {
+								// draw hitmarker
+								AFortniteCloneHUD* FortniteCloneHUD = Cast<AFortniteCloneHUD>(Cast<APlayerController>(WeaponHolder->GetController())->GetHUD());
+								FortniteCloneHUD->DrawHitMarker();
+							}
 							if (FortniteCloneCharacter->Health <= 0) {
 								if (HealingActor) {
 									HealingActor->Destroy();
@@ -135,6 +147,11 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 				AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(OtherActor);
 				if (FortniteCloneCharacter) {
 					FortniteCloneCharacter->Health -= Damage;
+					if (WeaponHolder) {
+						// draw hitmarker
+						AFortniteCloneHUD* FortniteCloneHUD = Cast<AFortniteCloneHUD>(Cast<APlayerController>(WeaponHolder->GetController())->GetHUD());
+						FortniteCloneHUD->DrawHitMarker();
+					}
 					if (FortniteCloneCharacter->Health <= 0) {
 						if (FortniteCloneCharacter && FortniteCloneCharacter->CurrentWeapon) {
 							FortniteCloneCharacter->CurrentWeapon->Destroy();

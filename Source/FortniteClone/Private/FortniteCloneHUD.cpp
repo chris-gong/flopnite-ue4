@@ -5,6 +5,7 @@
 #include "Engine/Texture2D.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Blueprint/UserWidget.h"
+#include "Engine.h"
 
 AFortniteCloneHUD::AFortniteCloneHUD()
 {
@@ -18,6 +19,8 @@ AFortniteCloneHUD::AFortniteCloneHUD()
 	ItemsWidgetClass = ItemBarObj.Class;
 	static ConstructorHelpers::FClassFinder<UUserWidget> KillBarObj(TEXT("/Game/UI/Widgets/UI_KillCount"));
 	KillsWidgetClass = KillBarObj.Class;
+	static ConstructorHelpers::FClassFinder<UUserWidget> HitMarkerObj(TEXT("/Game/UI/Widgets/UI_HitMarker"));
+	HitMarkerWidgetClass = HitMarkerObj.Class;
 }
 
 void AFortniteCloneHUD::DrawHUD()
@@ -78,6 +81,20 @@ void AFortniteCloneHUD::BeginPlay()
 		if (CurrentWidget)
 		{
 			CurrentWidget->AddToViewport();
+		}
+	}
+}
+
+void AFortniteCloneHUD::DrawHitMarker() {
+	if (HitMarkerWidgetClass != nullptr)
+	{
+		CurrentWidget = CreateWidget<UUserWidget>(GetWorld(), HitMarkerWidgetClass);
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "hitmarkerclass is not null");
+		if (CurrentWidget)
+		{
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "current widget is not null");
+			CurrentWidget->AddToViewport();
+			// TODO for later: Implement your own UUserWidget class to retrieve animation from a blueprint and play the animation here
 		}
 	}
 }
