@@ -90,3 +90,5 @@ DerivedDataCache/*
 
 # Multiplayer Stuff
 /Plugins/GameLiftServerSDK
+
+/WindowsNoEditor
