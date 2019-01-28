@@ -13,6 +13,10 @@ class AFortniteCloneGameMode : public AGameModeBase
 
 public:
 	AFortniteCloneGameMode();
+
+	virtual void StartPlay() override;
+
+	virtual void PostLogin(APlayerController *NewPlayer) override;
 };
 
 

@@ -4,8 +4,7 @@
 
 // Add default functionality here for any IGuyAnimInstance functions that are not pure virtual.
 
-UThirdPersonAnimInstance::UThirdPersonAnimInstance(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+UThirdPersonAnimInstance::UThirdPersonAnimInstance()
 {
 	IsWalking = false;
 	IsRunning = false;

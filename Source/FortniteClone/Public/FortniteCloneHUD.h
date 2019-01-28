@@ -26,7 +26,11 @@ public:
 
 	virtual void BeginPlay() override;
 
+	void DrawCrosshair();
+
 	void DrawHitMarker();
+
+	void DrawGameUI();
 
 private:
 	UTexture2D* CrosshairTexture;
@@ -46,9 +50,13 @@ private:
 	UPROPERTY(EditAnywhere, Category = "HitMarker")
 	TSubclassOf<UUserWidget> HitMarkerWidgetClass;
 
+	UPROPERTY(EditAnywhere, Category = "MainMenu")
+	TSubclassOf<UUserWidget> MainMenuWidgetClass;
+
 	UPROPERTY(EditAnywhere, Category = "Widget")
 	UUserWidget* CurrentWidget;
 
 	UPROPERTY(EditAnywhere, Category = "Animations")
 	UWidgetAnimation* HitMarkerAnimation;
+
 };

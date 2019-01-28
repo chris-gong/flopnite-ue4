@@ -87,3 +87,6 @@ DerivedDataCache/*
 
 # Soul Cave
 /Content/SoulCave
+
+# Multiplayer Stuff
+/Plugins/GameLiftServerSDK

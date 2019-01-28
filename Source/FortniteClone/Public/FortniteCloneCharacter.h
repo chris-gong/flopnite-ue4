@@ -11,6 +11,8 @@ DECLARE_LOG_CATEGORY_EXTERN(LogMyGame, Log, All);
 class ABuildingActor;
 class AWeaponActor;
 class AHealingActor;
+class AFortniteClonePlayerState;
+class UThirdPersonAnimInstance;
 
 UCLASS(config=Game)
 class AFortniteCloneCharacter : public ACharacter
@@ -136,6 +138,9 @@ public:
 	UPROPERTY()
 	AHealingActor* CurrentHealingItem;
 
+	/*UPROPERTY()
+	AFortniteClonePlayerState* State;*/
+
 protected:
 
 	/** Resets HMD orientation in VR. */
@@ -229,6 +234,9 @@ protected:
 	void HoldBandage();
 	/* Current preview of wall to be built in build mode */
 
+	/*UFUNCTION(Server, WithValidation)
+	void ServerSetAnimInstance(UThirdPersonAnimInstance* AnimInstance);*/
+
 	UPROPERTY()
 	ABuildingActor* BuildingPreview;
 
@@ -261,9 +269,6 @@ protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	// Object creation can only happen after the character has finished being constructed
-	virtual void BeginPlay() override;
-
 	// End of APawn interface
 
 public:
@@ -275,9 +280,13 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	// Override playanimmontage to use pawn mesh
 	virtual float PlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None) override;
+
 	/* called when character touches something with its body */
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
+private:
+	// Object creation can only happen after the character has finished being constructed
+	virtual void BeginPlay() override;
 };
 

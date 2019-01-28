@@ -11,7 +11,10 @@
 UCLASS(transient, Blueprintable, hideCategories = AnimInstance, BlueprintType)
 class UThirdPersonAnimInstance : public UAnimInstance
 {
-	GENERATED_UCLASS_BODY()
+	GENERATED_BODY()
+
+public:
+	UThirdPersonAnimInstance();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic")
 	bool IsRunning;
