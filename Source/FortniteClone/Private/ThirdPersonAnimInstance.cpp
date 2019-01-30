@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ThirdPersonAnimInstance.h"
+#include "UnrealNetwork.h"
 
 // Add default functionality here for any IGuyAnimInstance functions that are not pure virtual.
 
@@ -20,3 +21,22 @@ UThirdPersonAnimInstance::UThirdPersonAnimInstance()
 	RunningX = 0;
 	RunningY = 0;
 };
+
+void UThirdPersonAnimInstance::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UThirdPersonAnimInstance, IsRunning);
+	DOREPLIFETIME(UThirdPersonAnimInstance, IsWalking);
+	DOREPLIFETIME(UThirdPersonAnimInstance, HoldingWeapon);
+	DOREPLIFETIME(UThirdPersonAnimInstance, AimedIn);
+	DOREPLIFETIME(UThirdPersonAnimInstance, HoldingWeaponType);
+	DOREPLIFETIME(UThirdPersonAnimInstance, Speed);
+	DOREPLIFETIME(UThirdPersonAnimInstance, AimPitch);
+	DOREPLIFETIME(UThirdPersonAnimInstance, AimYaw);
+	DOREPLIFETIME(UThirdPersonAnimInstance, InterpSpeed);
+	DOREPLIFETIME(UThirdPersonAnimInstance, WalkingX);
+	DOREPLIFETIME(UThirdPersonAnimInstance, WalkingY);
+	DOREPLIFETIME(UThirdPersonAnimInstance, RunningX);
+	DOREPLIFETIME(UThirdPersonAnimInstance, RunningY);
+}

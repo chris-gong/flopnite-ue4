@@ -17,6 +17,7 @@
 #include "HealingActor.h"
 #include "AmmunitionActor.h"
 #include "UnrealNetwork.h"
+#include "Engine/ActorChannel.h"
 
 DEFINE_LOG_CATEGORY(LogMyGame);
 //////////////////////////////////////////////////////////////////////////
@@ -24,6 +25,7 @@ DEFINE_LOG_CATEGORY(LogMyGame);
 
 AFortniteCloneCharacter::AFortniteCloneCharacter()
 {
+	bReplicates = true;
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
@@ -122,10 +124,39 @@ void AFortniteCloneCharacter::BeginPlay() {
 	/*if (GetNetMode() != ENetMode::NM_Client || GetNetMode() != ENetMode::NM_Standalone) {
 		return;
 	}*/
+	if (HasAuthority()) {
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()) + FString("I have da authoritay"));
+		//AnimInstance = NewObject<UThirdPersonAnimInstance>(this);
+		GetMesh()->SetAnimInstanceClass(AnimInstanceClass);
+		if (WeaponClasses[CurrentWeaponType]) {
+			FName WeaponSocketName = TEXT("hand_right_socket");
+			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+			CurrentWeapon = GetWorld()->SpawnActor<AWeaponActor>(WeaponClasses[CurrentWeaponType], GetActorLocation(), GetActorRotation());
+			UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+			WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
+			CurrentWeapon->Holder = this;
+			if (GetMesh()) {
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()) + FString(" mesh exists"));
+				AnimInstance = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+				//AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+				if (AnimInstance) {
+					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()) + FString(" animinstance exists"));
+					/*AnimInstance->HoldingWeapon = true;
+					AnimInstance->AimedIn = false;
+					AnimInstance->HoldingWeaponType = 1;*/
+					//State->HoldingWeapon = true;
+					//State->CurrentWeapon = 0;
+				}
+			}
 
+		}
+		if (GetController()) {
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()) + FString(" controller is not null"));
+		}
+	}
 	//set input to ui only for the main screen level
 	//Cast<APlayerController>(GetController())->SetInputMode(FInputModeGameAndUI());
-	if (WeaponClasses[CurrentWeaponType]) {
+	/*if (WeaponClasses[CurrentWeaponType]) {
 		FName WeaponSocketName = TEXT("hand_right_socket");
 		FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 		CurrentWeapon = GetWorld()->SpawnActor<AWeaponActor>(WeaponClasses[CurrentWeaponType], GetActorLocation(), GetActorRotation());
@@ -142,7 +173,7 @@ void AFortniteCloneCharacter::BeginPlay() {
 			//State->HoldingWeapon = true;
 			//State->CurrentWeapon = 0;
 		}
-	}
+	}*/
 	if (GetController()) {
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("controller is not null"));
 		//set input to ui only for the main screen level <- don't do this, preventing aim offset from happening unless left mouse is held down
@@ -153,6 +184,39 @@ void AFortniteCloneCharacter::BeginPlay() {
 			State->CurrentWeapon = 0;
 		}
 	}
+}
+
+void AFortniteCloneCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	if (HasAuthority())
+	{
+		// Objects only replicate from server to client. If we didn't guard this
+		// the client would create the object just fine but it would get replaced
+		// by the server version (more accurately the property would be replaced to
+		// point to the version from the server. The one the client allocated would
+		// eventually be garbage collected.
+		//AnimInstance = NewObject<UThirdPersonAnimInstance>(this); // NOTE: Very important, objects Outer must be our Actor!
+	}
+}
+
+bool AFortniteCloneCharacter::ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags)
+{
+	bool WroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
+	if (AnimInstance != nullptr)
+	{
+		WroteSomething |= Channel->ReplicateSubobject(AnimInstance, *Bunch, *RepFlags);
+	}
+
+	return WroteSomething;
+}
+
+void AFortniteCloneCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AFortniteCloneCharacter, AnimInstance);
 }
 
 void AFortniteCloneCharacter::Tick(float DeltaTime) {
@@ -916,10 +980,10 @@ void AFortniteCloneCharacter::SwitchBuildingMaterial() {
 }
 
 void AFortniteCloneCharacter::ShootGun() {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "shoot gun key pressed");
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()) + FString(" shoot gun key pressed"));
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	if (State) {
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Current weapon ") + FString::FromInt(State->CurrentWeapon));
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()) + FString(" Current weapon ") + FString::FromInt(State->CurrentWeapon));
 		if (State->HoldingWeapon) {
 			if (State->CurrentWeapon > 0 && State->CurrentWeapon < 3 && CurrentWeapon->CurrentBulletCount <= 0) {
 				// no bullets in magazine, need to reload
@@ -931,7 +995,7 @@ void AFortniteCloneCharacter::ShootGun() {
 			}
 			UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 			if (Animation) {
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Animation"));
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()) + FString("Animation"));
 				if (State->AimedIn) {
 					if (State->CurrentWeapon == 1) {
 						if (State->JustShotRifle) {

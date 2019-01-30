@@ -69,6 +69,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	TArray<TSubclassOf<AWeaponActor>> WeaponClasses;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	TSubclassOf<AWeaponActor> AnimInstanceClass;
+
 	/* Class for healing actor */
 	UPROPERTY(EditDefaultsOnly, Category = "Bandage")
 	TSubclassOf<AHealingActor> BandageClass;
@@ -140,6 +143,9 @@ public:
 
 	/*UPROPERTY()
 	AFortniteClonePlayerState* State;*/
+
+	UPROPERTY(Replicated)
+	UThirdPersonAnimInstance* AnimInstance;
 
 protected:
 
@@ -280,6 +286,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	// Override playanimmontage to use pawn mesh
 	virtual float PlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None) override;
+
+	virtual void PostInitializeComponents() override;
+
+	virtual bool ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags) override;
 
 	/* called when character touches something with its body */
 	UFUNCTION()
