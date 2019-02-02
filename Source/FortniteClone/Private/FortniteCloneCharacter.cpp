@@ -119,69 +119,36 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 
 void AFortniteCloneCharacter::BeginPlay() {
 	Super::BeginPlay();
-	
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Client ")  + FString::FromInt(ENetMode::NM_Client) + FString(" server ") + FString::FromInt(ENetMode::NM_DedicatedServer));
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()));
 	/*if (GetNetMode() != ENetMode::NM_Client || GetNetMode() != ENetMode::NM_Standalone) {
 		return;
 	}*/
-	if (HasAuthority()) {
-		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()) + FString("I have da authoritay"));
-		//AnimInstance = NewObject<UThirdPersonAnimInstance>(this);
-		GetMesh()->SetAnimInstanceClass(AnimInstanceClass);
-		if (WeaponClasses[CurrentWeaponType]) {
-			FName WeaponSocketName = TEXT("hand_right_socket");
-			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
-			CurrentWeapon = GetWorld()->SpawnActor<AWeaponActor>(WeaponClasses[CurrentWeaponType], GetActorLocation(), GetActorRotation());
-			UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
-			WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
-			CurrentWeapon->Holder = this;
-			if (GetMesh()) {
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()) + FString(" mesh exists"));
-				AnimInstance = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-				//AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-				if (AnimInstance) {
-					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()) + FString(" animinstance exists"));
-					/*AnimInstance->HoldingWeapon = true;
-					AnimInstance->AimedIn = false;
-					AnimInstance->HoldingWeaponType = 1;*/
-					//State->HoldingWeapon = true;
-					//State->CurrentWeapon = 0;
-				}
-			}
-
-		}
-		if (GetController()) {
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()) + FString(" controller is not null"));
-		}
-	}
-	//set input to ui only for the main screen level
-	//Cast<APlayerController>(GetController())->SetInputMode(FInputModeGameAndUI());
-	/*if (WeaponClasses[CurrentWeaponType]) {
+	if (WeaponClasses[CurrentWeaponType]) {
 		FName WeaponSocketName = TEXT("hand_right_socket");
 		FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 		CurrentWeapon = GetWorld()->SpawnActor<AWeaponActor>(WeaponClasses[CurrentWeaponType], GetActorLocation(), GetActorRotation());
 		UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 		WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
 		CurrentWeapon->Holder = this;
-
 		UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 		//AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		if (Animation) {
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("setting animation vars in begin play ") + FString::FromInt(GetNetMode()));
 			Animation->HoldingWeapon = true;
 			Animation->AimedIn = false;
 			Animation->HoldingWeaponType = 1;
+			//Animation->IsWalking = true;
+			//Animation->WalkingY = 90;
 			//State->HoldingWeapon = true;
 			//State->CurrentWeapon = 0;
 		}
-	}*/
-	if (GetController()) {
-		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("controller is not null"));
-		//set input to ui only for the main screen level <- don't do this, preventing aim offset from happening unless left mouse is held down
-		//Cast<APlayerController>(GetController())->SetInputMode(FInputModeGameAndUI());
-		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-		if (State) {
-			State->HoldingWeapon = true;
-			State->CurrentWeapon = 0;
+		if (GetController()) {
+			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+			if (State) {
+				State->HoldingWeapon = true;
+				State->CurrentWeapon = 0;
+			}
 		}
 	}
 }
@@ -204,11 +171,17 @@ void AFortniteCloneCharacter::PostInitializeComponents()
 bool AFortniteCloneCharacter::ReplicateSubobjects(class UActorChannel *Channel, class FOutBunch *Bunch, FReplicationFlags *RepFlags)
 {
 	bool WroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
-	if (AnimInstance != nullptr)
+	/*if (AnimInstance != nullptr)
 	{
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("replicated ") + FString::FromInt(GetNetMode()));
 		WroteSomething |= Channel->ReplicateSubobject(AnimInstance, *Bunch, *RepFlags);
 	}
-
+	if (State != nullptr) {
+		WroteSomething |= Channel->ReplicateSubobject(State, *Bunch, *RepFlags);
+	}
+	if (BuildingPreview != nullptr) {
+		WroteSomething |= Channel->ReplicateSubobject(BuildingPreview, *Bunch, *RepFlags);
+	}*/
 	return WroteSomething;
 }
 
@@ -216,17 +189,28 @@ void AFortniteCloneCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProper
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(AFortniteCloneCharacter, AnimInstance);
+	DOREPLIFETIME(AFortniteCloneCharacter, State);
+	DOREPLIFETIME(AFortniteCloneCharacter, BuildingPreview);
+	DOREPLIFETIME(AFortniteCloneCharacter, CurrentBuildingMaterial);
+	DOREPLIFETIME(AFortniteCloneCharacter, IsWalking);
+	DOREPLIFETIME(AFortniteCloneCharacter, IsRunning);
+	DOREPLIFETIME(AFortniteCloneCharacter, WalkingX);
+	DOREPLIFETIME(AFortniteCloneCharacter, WalkingY);
+	DOREPLIFETIME(AFortniteCloneCharacter, RunningX);
+	DOREPLIFETIME(AFortniteCloneCharacter, RunningY);
 }
 
 void AFortniteCloneCharacter::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
-
-	GetCapsuleComponent()->SetWorldRotation(GetCameraBoom()->GetComponentRotation());
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Tick mode ") + FString::FromInt(GetNetMode()));
 	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-
 	if (Animation) {
-		
+		if (Animation->IsWalking) {
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("tick iswalking true ") + FString::FromInt(GetNetMode()));
+		}
+		else {
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("tick iswalking false ") + FString::FromInt(GetNetMode()));
+		}
 		FVector DirectionVector = FVector(0, Animation->AimYaw, Animation->AimPitch);
 		if (GetController()) {
 			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
@@ -291,9 +275,13 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 		Animation->AimYaw = NewYaw;
 	}
 	
+	
 }
 
 void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
+	if (HasAuthority()) {
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("overlap mode ") + FString::FromInt(GetNetMode()));
+	}
 	if (OtherActor != nullptr && OtherActor != this) {
 		if (CurrentWeapon != nullptr && OtherActor == (AActor*) CurrentWeapon) {
 			// if the character is overlapping with its weapon, dont do anything about it
@@ -463,6 +451,7 @@ void AFortniteCloneCharacter::LookUpAtRate(float Rate)
 
 void AFortniteCloneCharacter::MoveForward(float Value)
 {
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("move forward ") + FString::FromInt(GetNetMode()));
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(Controller->PlayerState);
 	if (State) {
 		if (State->JustUsedBandage) {
@@ -479,11 +468,21 @@ void AFortniteCloneCharacter::MoveForward(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		AddMovementInput(Direction, Value);
 	}
-	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+	/*UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	if (Animation) {
 		//set blend space variable
 		Animation->WalkingY = Value * 90;
 		Animation->RunningY = Value * 90;
+		//Server_SetMovingVariables();
+	}*/
+	if (Value == 0) {
+		Server_ResetMovingForward();
+	}
+	else if (Value > 0) {
+		Server_SetMovingForwards();
+	}
+	else {
+		Server_SetMovingBackwards();
 	}
 }
 
@@ -495,22 +494,32 @@ void AFortniteCloneCharacter::MoveRight(float Value)
 			return;
 		}
 	}
-	if ( (Controller != nullptr) && (Value != 0.0f) )
+	if ((Controller != nullptr) && (Value != 0.0f))
 	{
 		// find out which way is right
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
-	
+
 		// get right vector 
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
 	}
-	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+	/*UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	if (Animation) {
 		//set blend space variable
 		Animation->WalkingX = Value * 90;
 		Animation->RunningX = Value * 90;
+		//Server_SetMovingVariables();
+	}*/
+	if (Value == 0) {
+		Server_ResetMovingRight();
+	}
+	else if (Value > 0) {
+		Server_SetMovingRight();
+	}
+	else {
+		Server_SetMovingLeft();
 	}
 }
 
@@ -529,27 +538,33 @@ void AFortniteCloneCharacter::Sprint(float Value) {
 		else if (Value == 0) {
 			GetCharacterMovement()->MaxWalkSpeed = 450.0;
 			Animation->IsRunning = false;
+			IsRunning = false;
 		}
 		else {
 			// can only sprint if the w key is held down by itself or in combination with the a or d keys
 			if (!(OnlyAOrDDown || SDown) && WDown) {
 				GetCharacterMovement()->MaxWalkSpeed = 900.0;
 				Animation->IsRunning = true;
+				IsRunning = true;
 			}
 			else {
 				GetCharacterMovement()->MaxWalkSpeed = 450.0;
 				Animation->IsRunning = false;
+				IsRunning = false;
 			}
 		}
 	}
+	//Server_SetAnimationVariables();
 }
 
 void AFortniteCloneCharacter::StartWalking() {
-	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+	/*UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	if (Animation) {
 		Animation->IsWalking = true;
-	}
+	}*/
+	Server_SetIsWalkingTrue();
 }
+
 
 void AFortniteCloneCharacter::StopWalking() {
 	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
@@ -560,9 +575,10 @@ void AFortniteCloneCharacter::StopWalking() {
 	bool DDown = LocalController->IsInputKeyDown(EKeys::D);
 	bool NoWalkingKeysDown = !ADown && !WDown && !SDown && !DDown;
 
-	if (Animation && NoWalkingKeysDown) {
-		Animation->IsWalking = false;
+	if (NoWalkingKeysDown) {
+		Server_SetIsWalkingFalse();
 	}
+	//Server_SetAnimationVariables();
 }
 
 TArray<float> AFortniteCloneCharacter::CalculateWalkingXY() {
@@ -982,6 +998,9 @@ void AFortniteCloneCharacter::SwitchBuildingMaterial() {
 void AFortniteCloneCharacter::ShootGun() {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()) + FString(" shoot gun key pressed"));
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+	if (!HasAuthority()) {
+		return;
+	}
 	if (State) {
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()) + FString(" Current weapon ") + FString::FromInt(State->CurrentWeapon));
 		if (State->HoldingWeapon) {
@@ -1575,4 +1594,74 @@ int AFortniteCloneCharacter::GetBandageCount() {
 int AFortniteCloneCharacter::GetKillCount() {
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 	return State->KillCount;
+}
+
+void AFortniteCloneCharacter::Server_SetIsWalkingTrue_Implementation() {
+	IsWalking = true;
+}
+
+bool AFortniteCloneCharacter::Server_SetIsWalkingTrue_Validate() {
+	return true;
+}
+
+void AFortniteCloneCharacter::Server_SetIsWalkingFalse_Implementation() {
+	IsWalking = false;
+}
+
+bool AFortniteCloneCharacter::Server_SetIsWalkingFalse_Validate() {
+	return true;
+}
+
+void AFortniteCloneCharacter::Server_SetMovingForwards_Implementation() {
+	WalkingY = 90;
+	RunningY = 90;
+}
+
+bool AFortniteCloneCharacter::Server_SetMovingForwards_Validate() {
+	return true;
+}
+
+void AFortniteCloneCharacter::Server_SetMovingBackwards_Implementation() {
+	WalkingY = -90;
+	RunningY = -90;
+}
+
+bool AFortniteCloneCharacter::Server_SetMovingBackwards_Validate() {
+	return true;
+}
+
+void AFortniteCloneCharacter::Server_SetMovingLeft_Implementation() {
+	WalkingX = -90;
+	RunningX = -90;
+}
+
+bool AFortniteCloneCharacter::Server_SetMovingLeft_Validate() {
+	return true;
+}
+
+void AFortniteCloneCharacter::Server_SetMovingRight_Implementation() {
+	WalkingX = 90;
+	RunningX = 90;
+}
+
+bool AFortniteCloneCharacter::Server_SetMovingRight_Validate() {
+	return true;
+}
+
+void AFortniteCloneCharacter::Server_ResetMovingForward_Implementation() {
+	WalkingY = 0;
+	RunningY = 0;
+}
+
+bool AFortniteCloneCharacter::Server_ResetMovingForward_Validate() {
+	return true;
+}
+
+void AFortniteCloneCharacter::Server_ResetMovingRight_Implementation() {
+	WalkingX = 0;
+	RunningX = 0;
+}
+
+bool AFortniteCloneCharacter::Server_ResetMovingRight_Validate() {
+	return true;
 }

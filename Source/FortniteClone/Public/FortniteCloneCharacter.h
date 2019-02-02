@@ -70,7 +70,10 @@ public:
 	TArray<TSubclassOf<AWeaponActor>> WeaponClasses;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
-	TSubclassOf<AWeaponActor> AnimInstanceClass;
+	TSubclassOf<UThirdPersonAnimInstance> AnimInstanceClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "State")
+	TSubclassOf<AFortniteClonePlayerState> PlayerStateClass;
 
 	/* Class for healing actor */
 	UPROPERTY(EditDefaultsOnly, Category = "Bandage")
@@ -141,11 +144,26 @@ public:
 	UPROPERTY()
 	AHealingActor* CurrentHealingItem;
 
-	/*UPROPERTY()
-	AFortniteClonePlayerState* State;*/
+	UPROPERTY(Replicated)
+	AFortniteClonePlayerState* State;
 
 	UPROPERTY(Replicated)
-	UThirdPersonAnimInstance* AnimInstance;
+	bool IsRunning;
+
+	UPROPERTY(Replicated)
+	bool IsWalking;
+
+	UPROPERTY(Replicated)
+	float WalkingX;
+
+	UPROPERTY(Replicated)
+	float WalkingY;
+
+	UPROPERTY(Replicated)
+	float RunningX;
+
+	UPROPERTY(Replicated)
+	float RunningY;
 
 protected:
 
@@ -243,7 +261,7 @@ protected:
 	/*UFUNCTION(Server, WithValidation)
 	void ServerSetAnimInstance(UThirdPersonAnimInstance* AnimInstance);*/
 
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	ABuildingActor* BuildingPreview;
 
 	/* Index of the class in array to spawn the weapon */
@@ -251,7 +269,7 @@ protected:
 	int CurrentWeaponType; // 0 for pickaxe, 1 for assault rifle, 2 for shotgun, -1 for non weapon items
 
 	/* Index of the class in array to spawn structure */
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	int CurrentBuildingMaterial; // 0 for wood, 1 for stone, 2 for steel
 	/** 
 	 * Called via input to turn at a given rate. 
@@ -294,6 +312,31 @@ public:
 	/* called when character touches something with its body */
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+public:
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetIsWalkingTrue();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetIsWalkingFalse();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetMovingLeft();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetMovingRight();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetMovingBackwards();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetMovingForwards();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_ResetMovingRight();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_ResetMovingForward();
 
 private:
 	// Object creation can only happen after the character has finished being constructed

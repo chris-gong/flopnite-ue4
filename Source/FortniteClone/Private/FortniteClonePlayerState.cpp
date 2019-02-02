@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "FortniteClonePlayerState.h"
+#include "UnrealNetwork.h"
 
 AFortniteClonePlayerState::AFortniteClonePlayerState() {
 	InBuildMode = false;
@@ -27,4 +28,27 @@ AFortniteClonePlayerState::AFortniteClonePlayerState() {
 	JustReloadedRifle = false;
 	JustReloadedShotgun = false;
 	KillCount = 0;
+}
+
+void AFortniteClonePlayerState::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AFortniteClonePlayerState, InBuildMode);
+	DOREPLIFETIME(AFortniteClonePlayerState, BuildMode);
+	DOREPLIFETIME(AFortniteClonePlayerState, HoldingWeapon);
+	DOREPLIFETIME(AFortniteClonePlayerState, HoldingBandage);
+	DOREPLIFETIME(AFortniteClonePlayerState, EquippedWeapons);
+	DOREPLIFETIME(AFortniteClonePlayerState, EquippedWeaponsAmmunition);
+	DOREPLIFETIME(AFortniteClonePlayerState, EquippedWeaponsClips);
+	DOREPLIFETIME(AFortniteClonePlayerState, MaterialCounts);
+	DOREPLIFETIME(AFortniteClonePlayerState, CurrentWeapon);
+	DOREPLIFETIME(AFortniteClonePlayerState, BandageCount);
+	DOREPLIFETIME(AFortniteClonePlayerState, JustShotRifle);
+	DOREPLIFETIME(AFortniteClonePlayerState, JustShotShotgun);
+	DOREPLIFETIME(AFortniteClonePlayerState, JustSwungPickaxe);
+	DOREPLIFETIME(AFortniteClonePlayerState, JustUsedBandage);
+	DOREPLIFETIME(AFortniteClonePlayerState, JustReloadedRifle);
+	DOREPLIFETIME(AFortniteClonePlayerState, JustReloadedShotgun);
+	DOREPLIFETIME(AFortniteClonePlayerState, KillCount);
 }

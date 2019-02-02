@@ -2,6 +2,8 @@
 
 #include "ThirdPersonAnimInstance.h"
 #include "UnrealNetwork.h"
+#include "Engine.h"
+#include "FortniteCloneCharacter.h"
 
 // Add default functionality here for any IGuyAnimInstance functions that are not pure virtual.
 
@@ -39,4 +41,17 @@ void UThirdPersonAnimInstance::GetLifetimeReplicatedProps(TArray< FLifetimePrope
 	DOREPLIFETIME(UThirdPersonAnimInstance, WalkingY);
 	DOREPLIFETIME(UThirdPersonAnimInstance, RunningX);
 	DOREPLIFETIME(UThirdPersonAnimInstance, RunningY);
+}
+
+void UThirdPersonAnimInstance::NativeUpdateAnimation(float DeltaSeconds) {
+	Super::NativeUpdateAnimation(DeltaSeconds);
+	AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(TryGetPawnOwner());
+	if (FortniteCloneCharacter) {
+		IsWalking = FortniteCloneCharacter->IsWalking;
+		IsRunning = FortniteCloneCharacter->IsRunning;
+		WalkingX = FortniteCloneCharacter->WalkingX;
+		WalkingY = FortniteCloneCharacter->WalkingY;
+		RunningX = FortniteCloneCharacter->RunningX;
+		RunningY = FortniteCloneCharacter->RunningY;
+	}
 }

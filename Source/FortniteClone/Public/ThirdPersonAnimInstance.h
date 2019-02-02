@@ -61,4 +61,6 @@ public:
 	{
 		return true;
 	}
+
+	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 };
