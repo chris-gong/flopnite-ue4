@@ -109,7 +109,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Reload")
 	UAnimMontage* ShotgunIronsightsReloadAnimation;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Health")
+	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Health")
 	float Health;
 
 	UFUNCTION(BlueprintPure, Category = "Health")
@@ -137,16 +137,14 @@ public:
 	int GetKillCount();
 
 	/* The current weapon being held */
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	AWeaponActor* CurrentWeapon;
 
 	/* The current healing item being held */
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	AHealingActor* CurrentHealingItem;
 
-	UPROPERTY(Replicated)
-	AFortniteClonePlayerState* State;
-
+	/* Anim instance properties */
 	UPROPERTY(Replicated)
 	bool IsRunning;
 
@@ -182,6 +180,62 @@ public:
 
 	UPROPERTY(Replicated)
 	float InterpSpeed;
+
+	/* Player State properties */
+	/*UPROPERTY(Replicated)
+	bool InBuildMode;
+
+	UPROPERTY(Replicated)
+	FString BuildMode;
+
+	UPROPERTY(Replicated)
+	bool HoldingWeapon;
+
+	UPROPERTY(Replicated)
+	bool HoldingBandage;
+
+	UPROPERTY(Replicated)
+	bool AimedIn;
+
+	UPROPERTY(Replicated)
+	TArray<int> EquippedWeapons; //0 for pickaxe, 1 for assault rifle, 2 for shotgun
+
+	UPROPERTY(Replicated)
+	TArray<int> EquippedWeaponsAmmunition; //index 1 holds ammo for assault rifle, index 2 holds ammo for shotgun
+
+	//below will be used primarily for keeping track of how many bullets in a clip while switching between guns and building
+	UPROPERTY(Replicated)
+	TArray<int> EquippedWeaponsClips; //index 1 holds current magazine clip count for assault rifle, index 2 holds current magazine clip count for shotgun
+
+	UPROPERTY(Replicated)
+	TArray<int> MaterialCounts; //index 0 holds count for wood, index 1 holds count for stone, index 2 holds count for steel
+
+	UPROPERTY(Replicated)
+	int CurrentWeapon; //0 for pickaxe, 1 for assault rifle, 2 for shotgun, -1 for non weapons like bandages
+
+	UPROPERTY(Replicated)
+	int BandageCount;
+
+	UPROPERTY(Replicated)
+	int KillCount;
+
+	UPROPERTY(Replicated)
+	bool JustShotRifle; // used to prevent player from spamming rifle
+
+	UPROPERTY(Replicated)
+	bool JustShotShotgun; // used to prevent player from spamming shotgun
+
+	UPROPERTY(Replicated)
+	bool JustSwungPickaxe; //used to prevent player from spamming pickaxe
+
+	UPROPERTY(Replicated)
+	bool JustUsedBandage; //used to prevent player from spamming bandage and doing other things while reloading
+
+	UPROPERTY(Replicated)
+	bool JustReloadedRifle; //used to prevent player from doing other things while reloading
+
+	UPROPERTY(Replicated)
+	bool JustReloadedShotgun; //used to prevent player from doing other things while reloading*/
 
 protected:
 
@@ -283,7 +337,7 @@ protected:
 	ABuildingActor* BuildingPreview;
 
 	/* Index of the class in array to spawn the weapon */
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	int CurrentWeaponType; // 0 for pickaxe, 1 for assault rifle, 2 for shotgun, -1 for non weapon items
 
 	/* Index of the class in array to spawn structure */
@@ -370,6 +424,18 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_ResetMovingForward();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetBuildModeWall();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetBuildModeRamp();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetBuildModeFloor();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_BuildStructures();
 
 private:
 	// Object creation can only happen after the character has finished being constructed

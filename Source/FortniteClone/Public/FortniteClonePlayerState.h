@@ -76,6 +76,8 @@ public:
 	{
 		return true;
 	}
+
+	virtual void Tick(float DeltaSeconds) override;
 protected:
 
 private:

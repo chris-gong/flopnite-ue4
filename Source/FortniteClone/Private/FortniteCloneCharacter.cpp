@@ -79,6 +79,33 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	WalkingY = 0;
 	RunningX = 0;
 	RunningY = 0;
+
+	// Playerstate properties
+	/*InBuildMode = false;
+	BuildMode = FString("None");
+	HoldingWeapon = false;
+	HoldingBandage = false;
+	AimedIn = false;
+	EquippedWeapons.Add(0); //pickaxe
+	EquippedWeaponsAmmunition.Add(0); // pickaxe
+	EquippedWeaponsAmmunition.Add(0); // assault rifle
+	EquippedWeaponsAmmunition.Add(0); // shotgun
+	EquippedWeaponsClips.Add(0); // pickaxe
+	EquippedWeaponsClips.Add(0); // assault rifle
+	EquippedWeaponsClips.Add(0); // shotgun
+	MaterialCounts.Add(0); // wood
+	MaterialCounts.Add(0); // stone
+	MaterialCounts.Add(0); // steel
+	CurrentWeapon = 0;
+	BandageCount = 0;
+	JustShotRifle = false;
+	JustShotShotgun = false;
+	JustSwungPickaxe = false;
+	JustUsedBandage = false;
+	JustReloadedRifle = false;
+	JustReloadedShotgun = false;
+	KillCount = 0;*/
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 
@@ -153,7 +180,7 @@ void AFortniteCloneCharacter::BeginPlay() {
 		}
 	}
 
-	if (GetController()) {
+	/*if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("controller exists in begin play ") + FString::FromInt(GetNetMode()));
 		if (State) {
@@ -161,7 +188,7 @@ void AFortniteCloneCharacter::BeginPlay() {
 			State->HoldingWeapon = true;
 			State->CurrentWeapon = 0;
 		}
-	}
+	}*/
 }
 
 void AFortniteCloneCharacter::PostInitializeComponents()
@@ -200,9 +227,12 @@ void AFortniteCloneCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProper
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(AFortniteCloneCharacter, State);
 	DOREPLIFETIME(AFortniteCloneCharacter, BuildingPreview);
 	DOREPLIFETIME(AFortniteCloneCharacter, CurrentBuildingMaterial);
+	DOREPLIFETIME(AFortniteCloneCharacter, CurrentHealingItem);
+	DOREPLIFETIME(AFortniteCloneCharacter, CurrentWeapon);
+	DOREPLIFETIME(AFortniteCloneCharacter, CurrentWeaponType);
+	DOREPLIFETIME(AFortniteCloneCharacter, Health);
 	DOREPLIFETIME(AFortniteCloneCharacter, IsWalking);
 	DOREPLIFETIME(AFortniteCloneCharacter, IsRunning);
 	DOREPLIFETIME(AFortniteCloneCharacter, WalkingX);
@@ -221,54 +251,60 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Tick mode ") + FString::FromInt(GetNetMode()));
 	FVector DirectionVector = FVector(0, AimYaw, AimPitch);
-	if (GetController()) {
-		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-		if (State) {
-			if (State->InBuildMode && State->BuildMode == FString("Wall")) {
-				if (BuildingPreview) {
-					BuildingPreview->Destroy(); //destroy the last wall preview
+	if (HasAuthority()) {
+		if (GetController()) {
+			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+			if (State) {
+				if (State->InBuildMode) {
+					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Tick mode in build mode ") + State->BuildMode + FString::FromInt(GetNetMode()));
 				}
-				FString LogMsg = FString("Current building material ") + FString::FromInt(CurrentBuildingMaterial);
-				UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
-				if (CurrentBuildingMaterial >= 0 && CurrentBuildingMaterial <= 2) {
-					if (WallPreviewClasses.IsValidIndex(CurrentBuildingMaterial)) {
-						if (WallPreviewClasses[CurrentBuildingMaterial] != nullptr) {
-							BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(WallPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 200) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new wall preview
+				else if (!State->InBuildMode) {
+					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Tick mode not in build mode ") + FString::FromInt(GetNetMode()));
+				}
+				if (State->InBuildMode && State->BuildMode == FString("Wall")) {
+					if (BuildingPreview) {
+						BuildingPreview->Destroy(); //destroy the last wall preview
+					}
+					FString LogMsg = FString("Current building material ") + FString::FromInt(CurrentBuildingMaterial);
+					UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+					if (CurrentBuildingMaterial >= 0 && CurrentBuildingMaterial <= 2) {
+						if (WallPreviewClasses.IsValidIndex(CurrentBuildingMaterial)) {
+							if (WallPreviewClasses[CurrentBuildingMaterial] != nullptr) {
+								BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(WallPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 200) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new wall preview
+							}
 						}
 					}
 				}
-			}
-			if (State->InBuildMode && State->BuildMode == FString("Ramp")) {
-				if (BuildingPreview) {
-					BuildingPreview->Destroy(); //destroy the last wall preview
-				}
-				FString LogMsg = FString("Current building material ") + FString::FromInt(CurrentBuildingMaterial);
-				UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
-				if (CurrentBuildingMaterial >= 0 && CurrentBuildingMaterial <= 2) {
-					if (RampPreviewClasses.IsValidIndex(CurrentBuildingMaterial)) {
-						if (RampPreviewClasses[CurrentBuildingMaterial] != nullptr) {
-							BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(RampPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 100) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new ramp preview
+				if (State->InBuildMode && State->BuildMode == FString("Ramp")) {
+					if (BuildingPreview) {
+						BuildingPreview->Destroy(); //destroy the last wall preview
+					}
+					FString LogMsg = FString("Current building material ") + FString::FromInt(CurrentBuildingMaterial);
+					UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+					if (CurrentBuildingMaterial >= 0 && CurrentBuildingMaterial <= 2) {
+						if (RampPreviewClasses.IsValidIndex(CurrentBuildingMaterial)) {
+							if (RampPreviewClasses[CurrentBuildingMaterial] != nullptr) {
+								BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(RampPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 100) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new ramp preview
+							}
 						}
 					}
 				}
-			}
-			if (State->InBuildMode && State->BuildMode == FString("Floor")) {
-				if (BuildingPreview) {
-					BuildingPreview->Destroy(); //destroy the last wall preview
-				}
-				FString LogMsg = FString("Current building material ") + FString::FromInt(CurrentBuildingMaterial);
-				UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
-				if (CurrentBuildingMaterial >= 0 && CurrentBuildingMaterial <= 2) {
-					if (FloorPreviewClasses.IsValidIndex(CurrentBuildingMaterial)) {
-						if (FloorPreviewClasses[CurrentBuildingMaterial] != nullptr) {
-							BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(FloorPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 120) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new floor preview
+				if (State->InBuildMode && State->BuildMode == FString("Floor")) {
+					if (BuildingPreview) {
+						BuildingPreview->Destroy(); //destroy the last wall preview
+					}
+					FString LogMsg = FString("Current building material ") + FString::FromInt(CurrentBuildingMaterial);
+					UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+					if (CurrentBuildingMaterial >= 0 && CurrentBuildingMaterial <= 2) {
+						if (FloorPreviewClasses.IsValidIndex(CurrentBuildingMaterial)) {
+							if (FloorPreviewClasses[CurrentBuildingMaterial] != nullptr) {
+								BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(FloorPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 120) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new floor preview
+							}
 						}
 					}
 				}
 			}
 		}
-	}
-	if (HasAuthority()) {
 		FRotator ControlRotation = GetControlRotation();
 		FRotator ActorRotation = GetActorRotation();
 
@@ -283,6 +319,17 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(NewPitch).Append(FString::FromInt(NewYaw)));
 		AimPitch = NewPitch;
 		AimYaw = NewYaw;
+	}
+	else {
+		if (GetController()) {
+			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+			if (State && State->InBuildMode) {
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Tick mode in build mode ") + State->BuildMode + FString::FromInt(GetNetMode()));
+			}
+			else if (State && !State->InBuildMode) {
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Tick mode not in build mode ") + FString::FromInt(GetNetMode()));
+			}
+		}
 	}
 }
 
@@ -572,7 +619,7 @@ void AFortniteCloneCharacter::StartWalking() {
 
 
 void AFortniteCloneCharacter::StopWalking() {
-	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
+	//UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	APlayerController* LocalController = Cast<APlayerController>(GetController());
 	bool ADown = LocalController->IsInputKeyDown(EKeys::A);
 	bool WDown = LocalController->IsInputKeyDown(EKeys::W);
@@ -610,382 +657,23 @@ TArray<float> AFortniteCloneCharacter::CalculateWalkingXY() {
 
 void AFortniteCloneCharacter::PreviewWall() {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "x key pressed");
-	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-	if (State) {
-		if (State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
-			return; //currently healing or reloading
-		}
-		if (State->HoldingWeapon && State->AimedIn) {
-			return; // currently aimed down sight
-		}
-		if (State->BuildMode == FString("Wall")) {
-			// getting out of build mode
-			State->InBuildMode = false;
-			State->BuildMode = FString("None");
-			if (BuildingPreview) {
-				BuildingPreview->Destroy(); //destroy the last wall preview
-			}
-			// equip weapon being held before
-			if (CurrentWeaponType > -1 && CurrentWeaponType < 3) {
-				FName WeaponSocketName = TEXT("hand_right_socket");
-				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
-
-				FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
-				CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[CurrentWeaponType], SpawnTransform));
-				if (CurrentWeapon != nullptr)
-				{
-					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
-					CurrentWeapon->Holder = this;
-					if (CurrentWeaponType > 0 && CurrentWeaponType < 3) {
-						CurrentWeapon->CurrentBulletCount = State->EquippedWeaponsClips[CurrentWeaponType];
-					}
-					UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
-				}
-
-				UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
-				WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
-				
-				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-				if (Animation) {
-					Animation->HoldingWeapon = true;
-					Animation->AimedIn = false;
-					State->HoldingWeapon = true;
-					State->HoldingBandage = false;
-					State->CurrentWeapon = CurrentWeaponType;
-					Animation->HoldingWeaponType = 1;
-				}
-			}
-			else {
-				//equip bandage since current weapon was null
-				FName BandageSocketName = TEXT("hand_left_socket");
-				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
-
-				FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
-				auto CurrentHealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
-				if (CurrentHealingItem != nullptr)
-				{
-					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
-					CurrentHealingItem->Holder = this;
-
-					UGameplayStatics::FinishSpawningActor(CurrentHealingItem, SpawnTransform);
-				}
-
-				UStaticMeshComponent* HealingItemStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentHealingItem->GetComponentByClass(UStaticMeshComponent::StaticClass()));
-				HealingItemStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, BandageSocketName);
-
-				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-				if (Animation) {
-					Animation->HoldingWeapon = false;
-					Animation->AimedIn = false;
-					State->HoldingWeapon = false;
-					State->HoldingBandage = true;
-					Animation->HoldingWeaponType = 0;
-				}
-			}
-		}
-		else if (State->InBuildMode) {
-			// switching to a different build mode
-			State->BuildMode = FString("Wall");
-		}
-		else {
-			// getting into build mode
-			State->InBuildMode = true;
-			State->BuildMode = FString("Wall");
-			State->HoldingWeapon = false;
-			State->HoldingBandage = false;
-			State->AimedIn = false;
-			UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-			if (Animation) {
-				Animation->HoldingWeapon = false;
-				Animation->AimedIn = false;
-				Animation->HoldingWeaponType = 0;
-			}
-			// unequip weapon/healing item
-			if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
-				State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
-			}
-			if (CurrentWeapon) {
-				CurrentWeapon->Destroy();
-				CurrentWeapon = nullptr;
-			}
-			if (CurrentHealingItem) {
-				CurrentHealingItem->Destroy();
-				CurrentHealingItem = nullptr;
-			}
-		}
-	}
+	Server_SetBuildModeWall();
+	
 }
 
 void AFortniteCloneCharacter::PreviewRamp() {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "c key pressed");
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "c key presse2d");
-	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-	if (State) {
-		if (State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
-			return; //currently healing or reloading
-		}
-		if (State->HoldingWeapon && State->AimedIn) {
-			return; // currently aimed down sight
-		}
-		if (State->BuildMode == FString("Ramp")) {
-			// getting out of build mode
-			State->InBuildMode = false;
-			State->BuildMode = FString("None");
-			if (BuildingPreview) {
-				BuildingPreview->Destroy(); //destroy the last wall preview
-			}
-			// equip weapon being held before
-			if (CurrentWeaponType > -1 && CurrentWeaponType < 3) {
-				FName WeaponSocketName = TEXT("hand_right_socket");
-				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
-
-				FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
-				CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[CurrentWeaponType], SpawnTransform));
-				if (CurrentWeapon != nullptr)
-				{
-					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
-					CurrentWeapon->Holder = this;
-					if (CurrentWeaponType > 0 && CurrentWeaponType < 3) {
-						CurrentWeapon->CurrentBulletCount = State->EquippedWeaponsClips[CurrentWeaponType];
-					}
-					UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
-				}
-
-				UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
-				WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
-
-				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-				if (Animation) {
-					Animation->HoldingWeapon = true;
-					Animation->AimedIn = false;
-					State->HoldingWeapon = true;
-					State->HoldingBandage = false;
-					State->CurrentWeapon = CurrentWeaponType;
-					Animation->HoldingWeaponType = 1;
-				}
-			}
-			else {
-				//equip bandage since current weapon was null
-				FName BandageSocketName = TEXT("hand_left_socket");
-				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
-
-				FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
-				auto CurrentHealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
-				if (CurrentHealingItem != nullptr)
-				{
-					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
-					CurrentHealingItem->Holder = this;
-
-					UGameplayStatics::FinishSpawningActor(CurrentHealingItem, SpawnTransform);
-				}
-
-				UStaticMeshComponent* HealingItemStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentHealingItem->GetComponentByClass(UStaticMeshComponent::StaticClass()));
-				HealingItemStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, BandageSocketName);
-
-				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-				if (Animation) {
-					Animation->HoldingWeapon = false;
-					Animation->AimedIn = false;
-					State->HoldingWeapon = false;
-					State->HoldingBandage = true;
-					Animation->HoldingWeaponType = 0;
-				}
-			}
-		}
-		else if (State->InBuildMode) {
-			// switching to a different build mode
-			State->BuildMode = FString("Ramp");
-		}
-		else {
-			// getting into build mode
-			State->InBuildMode = true;
-			State->BuildMode = FString("Ramp");
-			State->HoldingWeapon = false;
-			State->HoldingBandage = false;
-			State->AimedIn = false;
-			UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-			if (Animation) {
-				Animation->HoldingWeapon = false;
-				Animation->AimedIn = false;
-				Animation->HoldingWeaponType = 0;
-			}
-			// unequip weapon/healing item
-			if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
-				State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
-			}
-			if (CurrentWeapon) {
-				CurrentWeapon->Destroy();
-				CurrentWeapon = nullptr;
-			}
-			if (CurrentHealingItem) {
-				CurrentHealingItem->Destroy();
-				CurrentHealingItem = nullptr;
-			}
-		}
-	}
+	Server_SetBuildModeRamp();
 }
 
 void AFortniteCloneCharacter::PreviewFloor() {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "f key pressed");
-	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-	if (State) {
-		if (State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun || State->JustSwungPickaxe) {
-			return; //currently healing or reloading or swinging pickaxe
-		}
-		if (State->HoldingWeapon && State->AimedIn) {
-			return; // currently aimed down sight
-		}
-		if (State->BuildMode == FString("Floor")) {
-			// getting out of build mode
-			State->InBuildMode = false;
-			State->BuildMode = FString("None");
-			if (BuildingPreview) {
-				BuildingPreview->Destroy(); //destroy the last wall preview
-			}
-			// equip weapon being held before
-			if (CurrentWeaponType > -1 && CurrentWeaponType < 3) {
-				FName WeaponSocketName = TEXT("hand_right_socket");
-				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
-
-				FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
-				CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[CurrentWeaponType], SpawnTransform));
-				if (CurrentWeapon != nullptr)
-				{
-					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
-					CurrentWeapon->Holder = this;
-					if (CurrentWeaponType > 0 && CurrentWeaponType < 3) {
-						CurrentWeapon->CurrentBulletCount = State->EquippedWeaponsClips[CurrentWeaponType];
-					}
-					UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
-				}
-
-				UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
-				WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
-
-				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-				if (Animation) {
-					Animation->HoldingWeapon = true;
-					Animation->AimedIn = false;
-					Animation->HoldingWeaponType = 1;
-					State->HoldingWeapon = true;
-					State->HoldingBandage = false;
-					State->CurrentWeapon = CurrentWeaponType;
-					Animation->HoldingWeaponType = 1;
-				}
-			}
-			else {
-				//equip bandage since current weapon was null
-				FName BandageSocketName = TEXT("hand_left_socket");
-				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
-
-				FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
-				auto CurrentHealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
-				if (CurrentHealingItem != nullptr)
-				{
-					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
-					CurrentHealingItem->Holder = this;
-
-					UGameplayStatics::FinishSpawningActor(CurrentHealingItem, SpawnTransform);
-				}
-				
-				UStaticMeshComponent* HealingItemStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentHealingItem->GetComponentByClass(UStaticMeshComponent::StaticClass()));
-				HealingItemStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, BandageSocketName);
-
-				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-				if (Animation) {
-					Animation->HoldingWeapon = false;
-					Animation->AimedIn = false;
-					State->HoldingWeapon = false;
-					State->HoldingBandage = true;
-					Animation->HoldingWeaponType = 0;
-				}
-			}
-		}
-		else if (State->InBuildMode) {
-			// switching to a different build mode
-			State->BuildMode = FString("Floor");
-		}
-		else {
-			// getting into build mode
-			State->InBuildMode = true;
-			State->BuildMode = FString("Floor");
-			State->HoldingWeapon = false;
-			State->HoldingBandage = false;
-			State->AimedIn = false;
-			UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-			if (Animation) {
-				Animation->HoldingWeapon = false;
-				Animation->AimedIn = false;
-				Animation->HoldingWeaponType = 0;
-			}
-			// unequip weapon/healing item
-			if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
-				State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
-			}
-			if (CurrentWeapon) {
-				CurrentWeapon->Destroy();
-				CurrentWeapon = nullptr;
-			}
-			if (CurrentHealingItem) {
-				CurrentHealingItem->Destroy();
-				CurrentHealingItem = nullptr;
-			}
-		}
-	}
+	Server_SetBuildModeFloor();
 }
 
 void AFortniteCloneCharacter::BuildStructure() {
-	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-	if (State) {
-		FVector DirectionVector = FVector(0, Animation->AimYaw, Animation->AimPitch);
-		if (State->InBuildMode && State->BuildMode == FString("Wall") && State->MaterialCounts[CurrentBuildingMaterial] >= 10) {
-			TArray<AActor*> OverlappingActors;
-			ABuildingActor* Wall = GetWorld()->SpawnActor<ABuildingActor>(WallClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 200) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
-
-			Wall->GetOverlappingActors(OverlappingActors);
-
-			for (int i = 0; i < OverlappingActors.Num(); i++) {
-				//don't allow a player to build a structure that overlaps with another player
-				if (OverlappingActors[i]->IsA(AFortniteCloneCharacter::StaticClass())) {
-					Wall->Destroy();
-					return;
-				}
-			}
-			State->MaterialCounts[CurrentBuildingMaterial] -= 10;
-		}
-		else if (State->InBuildMode && State->BuildMode == FString("Ramp") && State->MaterialCounts[CurrentBuildingMaterial] >= 10) {
-			TArray<AActor*> OverlappingActors;
-
-			ABuildingActor* Ramp = GetWorld()->SpawnActor<ABuildingActor>(RampClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 100) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
-
-			Ramp->GetOverlappingActors(OverlappingActors);
-
-			for (int i = 0; i < OverlappingActors.Num(); i++) {
-				//don't allow a player to build a structure that overlaps with another player
-				if (OverlappingActors[i]->IsA(AFortniteCloneCharacter::StaticClass())) {
-					Ramp->Destroy();
-					return;
-				}
-			}
-			State->MaterialCounts[CurrentBuildingMaterial] -= 10;
-		}
-		else if (State->InBuildMode && State->BuildMode == FString("Floor") && State->MaterialCounts[CurrentBuildingMaterial] >= 10) {
-			TArray<AActor*> OverlappingActors;
-			ABuildingActor* Floor = GetWorld()->SpawnActor<ABuildingActor>(FloorClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 120) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
-
-			Floor->GetOverlappingActors(OverlappingActors);
-
-			for (int i = 0; i < OverlappingActors.Num(); i++) {
-				//don't allow a player to build a structure that overlaps with another player
-				if (OverlappingActors[i]->IsA(AFortniteCloneCharacter::StaticClass())) {
-					Floor->Destroy();
-					return;
-				}
-			}
-			State->MaterialCounts[CurrentBuildingMaterial] -= 10;
-		}
-	}
+	//Server_BuildStructures();
 }
 
 void AFortniteCloneCharacter::SwitchBuildingMaterial() {
@@ -1603,6 +1291,7 @@ int AFortniteCloneCharacter::GetKillCount() {
 
 void AFortniteCloneCharacter::Server_SetIsWalkingTrue_Implementation() {
 	IsWalking = true;
+	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 }
 
 bool AFortniteCloneCharacter::Server_SetIsWalkingTrue_Validate() {
@@ -1708,5 +1397,385 @@ void AFortniteCloneCharacter::Server_ResetMovingRight_Implementation() {
 }
 
 bool AFortniteCloneCharacter::Server_ResetMovingRight_Validate() {
+	return true;
+}
+
+void AFortniteCloneCharacter::Server_SetBuildModeWall_Implementation() {
+	if (GetController()) {
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+		if (State) {
+			if (State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
+				return; //currently healing or reloading
+			}
+			if (State->HoldingWeapon && State->AimedIn) {
+				return; // currently aimed down sight
+			}
+			if (State->BuildMode == FString("Wall")) {
+				// getting out of build mode
+				State->InBuildMode = false;
+				State->BuildMode = FString("None");
+				if (BuildingPreview) {
+					BuildingPreview->Destroy(); //destroy the last wall preview
+				}
+				// equip weapon being held before
+				if (CurrentWeaponType > -1 && CurrentWeaponType < 3) {
+					FName WeaponSocketName = TEXT("hand_right_socket");
+					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+
+					FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
+					CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[CurrentWeaponType], SpawnTransform));
+					if (CurrentWeapon != nullptr)
+					{
+						//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
+						CurrentWeapon->Holder = this;
+						if (CurrentWeaponType > 0 && CurrentWeaponType < 3) {
+							CurrentWeapon->CurrentBulletCount = State->EquippedWeaponsClips[CurrentWeaponType];
+						}
+						UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
+					}
+
+					UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+					WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
+
+					//animinstance properties
+					HoldingWeapon = true;
+					AimedIn = false;
+					HoldingWeaponType = 1;
+					State->HoldingWeapon = true;
+					State->HoldingBandage = false;
+					State->CurrentWeapon = CurrentWeaponType;
+
+				}
+				else {
+					//equip bandage since current weapon was null
+					FName BandageSocketName = TEXT("hand_left_socket");
+					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+
+					FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
+					auto CurrentHealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
+					if (CurrentHealingItem != nullptr)
+					{
+						//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
+						CurrentHealingItem->Holder = this;
+
+						UGameplayStatics::FinishSpawningActor(CurrentHealingItem, SpawnTransform);
+					}
+
+					UStaticMeshComponent* HealingItemStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentHealingItem->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+					HealingItemStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, BandageSocketName);
+
+					//animinstance properties
+					HoldingWeapon = false;
+					AimedIn = false;
+					HoldingWeaponType = 0;
+					State->HoldingWeapon = false;
+					State->HoldingBandage = true;
+					
+				}
+			}
+			else if (State->InBuildMode) {
+				// switching to a different build mode
+				State->BuildMode = FString("Wall");
+			}
+			else {
+				// getting into build mode
+				State->InBuildMode = true;
+				State->BuildMode = FString("Wall");
+				State->HoldingWeapon = false;
+				State->HoldingBandage = false;
+				State->AimedIn = false; 
+				//animinstance properties
+				HoldingWeapon = false;
+				AimedIn = false;
+				HoldingWeaponType = 0;
+
+				// unequip weapon/healing item
+				if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
+					State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
+				}
+				if (CurrentWeapon) {
+					CurrentWeapon->Destroy();
+					CurrentWeapon = nullptr;
+				}
+				if (CurrentHealingItem) {
+					CurrentHealingItem->Destroy();
+					CurrentHealingItem = nullptr;
+				}
+			}
+		}
+	}
+}
+
+bool AFortniteCloneCharacter::Server_SetBuildModeWall_Validate() {
+	return true;
+}
+
+void AFortniteCloneCharacter::Server_SetBuildModeRamp_Implementation() {
+	if (GetController()) {
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+		if (State) {
+			if (State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
+				return; //currently healing or reloading
+			}
+			if (State->HoldingWeapon && State->AimedIn) {
+				return; // currently aimed down sight
+			}
+			if (State->BuildMode == FString("Ramp")) {
+				// getting out of build mode
+				State->InBuildMode = false;
+				State->BuildMode = FString("None");
+				if (BuildingPreview) {
+					BuildingPreview->Destroy(); //destroy the last wall preview
+				}
+				// equip weapon being held before
+				if (CurrentWeaponType > -1 && CurrentWeaponType < 3) {
+					FName WeaponSocketName = TEXT("hand_right_socket");
+					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+
+					FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
+					CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[CurrentWeaponType], SpawnTransform));
+					if (CurrentWeapon != nullptr)
+					{
+						//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
+						CurrentWeapon->Holder = this;
+						if (CurrentWeaponType > 0 && CurrentWeaponType < 3) {
+							CurrentWeapon->CurrentBulletCount = State->EquippedWeaponsClips[CurrentWeaponType];
+						}
+						UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
+					}
+
+					UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+					WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
+					//animinstance properties
+					HoldingWeapon = true;
+					AimedIn = false;
+					HoldingWeaponType = 1;
+					State->HoldingWeapon = true;
+					State->HoldingBandage = false;
+					State->CurrentWeapon = CurrentWeaponType;
+				}
+				else {
+					//equip bandage since current weapon was null
+					FName BandageSocketName = TEXT("hand_left_socket");
+					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+
+					FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
+					auto CurrentHealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
+					if (CurrentHealingItem != nullptr)
+					{
+						//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
+						CurrentHealingItem->Holder = this;
+
+						UGameplayStatics::FinishSpawningActor(CurrentHealingItem, SpawnTransform);
+					}
+
+					UStaticMeshComponent* HealingItemStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentHealingItem->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+					HealingItemStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, BandageSocketName);
+					//animinstance properties
+					HoldingWeapon = false;
+					AimedIn = false;
+					HoldingWeaponType = 0;
+					State->HoldingWeapon = false;
+					State->HoldingBandage = true;
+				}
+			}
+			else if (State->InBuildMode) {
+				// switching to a different build mode
+				State->BuildMode = FString("Ramp");
+			}
+			else {
+				// getting into build mode
+				State->InBuildMode = true;
+				State->BuildMode = FString("Ramp");
+				State->HoldingWeapon = false;
+				State->HoldingBandage = false;
+				State->AimedIn = false;
+				//animinstance properties
+				HoldingWeapon = false;
+				AimedIn = false;
+				HoldingWeaponType = 0;
+				// unequip weapon/healing item
+				if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
+					State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
+				}
+				if (CurrentWeapon) {
+					CurrentWeapon->Destroy();
+					CurrentWeapon = nullptr;
+				}
+				if (CurrentHealingItem) {
+					CurrentHealingItem->Destroy();
+					CurrentHealingItem = nullptr;
+				}
+			}
+		}
+	}
+}
+
+bool AFortniteCloneCharacter::Server_SetBuildModeRamp_Validate() {
+	return true;
+}
+
+void AFortniteCloneCharacter::Server_SetBuildModeFloor_Implementation() {
+	if (GetController()) {
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+		if (State) {
+			if (State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun || State->JustSwungPickaxe) {
+				return; //currently healing or reloading or swinging pickaxe
+			}
+			if (State->HoldingWeapon && State->AimedIn) {
+				return; // currently aimed down sight
+			}
+			if (State->BuildMode == FString("Floor")) {
+				// getting out of build mode
+				State->InBuildMode = false;
+				State->BuildMode = FString("None");
+				if (BuildingPreview) {
+					BuildingPreview->Destroy(); //destroy the last wall preview
+				}
+				// equip weapon being held before
+				if (CurrentWeaponType > -1 && CurrentWeaponType < 3) {
+					FName WeaponSocketName = TEXT("hand_right_socket");
+					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+
+					FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
+					CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[CurrentWeaponType], SpawnTransform));
+					if (CurrentWeapon != nullptr)
+					{
+						//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
+						CurrentWeapon->Holder = this;
+						if (CurrentWeaponType > 0 && CurrentWeaponType < 3) {
+							CurrentWeapon->CurrentBulletCount = State->EquippedWeaponsClips[CurrentWeaponType];
+						}
+						UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
+					}
+
+					UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+					WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
+
+					//animinstance properties
+					HoldingWeapon = true;
+					AimedIn = false;
+					HoldingWeaponType = 1;
+					State->HoldingWeapon = true;
+					State->HoldingBandage = false;
+					State->CurrentWeapon = CurrentWeaponType;
+				}
+				else {
+					//equip bandage since current weapon was null
+					FName BandageSocketName = TEXT("hand_left_socket");
+					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+
+					FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
+					auto CurrentHealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
+					if (CurrentHealingItem != nullptr)
+					{
+						//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
+						CurrentHealingItem->Holder = this;
+
+						UGameplayStatics::FinishSpawningActor(CurrentHealingItem, SpawnTransform);
+					}
+
+					UStaticMeshComponent* HealingItemStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentHealingItem->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+					HealingItemStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, BandageSocketName);
+					//animinstance properties
+					HoldingWeapon = false;
+					AimedIn = false;
+					HoldingWeaponType = 0;
+					State->HoldingWeapon = false;
+					State->HoldingBandage = true;
+				}
+			}
+			else if (State->InBuildMode) {
+				// switching to a different build mode
+				State->BuildMode = FString("Floor");
+			}
+			else {
+				// getting into build mode
+				State->InBuildMode = true;
+				State->BuildMode = FString("Floor");
+				State->HoldingWeapon = false;
+				State->HoldingBandage = false;
+				State->AimedIn = false;
+				//animinstance properties
+				HoldingWeapon = false;
+				AimedIn = false;
+				HoldingWeaponType = 0;
+				// unequip weapon/healing item
+				if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
+					State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
+				}
+				if (CurrentWeapon) {
+					CurrentWeapon->Destroy();
+					CurrentWeapon = nullptr;
+				}
+				if (CurrentHealingItem) {
+					CurrentHealingItem->Destroy();
+					CurrentHealingItem = nullptr;
+				}
+			}
+		}
+	}
+}
+
+bool AFortniteCloneCharacter::Server_SetBuildModeFloor_Validate() {
+	return true;
+}
+
+void AFortniteCloneCharacter::Server_BuildStructures_Implementation() {
+	if (GetController()) {
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+		if (State) {
+			FVector DirectionVector = FVector(0, AimYaw, AimPitch);
+			if (State->InBuildMode && State->BuildMode == FString("Wall") && State->MaterialCounts[CurrentBuildingMaterial] >= 10) {
+				TArray<AActor*> OverlappingActors;
+				ABuildingActor* Wall = GetWorld()->SpawnActor<ABuildingActor>(WallClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 200) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
+
+				Wall->GetOverlappingActors(OverlappingActors);
+
+				for (int i = 0; i < OverlappingActors.Num(); i++) {
+					//don't allow a player to build a structure that overlaps with another player
+					if (OverlappingActors[i]->IsA(AFortniteCloneCharacter::StaticClass())) {
+						Wall->Destroy();
+						return;
+					}
+				}
+				State->MaterialCounts[CurrentBuildingMaterial] -= 10;
+			}
+			else if (State->InBuildMode && State->BuildMode == FString("Ramp") && State->MaterialCounts[CurrentBuildingMaterial] >= 10) {
+				TArray<AActor*> OverlappingActors;
+
+				ABuildingActor* Ramp = GetWorld()->SpawnActor<ABuildingActor>(RampClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 100) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
+
+				Ramp->GetOverlappingActors(OverlappingActors);
+
+				for (int i = 0; i < OverlappingActors.Num(); i++) {
+					//don't allow a player to build a structure that overlaps with another player
+					if (OverlappingActors[i]->IsA(AFortniteCloneCharacter::StaticClass())) {
+						Ramp->Destroy();
+						return;
+					}
+				}
+				State->MaterialCounts[CurrentBuildingMaterial] -= 10;
+			}
+			else if (State->InBuildMode && State->BuildMode == FString("Floor") && State->MaterialCounts[CurrentBuildingMaterial] >= 10) {
+				TArray<AActor*> OverlappingActors;
+				ABuildingActor* Floor = GetWorld()->SpawnActor<ABuildingActor>(FloorClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 120) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
+
+				Floor->GetOverlappingActors(OverlappingActors);
+
+				for (int i = 0; i < OverlappingActors.Num(); i++) {
+					//don't allow a player to build a structure that overlaps with another player
+					if (OverlappingActors[i]->IsA(AFortniteCloneCharacter::StaticClass())) {
+						Floor->Destroy();
+						return;
+					}
+				}
+				State->MaterialCounts[CurrentBuildingMaterial] -= 10;
+			}
+		}
+	}
+}
+
+bool AFortniteCloneCharacter::Server_BuildStructures_Validate() {
 	return true;
 }
