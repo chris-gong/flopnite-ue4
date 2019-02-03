@@ -53,5 +53,10 @@ void UThirdPersonAnimInstance::NativeUpdateAnimation(float DeltaSeconds) {
 		WalkingY = FortniteCloneCharacter->WalkingY;
 		RunningX = FortniteCloneCharacter->RunningX;
 		RunningY = FortniteCloneCharacter->RunningY;
+		HoldingWeapon = FortniteCloneCharacter->HoldingWeapon;
+		HoldingWeaponType = FortniteCloneCharacter->HoldingWeaponType;
+		AimedIn = FortniteCloneCharacter->AimedIn;
+		AimPitch = FortniteCloneCharacter->AimPitch;
+		AimYaw = FortniteCloneCharacter->AimYaw;
 	}
 }

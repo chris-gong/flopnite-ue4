@@ -165,6 +165,24 @@ public:
 	UPROPERTY(Replicated)
 	float RunningY;
 
+	UPROPERTY(Replicated)
+	bool HoldingWeapon;
+
+	UPROPERTY(Replicated)
+	bool AimedIn;
+
+	UPROPERTY(Replicated)
+	int HoldingWeaponType;
+
+	UPROPERTY(Replicated)
+	float AimPitch;
+
+	UPROPERTY(Replicated)
+	float AimYaw;
+
+	UPROPERTY(Replicated)
+	float InterpSpeed;
+
 protected:
 
 	/** Resets HMD orientation in VR. */
@@ -319,6 +337,21 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SetIsWalkingFalse();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetIsRunningTrue();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetIsRunningFalse();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetWalkingSpeed();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetRunningSpeed();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetAimedInSpeed();
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SetMovingLeft();

@@ -65,6 +65,20 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	CurrentWeaponType = 0;
 	CurrentBuildingMaterial = 0;
 	BuildingPreview = nullptr;
+
+	// Animinstance properties
+	IsWalking = false;
+	IsRunning = false;
+	HoldingWeapon = false;
+	AimedIn = false;
+	HoldingWeaponType = 0;
+	AimPitch = 0.0;
+	AimYaw = 0.0;
+	InterpSpeed = 15.0;
+	WalkingX = 0;
+	WalkingY = 0;
+	RunningX = 0;
+	RunningY = 0;
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 
@@ -115,6 +129,7 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 
 	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AFortniteCloneCharacter::OnResetVR);
+
 }
 
 void AFortniteCloneCharacter::BeginPlay() {
@@ -124,31 +139,27 @@ void AFortniteCloneCharacter::BeginPlay() {
 	/*if (GetNetMode() != ENetMode::NM_Client || GetNetMode() != ENetMode::NM_Standalone) {
 		return;
 	}*/
-	if (WeaponClasses[CurrentWeaponType]) {
-		FName WeaponSocketName = TEXT("hand_right_socket");
-		FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
-		CurrentWeapon = GetWorld()->SpawnActor<AWeaponActor>(WeaponClasses[CurrentWeaponType], GetActorLocation(), GetActorRotation());
-		UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
-		WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
-		CurrentWeapon->Holder = this;
-		UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-		//AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-		if (Animation) {
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("setting animation vars in begin play ") + FString::FromInt(GetNetMode()));
-			Animation->HoldingWeapon = true;
-			Animation->AimedIn = false;
-			Animation->HoldingWeaponType = 1;
-			//Animation->IsWalking = true;
-			//Animation->WalkingY = 90;
-			//State->HoldingWeapon = true;
-			//State->CurrentWeapon = 0;
+	if (HasAuthority()) {
+		if (WeaponClasses[CurrentWeaponType]) {
+			FName WeaponSocketName = TEXT("hand_right_socket");
+			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+			CurrentWeapon = GetWorld()->SpawnActor<AWeaponActor>(WeaponClasses[CurrentWeaponType], GetActorLocation(), GetActorRotation());
+			UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+			WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
+			CurrentWeapon->Holder = this;
+			HoldingWeapon = true;
+			AimedIn = false;
+			HoldingWeaponType = 1;
 		}
-		if (GetController()) {
-			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-			if (State) {
-				State->HoldingWeapon = true;
-				State->CurrentWeapon = 0;
-			}
+	}
+
+	if (GetController()) {
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("controller exists in begin play ") + FString::FromInt(GetNetMode()));
+		if (State) {
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("state exists in begin play ") + FString::FromInt(GetNetMode()));
+			State->HoldingWeapon = true;
+			State->CurrentWeapon = 0;
 		}
 	}
 }
@@ -198,84 +209,81 @@ void AFortniteCloneCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProper
 	DOREPLIFETIME(AFortniteCloneCharacter, WalkingY);
 	DOREPLIFETIME(AFortniteCloneCharacter, RunningX);
 	DOREPLIFETIME(AFortniteCloneCharacter, RunningY);
+	DOREPLIFETIME(AFortniteCloneCharacter, HoldingWeapon);
+	DOREPLIFETIME(AFortniteCloneCharacter, HoldingWeaponType);
+	DOREPLIFETIME(AFortniteCloneCharacter, AimedIn);
+	DOREPLIFETIME(AFortniteCloneCharacter, AimPitch);
+	DOREPLIFETIME(AFortniteCloneCharacter, AimYaw);
+	DOREPLIFETIME(AFortniteCloneCharacter, InterpSpeed);
 }
 
 void AFortniteCloneCharacter::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Tick mode ") + FString::FromInt(GetNetMode()));
-	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-	if (Animation) {
-		if (Animation->IsWalking) {
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("tick iswalking true ") + FString::FromInt(GetNetMode()));
-		}
-		else {
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("tick iswalking false ") + FString::FromInt(GetNetMode()));
-		}
-		FVector DirectionVector = FVector(0, Animation->AimYaw, Animation->AimPitch);
-		if (GetController()) {
-			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-			if (State) {
-				if (State->InBuildMode && State->BuildMode == FString("Wall")) {
-					if (BuildingPreview) {
-						BuildingPreview->Destroy(); //destroy the last wall preview
-					}
-					FString LogMsg = FString("Current building material ") + FString::FromInt(CurrentBuildingMaterial);
-					UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
-					if (CurrentBuildingMaterial >= 0 && CurrentBuildingMaterial <= 2) {
-						if (WallPreviewClasses.IsValidIndex(CurrentBuildingMaterial)) {
-							if (WallPreviewClasses[CurrentBuildingMaterial] != nullptr) {
-								BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(WallPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 200) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new wall preview
-							}
+	FVector DirectionVector = FVector(0, AimYaw, AimPitch);
+	if (GetController()) {
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+		if (State) {
+			if (State->InBuildMode && State->BuildMode == FString("Wall")) {
+				if (BuildingPreview) {
+					BuildingPreview->Destroy(); //destroy the last wall preview
+				}
+				FString LogMsg = FString("Current building material ") + FString::FromInt(CurrentBuildingMaterial);
+				UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+				if (CurrentBuildingMaterial >= 0 && CurrentBuildingMaterial <= 2) {
+					if (WallPreviewClasses.IsValidIndex(CurrentBuildingMaterial)) {
+						if (WallPreviewClasses[CurrentBuildingMaterial] != nullptr) {
+							BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(WallPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 200) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new wall preview
 						}
 					}
 				}
-				if (State->InBuildMode && State->BuildMode == FString("Ramp")) {
-					if (BuildingPreview) {
-						BuildingPreview->Destroy(); //destroy the last wall preview
-					}
-					FString LogMsg = FString("Current building material ") + FString::FromInt(CurrentBuildingMaterial);
-					UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
-					if (CurrentBuildingMaterial >= 0 && CurrentBuildingMaterial <= 2) {
-						if (RampPreviewClasses.IsValidIndex(CurrentBuildingMaterial)) {
-							if (RampPreviewClasses[CurrentBuildingMaterial] != nullptr) {
-								BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(RampPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 100) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new ramp preview
-							}
+			}
+			if (State->InBuildMode && State->BuildMode == FString("Ramp")) {
+				if (BuildingPreview) {
+					BuildingPreview->Destroy(); //destroy the last wall preview
+				}
+				FString LogMsg = FString("Current building material ") + FString::FromInt(CurrentBuildingMaterial);
+				UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+				if (CurrentBuildingMaterial >= 0 && CurrentBuildingMaterial <= 2) {
+					if (RampPreviewClasses.IsValidIndex(CurrentBuildingMaterial)) {
+						if (RampPreviewClasses[CurrentBuildingMaterial] != nullptr) {
+							BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(RampPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 100) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new ramp preview
 						}
 					}
 				}
-				if (State->InBuildMode && State->BuildMode == FString("Floor")) {
-					if (BuildingPreview) {
-						BuildingPreview->Destroy(); //destroy the last wall preview
-					}
-					FString LogMsg = FString("Current building material ") + FString::FromInt(CurrentBuildingMaterial);
-					UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
-					if (CurrentBuildingMaterial >= 0 && CurrentBuildingMaterial <= 2) {
-						if (FloorPreviewClasses.IsValidIndex(CurrentBuildingMaterial)) {
-							if (FloorPreviewClasses[CurrentBuildingMaterial] != nullptr) {
-								BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(FloorPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 120) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new floor preview
-							}
+			}
+			if (State->InBuildMode && State->BuildMode == FString("Floor")) {
+				if (BuildingPreview) {
+					BuildingPreview->Destroy(); //destroy the last wall preview
+				}
+				FString LogMsg = FString("Current building material ") + FString::FromInt(CurrentBuildingMaterial);
+				UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+				if (CurrentBuildingMaterial >= 0 && CurrentBuildingMaterial <= 2) {
+					if (FloorPreviewClasses.IsValidIndex(CurrentBuildingMaterial)) {
+						if (FloorPreviewClasses[CurrentBuildingMaterial] != nullptr) {
+							BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(FloorPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 120) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new floor preview
 						}
 					}
 				}
 			}
 		}
+	}
+	if (HasAuthority()) {
 		FRotator ControlRotation = GetControlRotation();
 		FRotator ActorRotation = GetActorRotation();
 
 		FRotator DeltaRotation = ControlRotation - ActorRotation;
 		DeltaRotation.Normalize();
 
-		FRotator AimRotation = FRotator(Animation->AimPitch, Animation->AimYaw, 0);
-		FRotator InterpolatedRotation = FMath::RInterpTo(AimRotation, DeltaRotation, DeltaTime, Animation->InterpSpeed);
+		FRotator AimRotation = FRotator(AimPitch, AimYaw, 0);
+		FRotator InterpolatedRotation = FMath::RInterpTo(AimRotation, DeltaRotation, DeltaTime, InterpSpeed);
 
 		float NewPitch = FMath::ClampAngle(InterpolatedRotation.Pitch, -90, 90);
 		float NewYaw = FMath::ClampAngle(InterpolatedRotation.Yaw, -90, 90);
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(NewPitch).Append(FString::FromInt(NewYaw)));
-		Animation->AimPitch = NewPitch;
-		Animation->AimYaw = NewYaw;
+		AimPitch = NewPitch;
+		AimYaw = NewYaw;
 	}
-	
-	
 }
 
 void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
@@ -533,24 +541,21 @@ void AFortniteCloneCharacter::Sprint(float Value) {
 	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	if (Animation) {
 		if (Animation->AimedIn) {
-			GetCharacterMovement()->MaxWalkSpeed = 200.0;
+			Server_SetAimedInSpeed();
 		}
 		else if (Value == 0) {
-			GetCharacterMovement()->MaxWalkSpeed = 450.0;
-			Animation->IsRunning = false;
-			IsRunning = false;
+			Server_SetWalkingSpeed();
+			Server_SetIsRunningFalse();
 		}
 		else {
 			// can only sprint if the w key is held down by itself or in combination with the a or d keys
 			if (!(OnlyAOrDDown || SDown) && WDown) {
-				GetCharacterMovement()->MaxWalkSpeed = 900.0;
-				Animation->IsRunning = true;
-				IsRunning = true;
+				Server_SetRunningSpeed();
+				Server_SetIsRunningTrue();
 			}
 			else {
-				GetCharacterMovement()->MaxWalkSpeed = 450.0;
-				Animation->IsRunning = false;
-				IsRunning = false;
+				Server_SetWalkingSpeed();
+				Server_SetIsRunningFalse();
 			}
 		}
 	}
@@ -1609,6 +1614,46 @@ void AFortniteCloneCharacter::Server_SetIsWalkingFalse_Implementation() {
 }
 
 bool AFortniteCloneCharacter::Server_SetIsWalkingFalse_Validate() {
+	return true;
+}
+
+void AFortniteCloneCharacter::Server_SetIsRunningTrue_Implementation() {
+	IsRunning = true;
+}
+
+bool AFortniteCloneCharacter::Server_SetIsRunningTrue_Validate() {
+	return true;
+}
+
+void AFortniteCloneCharacter::Server_SetIsRunningFalse_Implementation() {
+	IsRunning = false;
+}
+
+bool AFortniteCloneCharacter::Server_SetIsRunningFalse_Validate() {
+	return true;
+}
+
+void AFortniteCloneCharacter::Server_SetWalkingSpeed_Implementation() {
+	GetCharacterMovement()->MaxWalkSpeed = 450.0;
+}
+
+bool AFortniteCloneCharacter::Server_SetWalkingSpeed_Validate() {
+	return true;
+}
+
+void AFortniteCloneCharacter::Server_SetRunningSpeed_Implementation() {
+	GetCharacterMovement()->MaxWalkSpeed = 900.0;
+}
+
+bool AFortniteCloneCharacter::Server_SetRunningSpeed_Validate() {
+	return true;
+}
+
+void AFortniteCloneCharacter::Server_SetAimedInSpeed_Implementation() {
+	GetCharacterMovement()->MaxWalkSpeed = 200.0;
+}
+
+bool AFortniteCloneCharacter::Server_SetAimedInSpeed_Validate() {
 	return true;
 }
 
