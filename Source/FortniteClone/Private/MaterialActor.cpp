@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "MaterialActor.h"
+#include "UnrealNetwork.h"
 
 // Sets default values
 AMaterialActor::AMaterialActor()
@@ -24,3 +25,9 @@ void AMaterialActor::Tick(float DeltaTime)
 
 }
 
+void AMaterialActor::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AMaterialActor, Health);
+}

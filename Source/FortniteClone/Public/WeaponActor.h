@@ -30,14 +30,20 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Bullet")
 	TSubclassOf<AProjectileActor> BulletClass;
 
+	UPROPERTY(Replicated)
 	AFortniteCloneCharacter* Holder;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Bullet")
 	int MagazineSize; // Only applies to assault rifle and shotgun
 
-	UPROPERTY(EditDefaultsOnly, Category = "Bullet")
+	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Bullet")
 	int CurrentBulletCount; // Only applies to assault rifle and shotgun
 
 	UPROPERTY(EditDefaultsOnly, Category = "WeaponType")
 	int WeaponType; // 0 for pickaxe, 1 for assault rifle, 2 for shotgun
+
+	virtual bool IsSupportedForNetworking() const override
+	{
+		return true;
+	}
 };

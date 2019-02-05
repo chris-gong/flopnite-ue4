@@ -15,7 +15,7 @@ public:
 	// Sets default values for this actor's properties
 	ABuildingActor();
 
-	UPROPERTY(EditDefaultsOnly, Category = "Health")
+	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Health")
 	float Health;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Preview")
@@ -29,4 +29,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	virtual bool IsSupportedForNetworking() const override
+	{
+		return true;
+	}
 };

@@ -25,8 +25,14 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY(Replicated)
 	AFortniteCloneCharacter* Holder;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Health")
 	float Health;
+
+	virtual bool IsSupportedForNetworking() const override
+	{
+		return true;
+	}
 };

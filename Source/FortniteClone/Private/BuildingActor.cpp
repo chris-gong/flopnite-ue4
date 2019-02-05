@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "BuildingActor.h"
+#include "UnrealNetwork.h"
 
 // Sets default values
 ABuildingActor::ABuildingActor()
@@ -24,3 +25,9 @@ void ABuildingActor::Tick(float DeltaTime)
 
 }
 
+void ABuildingActor::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ABuildingActor, Health);
+}

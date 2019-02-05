@@ -255,12 +255,6 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 		if (GetController()) {
 			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 			if (State) {
-				if (State->InBuildMode) {
-					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Tick mode in build mode ") + State->BuildMode + FString::FromInt(GetNetMode()));
-				}
-				else if (!State->InBuildMode) {
-					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Tick mode not in build mode ") + FString::FromInt(GetNetMode()));
-				}
 				if (State->InBuildMode && State->BuildMode == FString("Wall")) {
 					if (BuildingPreview) {
 						BuildingPreview->Destroy(); //destroy the last wall preview
@@ -320,22 +314,11 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 		AimPitch = NewPitch;
 		AimYaw = NewYaw;
 	}
-	else {
-		if (GetController()) {
-			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-			if (State && State->InBuildMode) {
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Tick mode in build mode ") + State->BuildMode + FString::FromInt(GetNetMode()));
-			}
-			else if (State && !State->InBuildMode) {
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Tick mode not in build mode ") + FString::FromInt(GetNetMode()));
-			}
-		}
-	}
 }
 
 void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	if (HasAuthority()) {
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("overlap mode ") + FString::FromInt(GetNetMode()));
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("overlap mode ") + FString::FromInt(GetNetMode()));
 	}
 	if (OtherActor != nullptr && OtherActor != this) {
 		if (CurrentWeapon != nullptr && OtherActor == (AActor*) CurrentWeapon) {
@@ -610,10 +593,6 @@ void AFortniteCloneCharacter::Sprint(float Value) {
 }
 
 void AFortniteCloneCharacter::StartWalking() {
-	/*UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-	if (Animation) {
-		Animation->IsWalking = true;
-	}*/
 	Server_SetIsWalkingTrue();
 }
 
@@ -689,109 +668,7 @@ void AFortniteCloneCharacter::SwitchBuildingMaterial() {
 }
 
 void AFortniteCloneCharacter::ShootGun() {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()) + FString(" shoot gun key pressed"));
-	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-	if (!HasAuthority()) {
-		return;
-	}
-	if (State) {
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()) + FString(" Current weapon ") + FString::FromInt(State->CurrentWeapon));
-		if (State->HoldingWeapon) {
-			if (State->CurrentWeapon > 0 && State->CurrentWeapon < 3 && CurrentWeapon->CurrentBulletCount <= 0) {
-				// no bullets in magazine, need to reload
-				Reload();
-				return; 
-			}
-			if (State->JustReloadedRifle || State->JustReloadedShotgun) {
-				return; //currently reloading
-			}
-			UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-			if (Animation) {
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()) + FString("Animation"));
-				if (State->AimedIn) {
-					if (State->CurrentWeapon == 1) {
-						if (State->JustShotRifle) {
-							return;
-						}
-						PlayAnimMontage(RifleIronsightsShootingAnimation);
-						CurrentWeapon->CurrentBulletCount--;
-						State->EquippedWeaponsClips[CurrentWeaponType]--;
-						State->JustShotRifle = true;
-						FTimerHandle RifleTimerHandle;
-						GetWorldTimerManager().SetTimer(RifleTimerHandle, this, &AFortniteCloneCharacter::RifleTimeOut, 0.233f, false);
-					}
-					else if (State->CurrentWeapon == 2) {
-						if (State->JustShotShotgun) {
-							return;
-						}
-						PlayAnimMontage(ShotgunIronsightsShootingAnimation);
-						CurrentWeapon->CurrentBulletCount--;
-						State->EquippedWeaponsClips[CurrentWeaponType]--;
-						State->JustShotShotgun = true;
-						FTimerHandle ShotgunTimerHandle;
-						GetWorldTimerManager().SetTimer(ShotgunTimerHandle, this, &AFortniteCloneCharacter::ShotgunTimeOut, 1.3f, false);
-					}
-				}
-				else {
-					if (State->CurrentWeapon == 0) {
-						//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "pickaxe swung");
-						if (State->JustSwungPickaxe) {
-							return;
-						}
-						PlayAnimMontage(PickaxeSwingingAnimation, 1.f, NAME_None);
-						State->JustSwungPickaxe = true;
-						FTimerHandle PickaxeTimerHandle;
-						GetWorldTimerManager().SetTimer(PickaxeTimerHandle, this, &AFortniteCloneCharacter::PickaxeTimeOut, 0.403f, false);
-					}
-					if (State->CurrentWeapon == 1) {
-						if (State->JustShotRifle) {
-							return;
-						}
-						PlayAnimMontage(RifleHipShootingAnimation);
-						CurrentWeapon->CurrentBulletCount--;
-						State->EquippedWeaponsClips[CurrentWeaponType]--;
-						State->JustShotRifle = true;
-						FTimerHandle RifleTimerHandle;
-						GetWorldTimerManager().SetTimer(RifleTimerHandle, this, &AFortniteCloneCharacter::RifleTimeOut, 0.233f, false);
-					}
-					else if (State->CurrentWeapon == 2) {
-						if (State->JustShotShotgun) {
-							return;
-						}
-						PlayAnimMontage(ShotgunHipShootingAnimation);
-						CurrentWeapon->CurrentBulletCount--;
-						State->EquippedWeaponsClips[CurrentWeaponType]--;
-						State->JustShotShotgun = true;
-						FTimerHandle ShotgunTimerHandle;
-						GetWorldTimerManager().SetTimer(ShotgunTimerHandle, this, &AFortniteCloneCharacter::ShotgunTimeOut, 1.3f, false);
-					}
-
-				}
-				FName WeaponSocketName = TEXT("hand_right_socket");
-				FVector BulletLocation = GetMesh()->GetSocketLocation(WeaponSocketName);
-				FRotator BulletRotation = GetMesh()->GetSocketRotation(WeaponSocketName);
-				/*if (State->CurrentWeapon == 0) {
-					BulletRotation = GetActorRotation();
-				}*/
-				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-				if (Animation) {
-					FVector DirectionVector = FVector(0, Animation->AimYaw * 70, Animation->AimPitch * 20);
-					FRotator DirectionRotation = FRotator(BulletRotation.Pitch, GetActorRotation().Yaw, BulletRotation.Roll);
-					FTransform SpawnTransform(BulletRotation + FRotator(1,-0.5,0), BulletLocation);
-					auto Bullet = Cast<AProjectileActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, CurrentWeapon->BulletClass, SpawnTransform));
-					if (Bullet != nullptr)
-					{
-						//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
-						Bullet->Weapon = CurrentWeapon;
-						Bullet->WeaponHolder = this;
-
-						UGameplayStatics::FinishSpawningActor(Bullet, SpawnTransform);
-					}
-				}
-			}
-
-		}
-	}
+	Server_FireWeapons();
 }
 
 void AFortniteCloneCharacter::UseBandage() {
@@ -1291,7 +1168,6 @@ int AFortniteCloneCharacter::GetKillCount() {
 
 void AFortniteCloneCharacter::Server_SetIsWalkingTrue_Implementation() {
 	IsWalking = true;
-	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 }
 
 bool AFortniteCloneCharacter::Server_SetIsWalkingTrue_Validate() {
@@ -1777,5 +1653,115 @@ void AFortniteCloneCharacter::Server_BuildStructures_Implementation() {
 }
 
 bool AFortniteCloneCharacter::Server_BuildStructures_Validate() {
+	return true;
+}
+
+void AFortniteCloneCharacter::Server_FireWeapons_Implementation() {
+	if (GetController()) {
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+		if (State) {
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()) + FString(" Current weapon ") + FString::FromInt(State->CurrentWeapon));
+			if (State->HoldingWeapon) {
+				if (State->CurrentWeapon > 0 && State->CurrentWeapon < 3 && CurrentWeapon->CurrentBulletCount <= 0) {
+					// no bullets in magazine, need to reload
+					Server_ReloadWeapons();
+					return;
+				}
+				if (State->JustReloadedRifle || State->JustReloadedShotgun) {
+					return; //currently reloading
+				}
+				if (State->AimedIn) {
+					if (State->CurrentWeapon == 1) {
+						if (State->JustShotRifle) {
+							return;
+						}
+						PlayAnimMontage(RifleIronsightsShootingAnimation);
+						CurrentWeapon->CurrentBulletCount--;
+						State->EquippedWeaponsClips[CurrentWeaponType]--;
+						State->JustShotRifle = true;
+						FTimerHandle RifleTimerHandle;
+						GetWorldTimerManager().SetTimer(RifleTimerHandle, this, &AFortniteCloneCharacter::RifleTimeOut, 0.233f, false);
+					}
+					else if (State->CurrentWeapon == 2) {
+						if (State->JustShotShotgun) {
+							return;
+						}
+						PlayAnimMontage(ShotgunIronsightsShootingAnimation);
+						CurrentWeapon->CurrentBulletCount--;
+						State->EquippedWeaponsClips[CurrentWeaponType]--;
+						State->JustShotShotgun = true;
+						FTimerHandle ShotgunTimerHandle;
+						GetWorldTimerManager().SetTimer(ShotgunTimerHandle, this, &AFortniteCloneCharacter::ShotgunTimeOut, 1.3f, false);
+					}
+				}
+				else {
+					if (State->CurrentWeapon == 0) {
+						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "pickaxe swung");
+						if (State->JustSwungPickaxe) {
+							return;
+						}
+						PlayAnimMontage(PickaxeSwingingAnimation, 1.f, NAME_None);
+						State->JustSwungPickaxe = true;
+						FTimerHandle PickaxeTimerHandle;
+						GetWorldTimerManager().SetTimer(PickaxeTimerHandle, this, &AFortniteCloneCharacter::PickaxeTimeOut, 0.403f, false);
+					}
+					if (State->CurrentWeapon == 1) {
+						if (State->JustShotRifle) {
+							return;
+						}
+						PlayAnimMontage(RifleHipShootingAnimation);
+						CurrentWeapon->CurrentBulletCount--;
+						State->EquippedWeaponsClips[CurrentWeaponType]--;
+						State->JustShotRifle = true;
+						FTimerHandle RifleTimerHandle;
+						GetWorldTimerManager().SetTimer(RifleTimerHandle, this, &AFortniteCloneCharacter::RifleTimeOut, 0.233f, false);
+					}
+					else if (State->CurrentWeapon == 2) {
+						if (State->JustShotShotgun) {
+							return;
+						}
+						PlayAnimMontage(ShotgunHipShootingAnimation);
+						CurrentWeapon->CurrentBulletCount--;
+						State->EquippedWeaponsClips[CurrentWeaponType]--;
+						State->JustShotShotgun = true;
+						FTimerHandle ShotgunTimerHandle;
+						GetWorldTimerManager().SetTimer(ShotgunTimerHandle, this, &AFortniteCloneCharacter::ShotgunTimeOut, 1.3f, false);
+					}
+
+				}
+				FName WeaponSocketName = TEXT("hand_right_socket");
+				FVector BulletLocation = GetMesh()->GetSocketLocation(WeaponSocketName);
+				FRotator BulletRotation = GetMesh()->GetSocketRotation(WeaponSocketName);
+				FVector DirectionVector = FVector(0, AimYaw * 70, AimPitch * 20);
+				FRotator DirectionRotation = FRotator(BulletRotation.Pitch, GetActorRotation().Yaw, BulletRotation.Roll);
+				APlayerController* PlayerController = Cast<APlayerController>(GetController());
+				FRotator CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
+				FVector CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation() + GetActorForwardVector() * 210 + FVector(0,0,50);
+				FVector CameraDirection = GetActorLocation() - CameraLocation;
+				CameraDirection.Normalize();
+				FTransform SpawnTransform(CameraRotation + FRotator(2,-1.25,0), BulletLocation);
+				auto Bullet = Cast<AProjectileActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, CurrentWeapon->BulletClass, SpawnTransform));
+				if (Bullet != nullptr)
+				{
+					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
+					Bullet->Weapon = CurrentWeapon;
+					Bullet->WeaponHolder = this;
+
+					UGameplayStatics::FinishSpawningActor(Bullet, SpawnTransform);
+				}
+			}
+		}
+	}
+}
+
+bool AFortniteCloneCharacter::Server_FireWeapons_Validate() {
+	return true;
+}
+
+void AFortniteCloneCharacter::Server_ReloadWeapons_Implementation() {
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()) + FString(" we can call server rpc in server rpc"));
+}
+
+bool AFortniteCloneCharacter::Server_ReloadWeapons_Validate() {
 	return true;
 }

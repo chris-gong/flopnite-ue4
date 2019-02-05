@@ -29,6 +29,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Material")
 	int MaterialCount;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Health")
+	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Health")
 	int Health;
+
+	virtual bool IsSupportedForNetworking() const override
+	{
+		return true;
+	}
 };
