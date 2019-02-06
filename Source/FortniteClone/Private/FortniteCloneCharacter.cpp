@@ -670,24 +670,7 @@ void AFortniteCloneCharacter::ShootGun() {
 }
 
 void AFortniteCloneCharacter::UseBandage() {
-	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-	if (State && State->HoldingBandage) {
-		if (State->BandageCount < 1) {
-			return; // player has no bandages to use
-		}
-		UAnimInstance* Animation = GetMesh()->GetAnimInstance();
-		UThirdPersonAnimInstance* AnimationInstance = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-		if (Animation && AnimationInstance) {
-			if (State->JustUsedBandage) {
-				return;
-			}
-			PlayAnimMontage(HealingAnimation);
-			State->JustUsedBandage = true;
-			State->BandageCount--;
-			FTimerHandle BandageTimerHandle;
-			GetWorldTimerManager().SetTimer(BandageTimerHandle, this, &AFortniteCloneCharacter::BandageTimeOut, 3.321f, false);
-		}
-	}
+	ServerHealWithBandage();
 }
 
 void AFortniteCloneCharacter::Reload() {
@@ -1385,6 +1368,31 @@ bool AFortniteCloneCharacter::ServerFireWeapons_Validate() {
 	return true;
 }
 
+void AFortniteCloneCharacter::ServerHealWithBandage_Implementation() {
+	if (GetController()) {
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+		if (State && State->HoldingBandage) {
+			if (State->BandageCount < 1) {
+				return; // player has no bandages to use
+			}
+
+			if (State->JustUsedBandage) {
+				return;
+			}
+			NetMulticastPlayUseBandageAnimation();
+			State->JustUsedBandage = true;
+			State->BandageCount--;
+			FTimerHandle BandageTimerHandle;
+			GetWorldTimerManager().SetTimer(BandageTimerHandle, this, &AFortniteCloneCharacter::ServerBandageTimeOut, 3.321f, false);
+		}
+	}
+}
+
+bool AFortniteCloneCharacter::ServerHealWithBandage_Validate() {
+	return true;
+}
+
+
 void AFortniteCloneCharacter::ServerReloadWeapons_Implementation() {
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
@@ -1836,6 +1844,28 @@ bool AFortniteCloneCharacter::ServerShotgunTimeOut_Validate() {
 	return true;
 }
 
+
+void AFortniteCloneCharacter::ServerBandageTimeOut_Implementation() {
+	if (Health < 100) {
+		if (Health + 15 > 100) {
+			Health = 100;
+		}
+		else {
+			Health += 15;
+		}
+	}
+	if (GetController()) {
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+		if (State) {
+			State->JustUsedBandage = false;
+		}
+	}
+}
+
+bool AFortniteCloneCharacter::ServerBandageTimeOut_Validate() {
+	return true;
+}
+
 void AFortniteCloneCharacter::ServerRifleReloadTimeOut_Implementation() {
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
@@ -1888,6 +1918,10 @@ void AFortniteCloneCharacter::NetMulticastPlayShootRifleIronsightsAnimation_Impl
 
 void AFortniteCloneCharacter::NetMulticastPlayShootShotgunIronsightsAnimation_Implementation() {
 	PlayAnimMontage(ShotgunIronsightsShootingAnimation);
+}
+
+void AFortniteCloneCharacter::NetMulticastPlayUseBandageAnimation_Implementation() {
+	PlayAnimMontage(HealingAnimation);
 }
 
 void AFortniteCloneCharacter::NetMulticastPlayReloadRifleAnimation_Implementation() {

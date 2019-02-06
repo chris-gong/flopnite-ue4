@@ -385,6 +385,9 @@ public:
 	void ServerFireWeapons();
 
 	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerHealWithBandage();
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerReloadWeapons();
 
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -415,6 +418,9 @@ public:
 	void ServerRifleTimeOut();
 
 	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerBandageTimeOut();
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerShotgunReloadTimeOut();
 
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -440,6 +446,9 @@ public:
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void NetMulticastPlayShootShotgunIronsightsAnimation();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void NetMulticastPlayUseBandageAnimation();
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void NetMulticastPlayReloadRifleAnimation();
