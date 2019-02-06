@@ -388,6 +388,18 @@ public:
 	void ServerReloadWeapons();
 
 	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSwitchToPickaxe();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSwitchToRifle();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSwitchToShotgun();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSwitchToBandage();
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerAimDownSights();
 
 	UFUNCTION(Server, Reliable, WithValidation)
