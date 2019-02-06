@@ -331,61 +331,61 @@ public:
 
 public:
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetIsWalkingTrue();
+	void ServerSetIsWalkingTrue();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetIsWalkingFalse();
+	void ServerSetIsWalkingFalse();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetIsRunningTrue();
+	void ServerSetIsRunningTrue();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetIsRunningFalse();
+	void ServerSetIsRunningFalse();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetWalkingSpeed();
+	void ServerSetWalkingSpeed();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetRunningSpeed();
+	void ServerSetRunningSpeed();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetAimedInSpeed();
+	void ServerSetAimedInSpeed();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetMovingLeft();
+	void ServerSetMovingLeft();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetMovingRight();
+	void ServerSetMovingRight();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetMovingBackwards();
+	void ServerSetMovingBackwards();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetMovingForwards();
+	void ServerSetMovingForwards();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_ResetMovingRight();
+	void ServerResetMovingRight();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_ResetMovingForward();
+	void ServerResetMovingForward();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetBuildModeWall();
+	void ServerSetBuildModeWall();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetBuildModeRamp();
+	void ServerSetBuildModeRamp();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetBuildModeFloor();
+	void ServerSetBuildModeFloor();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_BuildStructures();
+	void ServerBuildStructures();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_FireWeapons();
+	void ServerFireWeapons();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_ReloadWeapons();
+	void ServerReloadWeapons();
 
 private:
 	// Object creation can only happen after the character has finished being constructed

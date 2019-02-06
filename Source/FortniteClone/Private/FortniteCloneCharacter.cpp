@@ -233,6 +233,7 @@ void AFortniteCloneCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProper
 	DOREPLIFETIME(AFortniteCloneCharacter, CurrentWeapon);
 	DOREPLIFETIME(AFortniteCloneCharacter, CurrentWeaponType);
 	DOREPLIFETIME(AFortniteCloneCharacter, Health);
+
 	DOREPLIFETIME(AFortniteCloneCharacter, IsWalking);
 	DOREPLIFETIME(AFortniteCloneCharacter, IsRunning);
 	DOREPLIFETIME(AFortniteCloneCharacter, WalkingX);
@@ -514,13 +515,13 @@ void AFortniteCloneCharacter::MoveForward(float Value)
 		//Server_SetMovingVariables();
 	}*/
 	if (Value == 0) {
-		Server_ResetMovingForward();
+		ServerResetMovingForward();
 	}
 	else if (Value > 0) {
-		Server_SetMovingForwards();
+		ServerSetMovingForwards();
 	}
 	else {
-		Server_SetMovingBackwards();
+		ServerSetMovingBackwards();
 	}
 }
 
@@ -551,13 +552,13 @@ void AFortniteCloneCharacter::MoveRight(float Value)
 		//Server_SetMovingVariables();
 	}*/
 	if (Value == 0) {
-		Server_ResetMovingRight();
+		ServerResetMovingRight();
 	}
 	else if (Value > 0) {
-		Server_SetMovingRight();
+		ServerSetMovingRight();
 	}
 	else {
-		Server_SetMovingLeft();
+		ServerSetMovingLeft();
 	}
 }
 
@@ -571,21 +572,21 @@ void AFortniteCloneCharacter::Sprint(float Value) {
 	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	if (Animation) {
 		if (Animation->AimedIn) {
-			Server_SetAimedInSpeed();
+			ServerSetAimedInSpeed();
 		}
 		else if (Value == 0) {
-			Server_SetWalkingSpeed();
-			Server_SetIsRunningFalse();
+			ServerSetWalkingSpeed();
+			ServerSetIsRunningFalse();
 		}
 		else {
 			// can only sprint if the w key is held down by itself or in combination with the a or d keys
 			if (!(OnlyAOrDDown || SDown) && WDown) {
-				Server_SetRunningSpeed();
-				Server_SetIsRunningTrue();
+				ServerSetRunningSpeed();
+				ServerSetIsRunningTrue();
 			}
 			else {
-				Server_SetWalkingSpeed();
-				Server_SetIsRunningFalse();
+				ServerSetWalkingSpeed();
+				ServerSetIsRunningFalse();
 			}
 		}
 	}
@@ -593,7 +594,7 @@ void AFortniteCloneCharacter::Sprint(float Value) {
 }
 
 void AFortniteCloneCharacter::StartWalking() {
-	Server_SetIsWalkingTrue();
+	ServerSetIsWalkingTrue();
 }
 
 
@@ -607,9 +608,9 @@ void AFortniteCloneCharacter::StopWalking() {
 	bool NoWalkingKeysDown = !ADown && !WDown && !SDown && !DDown;
 
 	if (NoWalkingKeysDown) {
-		Server_SetIsWalkingFalse();
+		ServerSetIsWalkingFalse();
 	}
-	//Server_SetAnimationVariables();
+	//ServerSetAnimationVariables();
 }
 
 TArray<float> AFortniteCloneCharacter::CalculateWalkingXY() {
@@ -636,23 +637,23 @@ TArray<float> AFortniteCloneCharacter::CalculateWalkingXY() {
 
 void AFortniteCloneCharacter::PreviewWall() {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "x key pressed");
-	Server_SetBuildModeWall();
+	ServerSetBuildModeWall();
 	
 }
 
 void AFortniteCloneCharacter::PreviewRamp() {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "c key pressed");
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "c key presse2d");
-	Server_SetBuildModeRamp();
+	ServerSetBuildModeRamp();
 }
 
 void AFortniteCloneCharacter::PreviewFloor() {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "f key pressed");
-	Server_SetBuildModeFloor();
+	ServerSetBuildModeFloor();
 }
 
 void AFortniteCloneCharacter::BuildStructure() {
-	//Server_BuildStructures();
+	ServerBuildStructures();
 }
 
 void AFortniteCloneCharacter::SwitchBuildingMaterial() {
@@ -668,7 +669,7 @@ void AFortniteCloneCharacter::SwitchBuildingMaterial() {
 }
 
 void AFortniteCloneCharacter::ShootGun() {
-	Server_FireWeapons();
+	ServerFireWeapons();
 }
 
 void AFortniteCloneCharacter::UseBandage() {
@@ -1166,117 +1167,117 @@ int AFortniteCloneCharacter::GetKillCount() {
 	return State->KillCount;
 }
 
-void AFortniteCloneCharacter::Server_SetIsWalkingTrue_Implementation() {
+void AFortniteCloneCharacter::ServerSetIsWalkingTrue_Implementation() {
 	IsWalking = true;
 }
 
-bool AFortniteCloneCharacter::Server_SetIsWalkingTrue_Validate() {
+bool AFortniteCloneCharacter::ServerSetIsWalkingTrue_Validate() {
 	return true;
 }
 
-void AFortniteCloneCharacter::Server_SetIsWalkingFalse_Implementation() {
+void AFortniteCloneCharacter::ServerSetIsWalkingFalse_Implementation() {
 	IsWalking = false;
 }
 
-bool AFortniteCloneCharacter::Server_SetIsWalkingFalse_Validate() {
+bool AFortniteCloneCharacter::ServerSetIsWalkingFalse_Validate() {
 	return true;
 }
 
-void AFortniteCloneCharacter::Server_SetIsRunningTrue_Implementation() {
+void AFortniteCloneCharacter::ServerSetIsRunningTrue_Implementation() {
 	IsRunning = true;
 }
 
-bool AFortniteCloneCharacter::Server_SetIsRunningTrue_Validate() {
+bool AFortniteCloneCharacter::ServerSetIsRunningTrue_Validate() {
 	return true;
 }
 
-void AFortniteCloneCharacter::Server_SetIsRunningFalse_Implementation() {
+void AFortniteCloneCharacter::ServerSetIsRunningFalse_Implementation() {
 	IsRunning = false;
 }
 
-bool AFortniteCloneCharacter::Server_SetIsRunningFalse_Validate() {
+bool AFortniteCloneCharacter::ServerSetIsRunningFalse_Validate() {
 	return true;
 }
 
-void AFortniteCloneCharacter::Server_SetWalkingSpeed_Implementation() {
+void AFortniteCloneCharacter::ServerSetWalkingSpeed_Implementation() {
 	GetCharacterMovement()->MaxWalkSpeed = 450.0;
 }
 
-bool AFortniteCloneCharacter::Server_SetWalkingSpeed_Validate() {
+bool AFortniteCloneCharacter::ServerSetWalkingSpeed_Validate() {
 	return true;
 }
 
-void AFortniteCloneCharacter::Server_SetRunningSpeed_Implementation() {
+void AFortniteCloneCharacter::ServerSetRunningSpeed_Implementation() {
 	GetCharacterMovement()->MaxWalkSpeed = 900.0;
 }
 
-bool AFortniteCloneCharacter::Server_SetRunningSpeed_Validate() {
+bool AFortniteCloneCharacter::ServerSetRunningSpeed_Validate() {
 	return true;
 }
 
-void AFortniteCloneCharacter::Server_SetAimedInSpeed_Implementation() {
+void AFortniteCloneCharacter::ServerSetAimedInSpeed_Implementation() {
 	GetCharacterMovement()->MaxWalkSpeed = 200.0;
 }
 
-bool AFortniteCloneCharacter::Server_SetAimedInSpeed_Validate() {
+bool AFortniteCloneCharacter::ServerSetAimedInSpeed_Validate() {
 	return true;
 }
 
-void AFortniteCloneCharacter::Server_SetMovingForwards_Implementation() {
+void AFortniteCloneCharacter::ServerSetMovingForwards_Implementation() {
 	WalkingY = 90;
 	RunningY = 90;
 }
 
-bool AFortniteCloneCharacter::Server_SetMovingForwards_Validate() {
+bool AFortniteCloneCharacter::ServerSetMovingForwards_Validate() {
 	return true;
 }
 
-void AFortniteCloneCharacter::Server_SetMovingBackwards_Implementation() {
+void AFortniteCloneCharacter::ServerSetMovingBackwards_Implementation() {
 	WalkingY = -90;
 	RunningY = -90;
 }
 
-bool AFortniteCloneCharacter::Server_SetMovingBackwards_Validate() {
+bool AFortniteCloneCharacter::ServerSetMovingBackwards_Validate() {
 	return true;
 }
 
-void AFortniteCloneCharacter::Server_SetMovingLeft_Implementation() {
+void AFortniteCloneCharacter::ServerSetMovingLeft_Implementation() {
 	WalkingX = -90;
 	RunningX = -90;
 }
 
-bool AFortniteCloneCharacter::Server_SetMovingLeft_Validate() {
+bool AFortniteCloneCharacter::ServerSetMovingLeft_Validate() {
 	return true;
 }
 
-void AFortniteCloneCharacter::Server_SetMovingRight_Implementation() {
+void AFortniteCloneCharacter::ServerSetMovingRight_Implementation() {
 	WalkingX = 90;
 	RunningX = 90;
 }
 
-bool AFortniteCloneCharacter::Server_SetMovingRight_Validate() {
+bool AFortniteCloneCharacter::ServerSetMovingRight_Validate() {
 	return true;
 }
 
-void AFortniteCloneCharacter::Server_ResetMovingForward_Implementation() {
+void AFortniteCloneCharacter::ServerResetMovingForward_Implementation() {
 	WalkingY = 0;
 	RunningY = 0;
 }
 
-bool AFortniteCloneCharacter::Server_ResetMovingForward_Validate() {
+bool AFortniteCloneCharacter::ServerResetMovingForward_Validate() {
 	return true;
 }
 
-void AFortniteCloneCharacter::Server_ResetMovingRight_Implementation() {
+void AFortniteCloneCharacter::ServerResetMovingRight_Implementation() {
 	WalkingX = 0;
 	RunningX = 0;
 }
 
-bool AFortniteCloneCharacter::Server_ResetMovingRight_Validate() {
+bool AFortniteCloneCharacter::ServerResetMovingRight_Validate() {
 	return true;
 }
 
-void AFortniteCloneCharacter::Server_SetBuildModeWall_Implementation() {
+void AFortniteCloneCharacter::ServerSetBuildModeWall_Implementation() {
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		if (State) {
@@ -1382,11 +1383,11 @@ void AFortniteCloneCharacter::Server_SetBuildModeWall_Implementation() {
 	}
 }
 
-bool AFortniteCloneCharacter::Server_SetBuildModeWall_Validate() {
+bool AFortniteCloneCharacter::ServerSetBuildModeWall_Validate() {
 	return true;
 }
 
-void AFortniteCloneCharacter::Server_SetBuildModeRamp_Implementation() {
+void AFortniteCloneCharacter::ServerSetBuildModeRamp_Implementation() {
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		if (State) {
@@ -1487,11 +1488,11 @@ void AFortniteCloneCharacter::Server_SetBuildModeRamp_Implementation() {
 	}
 }
 
-bool AFortniteCloneCharacter::Server_SetBuildModeRamp_Validate() {
+bool AFortniteCloneCharacter::ServerSetBuildModeRamp_Validate() {
 	return true;
 }
 
-void AFortniteCloneCharacter::Server_SetBuildModeFloor_Implementation() {
+void AFortniteCloneCharacter::ServerSetBuildModeFloor_Implementation() {
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		if (State) {
@@ -1593,11 +1594,11 @@ void AFortniteCloneCharacter::Server_SetBuildModeFloor_Implementation() {
 	}
 }
 
-bool AFortniteCloneCharacter::Server_SetBuildModeFloor_Validate() {
+bool AFortniteCloneCharacter::ServerSetBuildModeFloor_Validate() {
 	return true;
 }
 
-void AFortniteCloneCharacter::Server_BuildStructures_Implementation() {
+void AFortniteCloneCharacter::ServerBuildStructures_Implementation() {
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		if (State) {
@@ -1652,11 +1653,11 @@ void AFortniteCloneCharacter::Server_BuildStructures_Implementation() {
 	}
 }
 
-bool AFortniteCloneCharacter::Server_BuildStructures_Validate() {
+bool AFortniteCloneCharacter::ServerBuildStructures_Validate() {
 	return true;
 }
 
-void AFortniteCloneCharacter::Server_FireWeapons_Implementation() {
+void AFortniteCloneCharacter::ServerFireWeapons_Implementation() {
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		if (State) {
@@ -1664,7 +1665,7 @@ void AFortniteCloneCharacter::Server_FireWeapons_Implementation() {
 			if (State->HoldingWeapon) {
 				if (State->CurrentWeapon > 0 && State->CurrentWeapon < 3 && CurrentWeapon->CurrentBulletCount <= 0) {
 					// no bullets in magazine, need to reload
-					Server_ReloadWeapons();
+					ServerReloadWeapons();
 					return;
 				}
 				if (State->JustReloadedRifle || State->JustReloadedShotgun) {
@@ -1754,14 +1755,14 @@ void AFortniteCloneCharacter::Server_FireWeapons_Implementation() {
 	}
 }
 
-bool AFortniteCloneCharacter::Server_FireWeapons_Validate() {
+bool AFortniteCloneCharacter::ServerFireWeapons_Validate() {
 	return true;
 }
 
-void AFortniteCloneCharacter::Server_ReloadWeapons_Implementation() {
+void AFortniteCloneCharacter::ServerReloadWeapons_Implementation() {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()) + FString(" we can call server rpc in server rpc"));
 }
 
-bool AFortniteCloneCharacter::Server_ReloadWeapons_Validate() {
+bool AFortniteCloneCharacter::ServerReloadWeapons_Validate() {
 	return true;
 }

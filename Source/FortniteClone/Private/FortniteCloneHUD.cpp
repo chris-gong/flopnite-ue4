@@ -75,9 +75,9 @@ void AFortniteCloneHUD::DrawHitMarker() {
 
 void AFortniteCloneHUD::DrawGameUI() {
 	// remove main screen widget
-	if (CurrentWidget != nullptr) {
+	/*if (CurrentWidget != nullptr) {
 		CurrentWidget->RemoveFromViewport();
-	}
+	}*/
 	if (HealthWidgetClass != nullptr)
 	{
 		CurrentWidget = CreateWidget<UUserWidget>(GetWorld(), HealthWidgetClass);
