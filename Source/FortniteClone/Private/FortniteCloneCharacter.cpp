@@ -161,6 +161,7 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 
 void AFortniteCloneCharacter::BeginPlay() {
 	Super::BeginPlay();
+	//GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Client ")  + FString::FromInt(ENetMode::NM_Client) + FString(" server ") + FString::FromInt(ENetMode::NM_DedicatedServer));
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()));
 	/*if (GetNetMode() != ENetMode::NM_Client || GetNetMode() != ENetMode::NM_Standalone) {
@@ -319,134 +320,148 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 
 void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	if (HasAuthority()) {
-		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("overlap mode ") + FString::FromInt(GetNetMode()));
-	}
-	if (OtherActor != nullptr && OtherActor != this) {
-		if (CurrentWeapon != nullptr && OtherActor == (AActor*) CurrentWeapon) {
-			// if the character is overlapping with its weapon, dont do anything about it
-			return;
-		}
-		if (CurrentHealingItem != nullptr && OtherActor == (AActor*)CurrentHealingItem) {
-			// if the character is overlapping with its healing item, dont do anything about it
-			return;
-		}
-		if (OtherActor->IsA(AWeaponActor::StaticClass())) {
-			AWeaponActor* WeaponActor = Cast<AWeaponActor>(OtherActor);
-			if (WeaponActor->WeaponType == 0) {
-				return; // do nothing if it's a pickaxe
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("NetMode: ") + FString::FromInt(GetNetMode()) + FString(" Player overlapped with: ") + OtherActor->GetName());
+		if (OtherActor != nullptr && OtherActor != this) {
+			if (CurrentWeapon != nullptr && OtherActor == (AActor*)CurrentWeapon) {
+				// if the character is overlapping with its weapon, dont do anything about it
+				return;
 			}
-			if (WeaponActor->Holder != nullptr) {
-				return; // do nothing if someone is holding the weapon
+			if (CurrentHealingItem != nullptr && OtherActor == (AActor*)CurrentHealingItem) {
+				// if the character is overlapping with its healing item, dont do anything about it
+				return;
 			}
-			if (GetController()) {
-				// pick up the item if the two conditions above are false
+			if (OtherActor->IsA(AWeaponActor::StaticClass())) {
+				AWeaponActor* WeaponActor = Cast<AWeaponActor>(OtherActor);
+				if (WeaponActor->WeaponType == 0) {
+					return; // do nothing if it's a pickaxe
+				}
+				if (WeaponActor->Holder != nullptr) {
+					return; // do nothing if someone is holding the weapon
+				}
+				if (GetController()) {
+					// pick up the item if the two conditions above are false
+					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("NetMode: ") + FString::FromInt(GetNetMode()) + FString(" controller exists: ") + OtherActor->GetName());
+					AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+					if (State) {
+						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("NetMode: ") + FString::FromInt(GetNetMode()) + FString(" state exists: ") + OtherActor->GetName());
+						if (State->InBuildMode || State->JustShotRifle || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
+							return; // can't pick up items while in build mode or if just shot rifle, shot shotgun, swung pickaxe, used bandage, or reloaded
+						}
+						// if the player already has a weapon of this type, do not equip it
+						if (State->EquippedWeapons.Contains(WeaponActor->WeaponType)) {
+							return;
+						}
+						// Destroy old weapon/healing item
+						if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
+							State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
+						}
+						if (CurrentWeapon) {
+							CurrentWeapon->Destroy();
+							CurrentWeapon = nullptr;
+						}
+						if (CurrentHealingItem) {
+							CurrentHealingItem->Destroy();
+							CurrentHealingItem = nullptr;
+						}
+						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("NetMode: ") + FString::FromInt(GetNetMode()) + FString(" equipping weapon: ") + OtherActor->GetName());
+						// PICK UP WEAPON
+						FName WeaponSocketName = TEXT("hand_right_socket");
+						FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+
+						CurrentWeapon = WeaponActor;
+						CurrentWeaponType = WeaponActor->WeaponType;
+						CurrentWeapon->Holder = this;
+						int MagazineSize = CurrentWeapon->MagazineSize;
+						CurrentWeapon->CurrentBulletCount = MagazineSize;
+						/*CurrentWeapon = GetWorld()->SpawnActor<AWeaponActor>(WeaponClasses[WeaponActor->WeaponType], GetActorLocation(), GetActorRotation());
+						bool Destroyed = WeaponActor->Destroy();
+						if (Destroyed) {
+							GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Weapon Destroyed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"));
+						}
+						else {
+							GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Weapon NOT Destroyed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"));
+						}*/
+						UStaticMeshComponent* OutHitStaticMeshComponent = Cast<UStaticMeshComponent>(WeaponActor->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+						OutHitStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
+
+						State->HoldingWeapon = true;
+						State->HoldingBandage = false;
+						State->EquippedWeapons.Add(WeaponActor->WeaponType);
+						State->CurrentWeapon = WeaponActor->WeaponType;
+						State->EquippedWeaponsClips[CurrentWeaponType] = MagazineSize;
+
+						HoldingWeapon = true;
+						HoldingWeaponType = 1;
+						/*bool Destroyed = WeaponActor->Destroy();
+						if (Destroyed) {
+							GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Weapon Destroyed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"));
+						}
+						else {
+							GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Weapon NOT Destroyed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"));
+						}*/
+						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("NetMode: ") + FString::FromInt(GetNetMode()) + FString(" weapon picked up: ") + OtherActor->GetName());
+					}
+
+				}
+
+			}
+			else if (OtherActor->IsA(AHealingActor::StaticClass())) {
+				//pick up the item
 				AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-				if (State->InBuildMode || State->JustShotRifle || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
-					return; // can't pick up items while in build mode or if just shot rifle, shot shotgun, swung pickaxe, used bandage, or reloaded
-				}
-				// if the player already has a weapon of this type, do not equip it
-				if (State->EquippedWeapons.Contains(WeaponActor->WeaponType)) {
-					return;
-				}
-				// Destroy old weapon/healing item
-				if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
-					State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
-				}
-				if (CurrentWeapon) {
-					CurrentWeapon->Destroy();
-					CurrentWeapon = nullptr;
-				}
 				if (CurrentHealingItem) {
 					CurrentHealingItem->Destroy();
 					CurrentHealingItem = nullptr;
 				}
-
-				// PICK UP WEAPON
-				FName BandageSocketName = TEXT("hand_right_socket");
-				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
-
-				CurrentWeapon = WeaponActor;
-				CurrentWeaponType = WeaponActor->WeaponType;
-				CurrentWeapon->Holder = this;
-				int MagazineSize = CurrentWeapon->MagazineSize;
-				CurrentWeapon->CurrentBulletCount = MagazineSize;
-				UStaticMeshComponent* OutHitStaticMeshComponent = Cast<UStaticMeshComponent>(WeaponActor->GetComponentByClass(UStaticMeshComponent::StaticClass()));
-				OutHitStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, BandageSocketName);
-
 				if (State) {
-					State->HoldingWeapon = true;
-					State->HoldingBandage = false;
-					State->EquippedWeapons.Add(WeaponActor->WeaponType);
-					State->CurrentWeapon = WeaponActor->WeaponType;
-					State->EquippedWeaponsClips[CurrentWeaponType] = MagazineSize;
-					UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-					if (Animation) {
-						Animation->HoldingWeapon = true;
-						Animation->HoldingWeaponType = 1;
+					//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
+					if (State->InBuildMode || State->JustShotRifle || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
+						return; // can't pick up items while in build mode or if just shot rifle, shot shotgun, swung pickaxe, used bandage, or reloaded
 					}
+					CurrentHealingItem = Cast<AHealingActor>(OtherActor);
+					if (CurrentHealingItem->Holder != nullptr) {
+						return; // do nothing if someone is holding the weapon
+					}
+					//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("didn't end early"));
+					// Destroy old weapon
+					if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
+						State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
+					}
+					if (CurrentWeapon) {
+						CurrentWeapon->Destroy();
+						CurrentWeapon = nullptr;
+					}
+					// PICK UP BANDAGE 
+					FName BandageSocketName = TEXT("hand_left_socket");
+					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+
+					CurrentWeapon = nullptr;
+					CurrentWeaponType = -1;
+					CurrentHealingItem->Holder = this;
+					UStaticMeshComponent* OutHitStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentHealingItem->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+					OutHitStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, BandageSocketName);
+
+
+					State->HoldingWeapon = false;
+					State->HoldingBandage = true;
+					State->BandageCount++;
+					State->CurrentWeapon = -1;
+
+					HoldingWeapon = false;
 				}
 			}
-			
-		}
-		else if (OtherActor->IsA(AHealingActor::StaticClass())) {
-			//pick up the item
-			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-			if (CurrentHealingItem) {
-				CurrentHealingItem->Destroy();
-				CurrentHealingItem = nullptr;
+			else if (OtherActor->IsA(AAmmunitionActor::StaticClass())) {
+				if (GetController()) {
+					AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+					AAmmunitionActor* Ammo = Cast<AAmmunitionActor>(OtherActor);
+					if (State) {
+						// increment ammo count
+						State->EquippedWeaponsAmmunition[Ammo->WeaponType] += Ammo->BulletCount;
+					}
+					Ammo->Destroy();
+				}
 			}
-			
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
-			if (State->InBuildMode || State->JustShotRifle || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
-				return; // can't pick up items while in build mode or if just shot rifle, shot shotgun, swung pickaxe, used bandage, or reloaded
-			}
-			CurrentHealingItem = Cast<AHealingActor>(OtherActor);
-			if (CurrentHealingItem->Holder != nullptr) {
-				return; // do nothing if someone is holding the weapon
-			}
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("didn't end early"));
-			// Destroy old weapon
-			if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
-				State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
-			}
-			if (CurrentWeapon) {
-				CurrentWeapon->Destroy();
-				CurrentWeapon = nullptr;
-			}
-			// PICK UP BANDAGE 
-			FName BandageSocketName = TEXT("hand_left_socket");
-			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
-
-			CurrentWeapon = nullptr;
-			CurrentWeaponType = -1;
-			CurrentHealingItem->Holder = this;
-			UStaticMeshComponent* OutHitStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentHealingItem->GetComponentByClass(UStaticMeshComponent::StaticClass()));
-			OutHitStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, BandageSocketName);
-
-			if (State) {
-				State->HoldingWeapon = false;
-				State->HoldingBandage = true;
-				State->BandageCount++;
-				State->CurrentWeapon = -1;
-				UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-				if (Animation) {
-					Animation->HoldingWeapon = false;
-					Animation->HoldingWeaponType = 0;
-				}
-			}
 		}
-		else if (OtherActor->IsA(AAmmunitionActor::StaticClass())) {
-			if (GetController()) {
-				AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-				AAmmunitionActor* Ammo = Cast<AAmmunitionActor>(OtherActor);
-				if (State) {
-					// increment ammo count
-					State->EquippedWeaponsAmmunition[Ammo->WeaponType] += Ammo->BulletCount;
-				}
-				Ammo->Destroy();
-			}
-		}
-		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
 	}
 }
 
