@@ -387,6 +387,29 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerReloadWeapons();
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerAimDownSights();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerAimHipFire();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void NetMulticastPlayPickaxeSwingAnimation();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void NetMulticastPlayShootRifleAnimation();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void NetMulticastPlayShootShotgunAnimation();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void NetMulticastPlayShootRifleIronsightsAnimation();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void NetMulticastPlayShootShotgunIronsightsAnimation();
+
+
+
 private:
 	// Object creation can only happen after the character has finished being constructed
 	virtual void BeginPlay() override;

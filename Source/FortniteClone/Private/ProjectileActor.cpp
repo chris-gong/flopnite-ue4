@@ -54,7 +54,7 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 			return;
 		}
 		else {
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("NetMode: ") + FString::FromInt(GetNetMode()) + FString(" Collided Actor: ") + OtherActor->GetName());
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("NetMode: ") + FString::FromInt(GetNetMode()) + FString(" Collided Actor: ") + OtherActor->GetName());
 			if (OtherActor->IsA(AWeaponActor::StaticClass())) {
 				//if the weapon has no holder, then let the bullet keep going
 				AWeaponActor* WeaponActor = Cast<AWeaponActor>(OtherActor);
