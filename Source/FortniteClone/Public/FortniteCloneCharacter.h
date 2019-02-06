@@ -393,6 +393,21 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerAimHipFire();
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerShotgunTimeOut();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerPickaxeTimeOut();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRifleTimeOut();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerShotgunReloadTimeOut();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerRifleReloadTimeOut();
+
 	UFUNCTION(NetMulticast, Unreliable)
 	void NetMulticastCameraAimIn();
 
@@ -414,7 +429,17 @@ public:
 	UFUNCTION(NetMulticast, Unreliable)
 	void NetMulticastPlayShootShotgunIronsightsAnimation();
 
+	UFUNCTION(NetMulticast, Unreliable)
+	void NetMulticastPlayReloadRifleAnimation();
 
+	UFUNCTION(NetMulticast, Unreliable)
+	void NetMulticastPlayReloadRifleIronsightsAnimation();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void NetMulticastPlayReloadShotgunAnimation();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void NetMulticastPlayReloadShotgunIronsightsAnimation();
 
 private:
 	// Object creation can only happen after the character has finished being constructed
