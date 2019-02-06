@@ -394,6 +394,12 @@ public:
 	void ServerAimHipFire();
 
 	UFUNCTION(NetMulticast, Unreliable)
+	void NetMulticastCameraAimIn();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void NetMulticastCameraAimOut();
+
+	UFUNCTION(NetMulticast, Unreliable)
 	void NetMulticastPlayPickaxeSwingAnimation();
 
 	UFUNCTION(NetMulticast, Unreliable)

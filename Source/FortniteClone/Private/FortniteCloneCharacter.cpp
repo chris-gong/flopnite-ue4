@@ -1755,7 +1755,7 @@ void AFortniteCloneCharacter::ServerAimDownSights_Implementation() {
 		if (State && State->HoldingWeapon && State->CurrentWeapon != 0) {
 			AimedIn = true;
 			HoldingWeaponType = 2;
-			CameraBoom->TargetArmLength = 100;
+			NetMulticastCameraAimIn();
 			ServerSetAimedInSpeed();
 			State->AimedIn = true;
 		}
@@ -1772,7 +1772,7 @@ void AFortniteCloneCharacter::ServerAimHipFire_Implementation() {
 		if (State && State->HoldingWeapon && State->CurrentWeapon != 0) {
 			AimedIn = false;
 			HoldingWeaponType = 1;
-			CameraBoom->TargetArmLength = 300;
+			NetMulticastCameraAimOut();
 			ServerSetWalkingSpeed();
 			State->AimedIn = false;
 		}
@@ -1782,6 +1782,14 @@ void AFortniteCloneCharacter::ServerAimHipFire_Implementation() {
 
 bool AFortniteCloneCharacter::ServerAimHipFire_Validate() {
 	return true;
+}
+
+void AFortniteCloneCharacter::NetMulticastCameraAimIn_Implementation() {
+	CameraBoom->TargetArmLength = 100;
+}
+
+void AFortniteCloneCharacter::NetMulticastCameraAimOut_Implementation() {
+	CameraBoom->TargetArmLength = 300;
 }
 
 void AFortniteCloneCharacter::NetMulticastPlayPickaxeSwingAnimation_Implementation() {
