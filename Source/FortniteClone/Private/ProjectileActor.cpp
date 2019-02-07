@@ -69,13 +69,7 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 								FortniteCloneCharacter->Health -= Damage;
 								if (WeaponHolder) {
 									// draw hitmarker
-									if (WeaponHolder->GetController()) {
-										APlayerController* PlayerController = Cast<APlayerController>(WeaponHolder->GetController());
-										if (PlayerController->GetHUD()) {
-											AFortniteCloneHUD* FortniteCloneHUD = Cast<AFortniteCloneHUD>(PlayerController->GetHUD());
-											FortniteCloneHUD->DrawHitMarker();
-										}
-									}
+									WeaponHolder->ClientDrawHitMarker();
 								}
 								if (FortniteCloneCharacter->Health <= 0) {
 									if (WeaponActor) {
@@ -114,13 +108,7 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 								FortniteCloneCharacter->Health -= Damage;
 								if (WeaponHolder) {
 									// draw hitmarker
-									if (WeaponHolder->GetController()) {
-										APlayerController* PlayerController = Cast<APlayerController>(WeaponHolder->GetController());
-										if (PlayerController->GetHUD()) {
-											AFortniteCloneHUD* FortniteCloneHUD = Cast<AFortniteCloneHUD>(PlayerController->GetHUD());
-											FortniteCloneHUD->DrawHitMarker();
-										}
-									}
+									WeaponHolder->ClientDrawHitMarker();
 								}
 								if (FortniteCloneCharacter->Health <= 0) {
 									if (HealingActor) {
@@ -170,13 +158,7 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 						FortniteCloneCharacter->Health -= Damage;
 						if (WeaponHolder) {
 							// draw hitmarker
-							if (WeaponHolder->GetController()) {
-								APlayerController* PlayerController = Cast<APlayerController>(WeaponHolder->GetController());
-								if (PlayerController->GetHUD()) {
-									AFortniteCloneHUD* FortniteCloneHUD = Cast<AFortniteCloneHUD>(PlayerController->GetHUD());
-									FortniteCloneHUD->DrawHitMarker();
-								}
-							}
+							WeaponHolder->ClientDrawHitMarker();
 						}
 						if (FortniteCloneCharacter->Health <= 0) {
 							if (FortniteCloneCharacter && FortniteCloneCharacter->CurrentWeapon) {

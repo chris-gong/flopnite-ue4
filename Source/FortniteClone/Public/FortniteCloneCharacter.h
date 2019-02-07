@@ -403,6 +403,9 @@ public:
 	void ServerSwitchToBandage();
 
 	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerChangeBuildingMaterial();
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerAimDownSights();
 
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -461,6 +464,9 @@ public:
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void NetMulticastPlayReloadShotgunIronsightsAnimation();
+
+	UFUNCTION(Client, Reliable)
+	void ClientDrawHitMarker();
 
 private:
 	// Object creation can only happen after the character has finished being constructed

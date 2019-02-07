@@ -18,6 +18,7 @@
 #include "AmmunitionActor.h"
 #include "UnrealNetwork.h"
 #include "Engine/ActorChannel.h"
+#include "FortniteCloneHUD.h"
 
 DEFINE_LOG_CATEGORY(LogMyGame);
 //////////////////////////////////////////////////////////////////////////
@@ -654,15 +655,7 @@ void AFortniteCloneCharacter::BuildStructure() {
 }
 
 void AFortniteCloneCharacter::SwitchBuildingMaterial() {
-	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-	if (State && State->InBuildMode) {
-		if (CurrentBuildingMaterial == 2) {
-			CurrentBuildingMaterial = 0;
-		}
-		else {
-			CurrentBuildingMaterial++;
-		}
-	}
+	ServerChangeBuildingMaterial();
 }
 
 void AFortniteCloneCharacter::ShootGun() {
@@ -1770,6 +1763,24 @@ bool AFortniteCloneCharacter::ServerSwitchToBandage_Validate() {
 	return true;
 }
 
+void AFortniteCloneCharacter::ServerChangeBuildingMaterial_Implementation() {
+	if (GetController()) {
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+		if (State && State->InBuildMode) {
+			if (CurrentBuildingMaterial == 2) {
+				CurrentBuildingMaterial = 0;
+			}
+			else {
+				CurrentBuildingMaterial++;
+			}
+		}
+	}
+}
+
+bool AFortniteCloneCharacter::ServerChangeBuildingMaterial_Validate() {
+	return true;
+}
+
 void AFortniteCloneCharacter::ServerAimDownSights_Implementation() {
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
@@ -1938,4 +1949,14 @@ void AFortniteCloneCharacter::NetMulticastPlayReloadShotgunAnimation_Implementat
 
 void AFortniteCloneCharacter::NetMulticastPlayReloadShotgunIronsightsAnimation_Implementation() {
 	PlayAnimMontage(ShotgunIronsightsReloadAnimation);
+}
+
+void AFortniteCloneCharacter::ClientDrawHitMarker_Implementation() {
+	if (GetController()) {
+		APlayerController* PlayerController = Cast<APlayerController>(GetController());
+		if (PlayerController->GetHUD()) {
+			AFortniteCloneHUD* FortniteCloneHUD = Cast<AFortniteCloneHUD>(PlayerController->GetHUD());
+			FortniteCloneHUD->DrawHitMarker();
+		}
+	}
 }
