@@ -1,0 +1,34 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "1.2.14",
+  "FriendlyName": "GameLift Client SDK",
+  "Description": "GameLift plugin for creating Game Sessions, Player Sessions etc.",
+  "Category": "YetiTech Studios",
+  "CreatedBy": "YetiTech Studios",
+  "CreatedByURL": "http://www.yetitechstudios.com/",
+  "DocsURL": "http://docs.aws.amazon.com/gamelift/latest/apireference/Welcome.html",
+  "MarketplaceURL": "",
+  "SupportURL": "",
+  "EnabledByDefault": true,
+  "CanContainContent": false,
+  "IsBetaVersion": false,
+  "Installed": true,
+  "Modules": [
+    {
+      "Name": "AWSCore",
+      "Type": "Runtime",
+      "LoadingPhase": "PreDefault"
+    },
+    {
+      "Name": "GameLiftClientSDK",
+      "Type": "Runtime",
+      "LoadingPhase": "PreDefault"
+    },
+    {
+      "Name": "CognitoIdentity",
+      "Type": "Runtime",
+      "LoadingPhase": "PreDefault"
+    }
+  ]
+}

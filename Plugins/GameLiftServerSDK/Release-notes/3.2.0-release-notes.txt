@@ -1,0 +1,3 @@
+- Updated Google Protobuf to v3.3
+- TargetInfo updated to ReadOnlyTargetRules for UE4.16-4.18
+- Dependency on GameLift C++ Server SDK 3.2.0

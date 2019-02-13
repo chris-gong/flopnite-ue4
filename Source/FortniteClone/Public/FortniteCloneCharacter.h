@@ -345,11 +345,20 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSetWalkingSpeed();
 
+	UFUNCTION(Client, Reliable)
+	void ClientSetWalkingSpeed();
+
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSetRunningSpeed();
 
+	UFUNCTION(Client, Reliable)
+	void ClientSetRunningSpeed();
+
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSetAimedInSpeed();
+
+	UFUNCTION(Client, Reliable)
+	void ClientSetAimedInSpeed();
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSetMovingLeft();
@@ -429,11 +438,11 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerRifleReloadTimeOut();
 
-	UFUNCTION(NetMulticast, Unreliable)
-	void NetMulticastCameraAimIn();
+	UFUNCTION(Client, Reliable)
+	void ClientCameraAimIn();
 
-	UFUNCTION(NetMulticast, Unreliable)
-	void NetMulticastCameraAimOut();
+	UFUNCTION(Client, Reliable)
+	void ClientCameraAimOut();
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void NetMulticastPlayPickaxeSwingAnimation();

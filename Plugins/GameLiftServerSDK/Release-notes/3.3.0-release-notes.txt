@@ -1,0 +1,2 @@
+- Support for Matchmaking backfill APIs
+- Support for 4.19, 4.20 and 4.21 versions of Unreal Engine.

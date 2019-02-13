@@ -1,0 +1,3 @@
+Place the GameLift Windows Libraries here:
+aws-cpp-sdk-gamelift-server.dll
+aws-cpp-sdk-gamelift-server.lib

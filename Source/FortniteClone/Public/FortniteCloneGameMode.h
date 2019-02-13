@@ -6,6 +6,8 @@
 #include "GameFramework/GameModeBase.h"
 #include "FortniteCloneGameMode.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogMyServer, Log, All);
+
 UCLASS(minimalapi)
 class AFortniteCloneGameMode : public AGameModeBase
 {
@@ -17,6 +19,8 @@ public:
 	virtual void StartPlay() override;
 
 	virtual void PostLogin(APlayerController *NewPlayer) override;
+
+	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
 };
 
 

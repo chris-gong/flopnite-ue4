@@ -735,38 +735,108 @@ float AFortniteCloneCharacter::GetHealth() {
 }
 
 int AFortniteCloneCharacter::GetWoodMaterialCount() {
-	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-	return State->MaterialCounts[0];
+	if (GetController()) {
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+		if (State) {
+			return State->MaterialCounts[0];
+		}
+		else {
+			return 0;
+		}
+	}
+	else {
+		return 0;
+	}
 }
 
 int AFortniteCloneCharacter::GetStoneMaterialCount() {
-	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-	return State->MaterialCounts[1];
+	if (GetController()) {
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+		if (State) {
+			return State->MaterialCounts[1];
+		}
+		else {
+			return 0;
+		}
+	}
+	else {
+		return 0;
+	}
 }
 
 int AFortniteCloneCharacter::GetSteelMaterialCount() {
-	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-	return State->MaterialCounts[2];
+	if (GetController()) {
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+		if (State) {
+			return State->MaterialCounts[2];
+		}
+		else {
+			return 0;
+		}
+	}
+	else {
+		return 0;
+	}
 }
 
 int AFortniteCloneCharacter::GetAssaultRifleAmmoCount() {
-	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-	return State->EquippedWeaponsAmmunition[1] + State->EquippedWeaponsClips[1];
+	if (GetController()) {
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+		if (State) {
+			return State->EquippedWeaponsAmmunition[1] + State->EquippedWeaponsClips[1];
+		}
+		else {
+			return 0;
+		}
+	}
+	else {
+		return 0;
+	}
 }
 
 int AFortniteCloneCharacter::GetShotgunAmmoCount() {
-	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-	return State->EquippedWeaponsAmmunition[2] + State->EquippedWeaponsClips[2];
+	if (GetController()) {
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+		if (State) {
+			return State->EquippedWeaponsAmmunition[2] + State->EquippedWeaponsClips[2];
+		}
+		else {
+			return 0;
+		}
+	}
+	else {
+		return 0;
+	}
 }
 
 int AFortniteCloneCharacter::GetBandageCount() {
-	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-	return State->BandageCount;
+	if (GetController()) {
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+		if (State) {
+			return State->BandageCount;
+		}
+		else {
+			return 0;
+		}
+	}
+	else {
+		return 0;
+	}
 }
 
 int AFortniteCloneCharacter::GetKillCount() {
-	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-	return State->KillCount;
+	if (GetController()) {
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+		if (State) {
+			return State->KillCount;
+		}
+		else {
+			return 0;
+		}
+	}
+	else {
+		return 0;
+	}
 }
 
 void AFortniteCloneCharacter::ServerSetIsWalkingTrue_Implementation() {
@@ -803,26 +873,41 @@ bool AFortniteCloneCharacter::ServerSetIsRunningFalse_Validate() {
 
 void AFortniteCloneCharacter::ServerSetWalkingSpeed_Implementation() {
 	GetCharacterMovement()->MaxWalkSpeed = 450.0;
+	ClientSetWalkingSpeed();
 }
 
 bool AFortniteCloneCharacter::ServerSetWalkingSpeed_Validate() {
 	return true;
 }
 
+void AFortniteCloneCharacter::ClientSetWalkingSpeed_Implementation() {
+	GetCharacterMovement()->MaxWalkSpeed = 450.0;
+}
+
 void AFortniteCloneCharacter::ServerSetRunningSpeed_Implementation() {
 	GetCharacterMovement()->MaxWalkSpeed = 900.0;
+	ClientSetRunningSpeed();
 }
 
 bool AFortniteCloneCharacter::ServerSetRunningSpeed_Validate() {
 	return true;
 }
 
+void AFortniteCloneCharacter::ClientSetRunningSpeed_Implementation() {
+	GetCharacterMovement()->MaxWalkSpeed = 900.0;
+}
+
 void AFortniteCloneCharacter::ServerSetAimedInSpeed_Implementation() {
 	GetCharacterMovement()->MaxWalkSpeed = 200.0;
+	ClientSetAimedInSpeed();
 }
 
 bool AFortniteCloneCharacter::ServerSetAimedInSpeed_Validate() {
 	return true;
+}
+
+void AFortniteCloneCharacter::ClientSetAimedInSpeed_Implementation() {
+	GetCharacterMovement()->MaxWalkSpeed = 200.0;
 }
 
 void AFortniteCloneCharacter::ServerSetMovingForwards_Implementation() {
@@ -1787,7 +1872,7 @@ void AFortniteCloneCharacter::ServerAimDownSights_Implementation() {
 		if (State && State->HoldingWeapon && State->CurrentWeapon != 0) {
 			AimedIn = true;
 			HoldingWeaponType = 2;
-			NetMulticastCameraAimIn();
+			ClientCameraAimIn();
 			ServerSetAimedInSpeed();
 			State->AimedIn = true;
 		}
@@ -1804,7 +1889,7 @@ void AFortniteCloneCharacter::ServerAimHipFire_Implementation() {
 		if (State && State->HoldingWeapon && State->CurrentWeapon != 0) {
 			AimedIn = false;
 			HoldingWeaponType = 1;
-			NetMulticastCameraAimOut();
+			ClientCameraAimOut();
 			ServerSetWalkingSpeed();
 			State->AimedIn = false;
 		}
@@ -1903,12 +1988,12 @@ bool AFortniteCloneCharacter::ServerShotgunReloadTimeOut_Validate() {
 	return true;
 }
 
-void AFortniteCloneCharacter::NetMulticastCameraAimIn_Implementation() {
-	CameraBoom->TargetArmLength = 100;
+void AFortniteCloneCharacter::ClientCameraAimIn_Implementation() {
+	FollowCamera->FieldOfView = 45;
 }
 
-void AFortniteCloneCharacter::NetMulticastCameraAimOut_Implementation() {
-	CameraBoom->TargetArmLength = 300;
+void AFortniteCloneCharacter::ClientCameraAimOut_Implementation() {
+	FollowCamera->FieldOfView = 90;
 }
 
 void AFortniteCloneCharacter::NetMulticastPlayPickaxeSwingAnimation_Implementation() {
