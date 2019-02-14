@@ -107,15 +107,20 @@ void AFortniteCloneGameMode::PostLogin(APlayerController *NewPlayer) {
 void AFortniteCloneGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) {
 	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
 #if WITH_GAMELIFT
-	FString PlayerSessionId = UniqueId.ToString();
+	/*if (*Options) {
+		FString PlayerSessionId = *Options;
 
-	FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
-	FGameLiftGenericOutcome outcome = gameLiftSdkModule->AcceptPlayerSession(*PlayerSessionId);
-	UE_LOG(LogMyServer, Log, TEXT("AMyProjectGameMode::PreLogin: Client connecting with attempting to connect with GameLift PlayerSessionId: %s"), *PlayerSessionId);
-	if (!outcome.IsSuccess())
-	{
-		ErrorMessage = outcome.GetError().m_errorMessage;
-		UE_LOG(LogMyServer, Log, TEXT("AMyProjectGameMode::PreLogin: Client connecting with invalid GameLift PlayerSessionId: %s, Error: %s"), *PlayerSessionId, *ErrorMessage);
+		FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
+		FGameLiftGenericOutcome outcome = gameLiftSdkModule->AcceptPlayerSession(*PlayerSessionId);
+		UE_LOG(LogMyServer, Log, TEXT("AMyProjectGameMode::PreLogin: Client connecting with attempting to connect with GameLift PlayerSessionId: %s"), *PlayerSessionId);
+		if (!outcome.IsSuccess())
+		{
+			ErrorMessage = outcome.GetError().m_errorMessage;
+			UE_LOG(LogMyServer, Log, TEXT("AMyProjectGameMode::PreLogin: Client connecting with invalid GameLift PlayerSessionId: %s, Error: %s"), *PlayerSessionId, *ErrorMessage);
+		}
 	}
+	else {
+		UE_LOG(LogMyServer, Log, TEXT("Options does not exist"));
+	}*/
 #endif
 }
