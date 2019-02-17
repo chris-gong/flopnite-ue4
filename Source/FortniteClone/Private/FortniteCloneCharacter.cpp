@@ -466,12 +466,12 @@ void AFortniteCloneCharacter::OnResetVR()
 
 void AFortniteCloneCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
 {
-		Jump();
+	Jump();
 }
 
 void AFortniteCloneCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
 {
-		StopJumping();
+	StopJumping();
 }
 
 void AFortniteCloneCharacter::TurnAtRate(float Rate)
@@ -634,9 +634,7 @@ TArray<float> AFortniteCloneCharacter::CalculateWalkingXY() {
 }
 
 void AFortniteCloneCharacter::PreviewWall() {
-	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "x key pressed");
 	ServerSetBuildModeWall();
-	
 }
 
 void AFortniteCloneCharacter::PreviewRamp() {
@@ -1611,8 +1609,8 @@ void AFortniteCloneCharacter::ServerSwitchToPickaxe_Implementation() {
 			if (State->HoldingWeapon && State->AimedIn) {
 				return; // currently aimed down sight
 			}
-			if (State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
-				return; // currently healing or currently reloading
+			if (State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun || State->JustShotRifle || State->JustShotShotgun) {
+				return; // currently healing or currently reloading or just shot a weapon
 			}
 			else {
 				if (State->InBuildMode) {
@@ -1672,8 +1670,8 @@ void AFortniteCloneCharacter::ServerSwitchToRifle_Implementation() {
 			if (State->HoldingWeapon && State->AimedIn) {
 				return; // currently aimed down sight
 			}
-			if (!State->EquippedWeapons.Contains(1) || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun || State->JustSwungPickaxe) {
-				return; // already holding the assault rifle or doesn't have one or is currently healing or currently reloading or swinging pickaxe
+			if (!State->EquippedWeapons.Contains(1) || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun || State->JustSwungPickaxe || State->JustShotShotgun) {
+				return; // already holding the assault rifle or doesn't have one or is currently healing or currently reloading or swinging pickaxe or shooting shotgun
 			}
 			else {
 				if (State->InBuildMode) {
@@ -1735,8 +1733,8 @@ void AFortniteCloneCharacter::ServerSwitchToShotgun_Implementation() {
 			if (State->HoldingWeapon && State->AimedIn) {
 				return; // currently aimed down sight
 			}
-			if (!State->EquippedWeapons.Contains(2) || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun || State->JustSwungPickaxe) {
-				return; // already holding the pickaxe or doesn't have one or is currently healing or currently reloading or swinging pickaxe
+			if (!State->EquippedWeapons.Contains(2) || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun || State->JustSwungPickaxe || State->JustShotRifle) {
+				return; // already holding the pickaxe or doesn't have one or is currently healing or currently reloading or swinging pickaxe or just shot rifle
 			}
 			else {
 				if (State->InBuildMode) {
@@ -1792,7 +1790,7 @@ void AFortniteCloneCharacter::ServerSwitchToBandage_Implementation() {
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		if (State) {
-			if (State->JustReloadedRifle || State->JustReloadedShotgun || State->JustSwungPickaxe) {
+			if (State->JustReloadedRifle || State->JustReloadedShotgun || State->JustSwungPickaxe || State->JustShotRifle || State->JustShotShotgun) {
 				return; //currently reloading weapons or s winging pickaxe
 			}
 			if (State->HoldingWeapon && State->AimedIn) {
