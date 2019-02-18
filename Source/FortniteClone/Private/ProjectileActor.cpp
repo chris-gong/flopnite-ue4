@@ -10,6 +10,7 @@
 #include "FortniteClonePlayerState.h"
 #include "FortniteCloneHUD.h"
 #include "UnrealNetwork.h"
+#include "StormActor.h"
 
 // Sets default values
 AProjectileActor::AProjectileActor()
@@ -182,6 +183,10 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 				}
 				else if (OtherActor->IsA(AProjectileActor::StaticClass())) {
 					//let the bullet keep going if it collides with other bullets
+					return;
+				}
+				else if (OtherActor->IsA(AStormActor::StaticClass())) {
+					//let the bullet keep going if it collides with the storm
 					return;
 				}
 				else if (OtherActor->IsA(AMaterialActor::StaticClass())) {
