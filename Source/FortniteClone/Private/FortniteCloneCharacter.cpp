@@ -75,7 +75,7 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	HoldingWeaponType = 0;
 	AimPitch = 0.0;
 	AimYaw = 0.0;
-	InterpSpeed = 15.0;
+	InterpSpeed = 15.0; //change this to set aim sensitivity
 	WalkingX = 0;
 	WalkingY = 0;
 	RunningX = 0;
@@ -489,21 +489,30 @@ void AFortniteCloneCharacter::LookUpAtRate(float Rate)
 void AFortniteCloneCharacter::MoveForward(float Value)
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("move forward ") + FString::FromInt(GetNetMode()));
-	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(Controller->PlayerState);
-	if (State) {
-		if (State->JustUsedBandage) {
-			return;
-		}
-	}
+	
 	if ((Controller != nullptr) && (Value != 0.0f))
 	{
-		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(Controller->PlayerState);
+		if (State) {
+			if (State->JustUsedBandage) {
+				return;
+			}
+			// find out which way is forward
+			const FRotator Rotation = Controller->GetControlRotation();
+			const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		// get forward vector
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		AddMovementInput(Direction, Value);
+			// get forward vector
+			const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+			if (AimedIn) {
+				AddMovementInput(Direction, Value * 0.2);
+			}
+			else if (IsRunning) {
+				AddMovementInput(Direction, Value * 0.9);
+			}
+			else if (IsWalking) {
+				AddMovementInput(Direction, Value * 0.45);
+			}
+		}
 	}
 	/*UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	if (Animation) {
@@ -525,14 +534,15 @@ void AFortniteCloneCharacter::MoveForward(float Value)
 
 void AFortniteCloneCharacter::MoveRight(float Value)
 {
-	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-	if (State) {
-		if (State->JustUsedBandage) {
-			return;
-		}
-	}
+
 	if ((Controller != nullptr) && (Value != 0.0f))
 	{
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(Controller->PlayerState);
+		if (State) {
+			if (State->JustUsedBandage) {
+				return;
+			}
+		}
 		// find out which way is right
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -540,7 +550,15 @@ void AFortniteCloneCharacter::MoveRight(float Value)
 		// get right vector 
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		// add movement in that direction
-		AddMovementInput(Direction, Value);
+		if (AimedIn) {
+			AddMovementInput(Direction, Value * 0.2);
+		}
+		else if (IsRunning) {
+			AddMovementInput(Direction, Value * 0.9);
+		}
+		else if (IsWalking) {
+			AddMovementInput(Direction, Value * 0.45);
+		}
 	}
 	/*UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	if (Animation) {
@@ -570,20 +588,20 @@ void AFortniteCloneCharacter::Sprint(float Value) {
 	UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
 	if (Animation) {
 		if (Animation->AimedIn) {
-			ServerSetAimedInSpeed();
+			//ServerSetAimedInSpeed();
 		}
 		else if (Value == 0) {
-			ServerSetWalkingSpeed();
+			//ServerSetWalkingSpeed();
 			ServerSetIsRunningFalse();
 		}
 		else {
 			// can only sprint if the w key is held down by itself or in combination with the a or d keys
 			if (!(OnlyAOrDDown || SDown) && WDown) {
-				ServerSetRunningSpeed();
+				//ServerSetRunningSpeed();
 				ServerSetIsRunningTrue();
 			}
 			else {
-				ServerSetWalkingSpeed();
+				//ServerSetWalkingSpeed();
 				ServerSetIsRunningFalse();
 			}
 		}
@@ -1871,7 +1889,7 @@ void AFortniteCloneCharacter::ServerAimDownSights_Implementation() {
 			AimedIn = true;
 			HoldingWeaponType = 2;
 			ClientCameraAimIn();
-			ServerSetAimedInSpeed();
+			//ServerSetAimedInSpeed();
 			State->AimedIn = true;
 		}
 	}
@@ -1888,7 +1906,7 @@ void AFortniteCloneCharacter::ServerAimHipFire_Implementation() {
 			AimedIn = false;
 			HoldingWeaponType = 1;
 			ClientCameraAimOut();
-			ServerSetWalkingSpeed();
+			//ServerSetWalkingSpeed();
 			State->AimedIn = false;
 		}
 	}
