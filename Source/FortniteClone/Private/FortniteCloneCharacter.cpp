@@ -442,7 +442,7 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 
 					State->HoldingWeapon = false;
 					State->HoldingBandage = true;
-					State->BandageCount++;
+					State->BandageCount += 3;
 					State->CurrentWeapon = -1;
 
 					HoldingWeapon = false;
