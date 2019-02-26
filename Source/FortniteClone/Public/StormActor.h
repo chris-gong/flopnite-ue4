@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "StormActor.generated.h"
 
+
+
 UCLASS()
 class FORTNITECLONE_API AStormActor : public AActor
 {
@@ -22,5 +24,31 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	UPROPERTY(Replicated)
+	float Damage;
+
+	UPROPERTY(Replicated)
+	bool IsShrinking;
+
+	UPROPERTY(Replicated)
+	FVector SizeScale;
+
+	UPROPERTY()
+	int Stage;
+
+	virtual bool IsSupportedForNetworking() const override
+	{
+		return true;
+	}
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSetIsShrinking();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSetNewDamage();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerStartStorm();
 
 };

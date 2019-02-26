@@ -13,6 +13,7 @@ class AWeaponActor;
 class AHealingActor;
 class AFortniteClonePlayerState;
 class UThirdPersonAnimInstance;
+class AStormActor;
 
 UCLASS(config=Game)
 class AFortniteCloneCharacter : public ACharacter
@@ -144,6 +145,10 @@ public:
 	UPROPERTY(Replicated)
 	AHealingActor* CurrentHealingItem;
 
+	/* Pointer to storm instance to get current damage */
+	UPROPERTY(Replicated)
+	AStormActor* CurrentStorm;
+
 	/* Anim instance properties */
 	UPROPERTY(Replicated)
 	bool IsRunning;
@@ -180,6 +185,9 @@ public:
 
 	UPROPERTY(Replicated)
 	float InterpSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category="Storm")
+	bool InStorm;
 
 protected:
 
@@ -329,6 +337,9 @@ public:
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
+	UFUNCTION()
+	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSetIsWalkingTrue();
@@ -437,6 +448,9 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerRifleReloadTimeOut();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerApplyStormDamage();
 
 	UFUNCTION(Client, Reliable)
 	void ClientCameraAimIn();

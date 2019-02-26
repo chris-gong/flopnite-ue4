@@ -3,11 +3,13 @@
 #if WITH_GAMELIFTCLIENTSDK
 #include "GameLiftClientSDK/Public/GameLiftClientObject.h"
 #include "GameLiftClientSDK/Public/GameLiftClientApi.h"
+#include "StormActor.h"
 #endif
 
 void UFortniteCloneGameInstance::Init()
 {
 	Super::Init();
+	//GetWorld()->SpawnActor<AStormActor>(AStormActor::StaticClass(), FVector(-440, -1450, 10000), FRotator::ZeroRotator);
 #if WITH_GAMELIFTCLIENTSDK
 	// Create the game lift object. This is required before calling any GameLift functions.
 	GameLiftClientObject = UGameLiftClientObject::CreateGameLiftObject("", "", "us-east-2");

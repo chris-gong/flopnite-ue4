@@ -19,6 +19,7 @@
 #include "UnrealNetwork.h"
 #include "Engine/ActorChannel.h"
 #include "FortniteCloneHUD.h"
+#include "StormActor.h"
 
 DEFINE_LOG_CATEGORY(LogMyGame);
 //////////////////////////////////////////////////////////////////////////
@@ -36,6 +37,7 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	TriggerCapsule->SetCollisionProfileName(TEXT("Trigger"));
 	TriggerCapsule->SetupAttachment(RootComponent);
 	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &AFortniteCloneCharacter::OnOverlapBegin);
+	TriggerCapsule->OnComponentEndOverlap.AddDynamic(this, &AFortniteCloneCharacter::OnOverlapEnd);
 
 	// set our turn rates for input
 	BaseTurnRate = 45.f;
@@ -80,6 +82,7 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	WalkingY = 0;
 	RunningX = 0;
 	RunningY = 0;
+	InStorm = true;
 
 	// Playerstate properties
 	/*InBuildMode = false;
@@ -180,6 +183,17 @@ void AFortniteCloneCharacter::BeginPlay() {
 			AimedIn = false;
 			HoldingWeaponType = 1;
 		}
+		//find the storm and keep a reference to it for damage purposes
+		TArray<AActor*> StormActors;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AStormActor::StaticClass(), StormActors);
+		if (StormActors.Num() > 0) {
+			if (StormActors[0] != nullptr) {
+				CurrentStorm = Cast<AStormActor>(StormActors[0]);
+			}
+		}
+		FTimerHandle StormDamageTimerHandle;
+		GetWorldTimerManager().SetTimer(StormDamageTimerHandle, this, &AFortniteCloneCharacter::ServerApplyStormDamage, 1.0f, true);
+
 	}
 
 	/*if (GetController()) {
@@ -233,6 +247,7 @@ void AFortniteCloneCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProper
 	DOREPLIFETIME(AFortniteCloneCharacter, CurrentBuildingMaterial);
 	DOREPLIFETIME(AFortniteCloneCharacter, CurrentHealingItem);
 	DOREPLIFETIME(AFortniteCloneCharacter, CurrentWeapon);
+	DOREPLIFETIME(AFortniteCloneCharacter, CurrentStorm);
 	DOREPLIFETIME(AFortniteCloneCharacter, CurrentWeaponType);
 	DOREPLIFETIME(AFortniteCloneCharacter, Health);
 
@@ -248,6 +263,7 @@ void AFortniteCloneCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProper
 	DOREPLIFETIME(AFortniteCloneCharacter, AimPitch);
 	DOREPLIFETIME(AFortniteCloneCharacter, AimYaw);
 	DOREPLIFETIME(AFortniteCloneCharacter, InterpSpeed);
+	DOREPLIFETIME(AFortniteCloneCharacter, InStorm);
 }
 
 void AFortniteCloneCharacter::Tick(float DeltaTime) {
@@ -443,7 +459,29 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 					Ammo->Destroy();
 				}
 			}
+			else if (OtherActor->IsA(AStormActor::StaticClass())) {
+				FString LogMsg = FString("storm overlap begin ") + FString::FromInt(GetNetMode());
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, LogMsg);
+				UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+				InStorm = false;
+			}
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
+		}
+	}
+}
+
+void AFortniteCloneCharacter::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) {
+	if (HasAuthority()) {
+		FString LogMsg = FString("storm overlap end ") + FString::FromInt(GetNetMode());
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, LogMsg);
+		UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+		if (OtherActor != nullptr) {
+			if (OtherActor == this) {
+				return;
+			}
+			if (OtherActor->IsA(AStormActor::StaticClass())) {
+				InStorm = true;
+			}
 		}
 	}
 }
@@ -1975,6 +2013,20 @@ void AFortniteCloneCharacter::ServerBandageTimeOut_Implementation() {
 }
 
 bool AFortniteCloneCharacter::ServerBandageTimeOut_Validate() {
+	return true;
+}
+
+void AFortniteCloneCharacter::ServerApplyStormDamage_Implementation() {
+	if (InStorm) {
+		//get storm actor and get its damage component and apply the damage to the player's health
+		Health -= CurrentStorm->Damage;
+		if (Health <= 0) {
+			Destroy();
+		}
+	}
+}
+
+bool AFortniteCloneCharacter::ServerApplyStormDamage_Validate() {
 	return true;
 }
 

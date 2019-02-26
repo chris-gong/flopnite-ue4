@@ -10,6 +10,7 @@
 #include "GameLiftServerSDK.h"
 #include "GameLiftClientSDK/Public/GameLiftClientObject.h"
 #include "GameLiftClientSDK/Public/GameLiftClientApi.h"
+#include "StormActor.h"
 
 DEFINE_LOG_CATEGORY(LogMyServer);
 
@@ -86,6 +87,11 @@ AFortniteCloneGameMode::AFortniteCloneGameMode()
 #endif
 }
 
+void AFortniteCloneGameMode::BeginPlay() {
+	Super::BeginPlay();
+	//NetMulticastSpawnStorm();
+}
+
 void AFortniteCloneGameMode::StartPlay() {
 	Super::StartPlay();
 	//UGameplayStatics::OpenLevel((UObject*)GetWorld(), FName(TEXT("Level_BattleRoyale")));
@@ -123,4 +129,8 @@ void AFortniteCloneGameMode::PreLogin(const FString& Options, const FString& Add
 		UE_LOG(LogMyServer, Log, TEXT("Options does not exist"));
 	}*/
 #endif
+}
+
+void AFortniteCloneGameMode::NetMulticastSpawnStorm_Implementation() {
+	GetWorld()->SpawnActor<AStormActor>(AStormActor::StaticClass(), FVector(-440, -1450, 10000), FRotator::ZeroRotator);
 }
