@@ -45,7 +45,7 @@ void AStormActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if (HasAuthority()) {
 		if (IsShrinking) {
-			FVector NewScale = FVector(SizeScale.X * 0.9995, SizeScale.Y * 0.9995, SizeScale.Z);
+			FVector NewScale = FVector(SizeScale.X * 0.99925, SizeScale.Y * 0.99925, SizeScale.Z);
 			SizeScale = NewScale;
 			SetActorScale3D(SizeScale);
 		}
@@ -89,7 +89,7 @@ void AStormActor::ServerStartStorm_Implementation() {
 	FTimerHandle StormDamageTimerHandle;
 	GetWorldTimerManager().SetTimer(StormDamageTimerHandle, this, &AStormActor::ServerSetIsShrinking, 30.0f, true);
 	FTimerHandle StormStateTimerHandle;
-	GetWorldTimerManager().SetTimer(StormStateTimerHandle, this, &AStormActor::ServerSetNewDamage, 150.0f, true);
+	GetWorldTimerManager().SetTimer(StormStateTimerHandle, this, &AStormActor::ServerSetNewDamage, 180.0f, true);
 }
 
 bool AStormActor::ServerStartStorm_Validate() {
