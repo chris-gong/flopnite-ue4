@@ -17,7 +17,7 @@ void AFortniteCloneSpectator::BeginPlay()
 {
 	Super::BeginPlay();
 	if (HasAuthority()) {
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Spectator Begin play"));
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Spectator Begin play"));
 	}
 }
 
@@ -43,7 +43,7 @@ void AFortniteCloneSpectator::SetupPlayerInputComponent(UInputComponent* PlayerI
 void AFortniteCloneSpectator::MoveForward(float Value) {
 	//FString LogMsg = FString("spectator move forward");
 	//UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Move forward ") + FString::SanitizeFloat(Value));
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Move forward ") + FString::SanitizeFloat(Value));
 	if ((Controller != nullptr) && (Value != 0.0f))
 	{
 		// find out which way is forward
@@ -57,7 +57,7 @@ void AFortniteCloneSpectator::MoveForward(float Value) {
 }
 
 void AFortniteCloneSpectator::MoveRight(float Value) {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Move right ") + FString::SanitizeFloat(Value));
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Move right ") + FString::SanitizeFloat(Value));
 	if ((Controller != nullptr) && (Value != 0.0f))
 	{
 		// find out which way is forward
@@ -71,7 +71,7 @@ void AFortniteCloneSpectator::MoveRight(float Value) {
 }
 
 void AFortniteCloneSpectator::MoveUp(float Value) {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Move up ") + FString::SanitizeFloat(Value));
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Move up ") + FString::SanitizeFloat(Value));
 	APlayerController* LocalController = Cast<APlayerController>(GetController());
 	bool IsShiftDown = LocalController->IsInputKeyDown(EKeys::LeftShift);
 

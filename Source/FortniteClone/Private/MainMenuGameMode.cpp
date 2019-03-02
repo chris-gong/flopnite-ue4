@@ -6,18 +6,19 @@
 AMainMenuGameMode::AMainMenuGameMode()
 {
 	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/ThirdPersonCPP/Blueprints/ThirdPersonCharacter"));
-	if (PlayerPawnBPClass.Class != NULL)
+	static ConstructorHelpers::FClassFinder<APawn> SpectatorPawnBPClass(TEXT("/Game/Blueprints/BP_Spectator"));
+	if (SpectatorPawnBPClass.Class != NULL)
 	{
-		DefaultPawnClass = PlayerPawnBPClass.Class;
+		DefaultPawnClass = SpectatorPawnBPClass.Class;
 		HUDClass = AMainMenuHUD::StaticClass();
 	}
 }
 
 void AMainMenuGameMode::StartPlay() {
 	Super::StartPlay();
-	APlayerController* MyController = GetWorld()->GetFirstPlayerController();
+	/*APlayerController* MyController = GetWorld()->GetFirstPlayerController();
 	MyController->bShowMouseCursor = true;
 	MyController->bEnableClickEvents = true;
-	MyController->bEnableMouseOverEvents = true;
+	MyController->bEnableMouseOverEvents = true;*/
 	//MyController->SetInputMode(FInputModeUIOnly());
 }
