@@ -11,6 +11,7 @@
 #include "FortniteCloneHUD.h"
 #include "UnrealNetwork.h"
 #include "StormActor.h"
+#include "FortniteClonePlayerController.h"
 
 // Sets default values
 AProjectileActor::AProjectileActor()
@@ -80,6 +81,16 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 										WeaponActor->Destroy();
 									}
 									if (FortniteCloneCharacter) {
+										if (FortniteCloneCharacter->BuildingPreview) {
+											FortniteCloneCharacter->BuildingPreview->Destroy();
+										}
+										if (FortniteCloneCharacter->CurrentHealingItem) {
+											FortniteCloneCharacter->CurrentHealingItem->Destroy();
+										}
+										AFortniteClonePlayerController* FortniteClonePlayerController = Cast<AFortniteClonePlayerController>(FortniteCloneCharacter->GetController());
+										if (FortniteClonePlayerController) {
+											FortniteClonePlayerController->SwitchToSpectatorMode();
+										}
 										FortniteCloneCharacter->Destroy();
 									}
 									FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(WeaponHolder);
@@ -117,6 +128,16 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 										HealingActor->Destroy();
 									}
 									if (FortniteCloneCharacter) {
+										if (FortniteCloneCharacter->BuildingPreview) {
+											FortniteCloneCharacter->BuildingPreview->Destroy();
+										}
+										if (FortniteCloneCharacter->CurrentWeapon) {
+											FortniteCloneCharacter->CurrentHealingItem->Destroy();
+										}
+										AFortniteClonePlayerController* FortniteClonePlayerController = Cast<AFortniteClonePlayerController>(FortniteCloneCharacter->GetController());
+										if (FortniteClonePlayerController) {
+											FortniteClonePlayerController->SwitchToSpectatorMode();
+										}
 										FortniteCloneCharacter->Destroy();
 									}
 									FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(WeaponHolder);
@@ -165,7 +186,14 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 							if (FortniteCloneCharacter && FortniteCloneCharacter->CurrentHealingItem) {
 								FortniteCloneCharacter->CurrentHealingItem->Destroy();
 							}
+							if (FortniteCloneCharacter && FortniteCloneCharacter->BuildingPreview) {
+								FortniteCloneCharacter->BuildingPreview->Destroy();
+							}
 							if (FortniteCloneCharacter) {
+								AFortniteClonePlayerController* FortniteClonePlayerController = Cast<AFortniteClonePlayerController>(FortniteCloneCharacter->GetController());
+								if (FortniteClonePlayerController) {
+									FortniteClonePlayerController->SwitchToSpectatorMode();
+								}
 								FortniteCloneCharacter->Destroy();
 							}
 							FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(WeaponHolder);

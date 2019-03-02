@@ -19,5 +19,5 @@ void AMainMenuGameMode::StartPlay() {
 	MyController->bShowMouseCursor = true;
 	MyController->bEnableClickEvents = true;
 	MyController->bEnableMouseOverEvents = true;
-	MyController->SetInputMode(FInputModeUIOnly());
+	//MyController->SetInputMode(FInputModeUIOnly());
 }

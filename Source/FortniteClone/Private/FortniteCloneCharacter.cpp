@@ -20,6 +20,7 @@
 #include "Engine/ActorChannel.h"
 #include "FortniteCloneHUD.h"
 #include "StormActor.h"
+#include "FortniteClonePlayerController.h"
 
 DEFINE_LOG_CATEGORY(LogMyGame);
 //////////////////////////////////////////////////////////////////////////
@@ -461,7 +462,7 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 			}
 			else if (OtherActor->IsA(AStormActor::StaticClass())) {
 				FString LogMsg = FString("storm overlap begin ") + FString::FromInt(GetNetMode());
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, LogMsg);
+				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, LogMsg);
 				UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
 				InStorm = false;
 			}
@@ -473,7 +474,7 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 void AFortniteCloneCharacter::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) {
 	if (HasAuthority()) {
 		FString LogMsg = FString("storm overlap end ") + FString::FromInt(GetNetMode());
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, LogMsg);
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, LogMsg);
 		UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
 		if (OtherActor != nullptr) {
 			if (OtherActor == this) {
@@ -2021,6 +2022,21 @@ void AFortniteCloneCharacter::ServerApplyStormDamage_Implementation() {
 		//get storm actor and get its damage component and apply the damage to the player's health
 		Health -= CurrentStorm->Damage;
 		if (Health <= 0) {
+			if (BuildingPreview) {
+				BuildingPreview->Destroy();
+			}
+			if (CurrentWeapon) {
+				CurrentWeapon->Destroy();
+			}
+			if (CurrentHealingItem) {
+				CurrentHealingItem->Destroy();
+			}
+			if (GetController()) {
+				AFortniteClonePlayerController* FortniteClonePlayerController = Cast<AFortniteClonePlayerController>(GetController());
+				if (FortniteClonePlayerController) {
+					FortniteClonePlayerController->SwitchToSpectatorMode();
+				}
+			}
 			Destroy();
 		}
 	}

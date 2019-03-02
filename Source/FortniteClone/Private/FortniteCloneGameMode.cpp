@@ -11,6 +11,7 @@
 #include "GameLiftClientSDK/Public/GameLiftClientObject.h"
 #include "GameLiftClientSDK/Public/GameLiftClientApi.h"
 #include "StormActor.h"
+#include "FortniteClonePlayerController.h"
 
 DEFINE_LOG_CATEGORY(LogMyServer);
 
@@ -18,10 +19,13 @@ AFortniteCloneGameMode::AFortniteCloneGameMode()
 {
 	// set default pawn class to our Blueprinted character
 	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/ThirdPersonCPP/Blueprints/ThirdPersonCharacter"));
+	static ConstructorHelpers::FClassFinder<APawn> SpectatorPawnBPClass(TEXT("/Game/Blueprints/BP_Spectator"));
 	if (PlayerPawnBPClass.Class != NULL)
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
+		SpectatorClass = SpectatorPawnBPClass.Class;
 		PlayerStateClass = AFortniteClonePlayerState::StaticClass();
+		PlayerControllerClass = AFortniteClonePlayerController::StaticClass();
 		HUDClass = AFortniteCloneHUD::StaticClass();
 	}
 

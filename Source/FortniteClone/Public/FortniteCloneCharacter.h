@@ -149,6 +149,10 @@ public:
 	UPROPERTY(Replicated)
 	AStormActor* CurrentStorm;
 
+	/* Current preview of wall to be built in build mode */
+	UPROPERTY(Replicated)
+	ABuildingActor* BuildingPreview;
+
 	/* Anim instance properties */
 	UPROPERTY(Replicated)
 	bool IsRunning;
@@ -280,13 +284,9 @@ protected:
 
 	UFUNCTION()
 	void HoldBandage();
-	/* Current preview of wall to be built in build mode */
 
 	/*UFUNCTION(Server, WithValidation)
 	void ServerSetAnimInstance(UThirdPersonAnimInstance* AnimInstance);*/
-
-	UPROPERTY(Replicated)
-	ABuildingActor* BuildingPreview;
 
 	/* Index of the class in array to spawn the weapon */
 	UPROPERTY(Replicated)
