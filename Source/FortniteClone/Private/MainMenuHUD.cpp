@@ -20,6 +20,13 @@ void AMainMenuHUD::DrawHUD()
 void AMainMenuHUD::BeginPlay()
 {
 	Super::BeginPlay();
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	if (PlayerController) {
+		PlayerController->bShowMouseCursor = true;
+		PlayerController->bEnableClickEvents = true;
+		PlayerController->bEnableMouseOverEvents = true;
+		PlayerController->SetInputMode(FInputModeGameAndUI());
+	}
 	DrawGameUI();
 }
 

@@ -2,6 +2,7 @@
 
 #include "MainMenuGameMode.h"
 #include "MainMenuHUD.h"
+#include "Engine.h"
 
 AMainMenuGameMode::AMainMenuGameMode()
 {
@@ -21,4 +22,38 @@ void AMainMenuGameMode::StartPlay() {
 	MyController->bEnableClickEvents = true;
 	MyController->bEnableMouseOverEvents = true;*/
 	//MyController->SetInputMode(FInputModeUIOnly());
+}
+
+void AMainMenuGameMode::PostLogin(APlayerController *NewPlayer) {
+	Super::PostLogin(NewPlayer);
+	/*FString MouseCursor = FString("spectator tick");
+	FString ClickEventsEnabled = FString("spectator tick");
+	FString MouseOverEnabled = FString("spectator tick");
+	if (NewPlayer->bShowMouseCursor) {
+		MouseCursor = FString("Mouse cursor yes");
+	}
+	else {
+		MouseCursor = FString("Mouse cursor no");
+	}
+	if (NewPlayer->bEnableClickEvents) {
+		ClickEventsEnabled = FString("Click events yes");
+	}
+	else {
+		ClickEventsEnabled = FString("Click events no");
+	}
+	if (NewPlayer->bEnableMouseOverEvents) {
+		MouseOverEnabled = FString("Mouse over yes");
+	}
+	else {
+		MouseOverEnabled = FString("Mouse over no");
+	}
+
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, MouseCursor);
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, ClickEventsEnabled);
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, MouseOverEnabled);*/
+
+	/*NewPlayer->bShowMouseCursor = true;
+	NewPlayer->bEnableClickEvents = true;
+	NewPlayer->bEnableMouseOverEvents = true;
+	NewPlayer->SetInputMode(FInputModeGameAndUI());*/
 }
