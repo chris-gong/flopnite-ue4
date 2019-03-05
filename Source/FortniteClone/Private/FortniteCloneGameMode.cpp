@@ -18,6 +18,8 @@ DEFINE_LOG_CATEGORY(LogMyServer);
 AFortniteCloneGameMode::AFortniteCloneGameMode()
 {
 	// set default pawn class to our Blueprinted character
+	Initialized = false;
+	TimeSinceInitialization = 0;
 	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/ThirdPersonCPP/Blueprints/ThirdPersonCharacter"));
 	static ConstructorHelpers::FClassFinder<APawn> SpectatorPawnBPClass(TEXT("/Game/Blueprints/BP_Spectator"));
 	if (PlayerPawnBPClass.Class != NULL && SpectatorPawnBPClass.Class != NULL)
@@ -112,6 +114,31 @@ void AFortniteCloneGameMode::PostLogin(APlayerController *NewPlayer) {
 		State->HoldingWeapon = true;
 		State->CurrentWeapon = 0;
 	}*/
+	AFortniteClonePlayerController* FortniteClonePlayerController = Cast<AFortniteClonePlayerController>(NewPlayer);
+	if (!Initialized && GetNumPlayers() >= 2) {
+		Initialized = true;
+		TArray<AActor*> StormActors;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AStormActor::StaticClass(), StormActors);
+		if (StormActors.Num() > 0) {
+			if (StormActors[0] != nullptr) {
+				CurrentStorm = Cast<AStormActor>(StormActors[0]);
+			}
+		}
+		FTimerHandle StormSetupTimerHandle;
+		GetWorldTimerManager().SetTimer(StormSetupTimerHandle, this, &AFortniteCloneGameMode::GameModeStartStorm, 30.0f, false);
+
+		FTimerHandle InitializationTimerHandle;
+		GetWorldTimerManager().SetTimer(InitializationTimerHandle, this, &AFortniteCloneGameMode::TickInitializationClock, 1.0f, true);
+	}
+	if (FortniteClonePlayerController) {
+		if (TimeSinceInitialization > 150) {
+			FortniteClonePlayerController->SpawnAsSpectator = true;
+		}
+		else {
+			FortniteClonePlayerController->SpawnAsSpectator = false;
+		}
+		//FortniteClonePlayerController->SpawnAsSpectator = true;
+	}
 }
 
 void AFortniteCloneGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) {
@@ -137,4 +164,20 @@ void AFortniteCloneGameMode::PreLogin(const FString& Options, const FString& Add
 
 void AFortniteCloneGameMode::NetMulticastSpawnStorm_Implementation() {
 	GetWorld()->SpawnActor<AStormActor>(AStormActor::StaticClass(), FVector(-440, -1450, 10000), FRotator::ZeroRotator);
+}
+
+void AFortniteCloneGameMode::GameModeStartStorm_Implementation() {
+	CurrentStorm->ServerStartStorm();
+}
+
+bool AFortniteCloneGameMode::GameModeStartStorm_Validate() {
+	return true;
+}
+
+void AFortniteCloneGameMode::TickInitializationClock_Implementation() {
+	TimeSinceInitialization++;
+}
+
+bool AFortniteCloneGameMode::TickInitializationClock_Validate() {
+	return true;
 }

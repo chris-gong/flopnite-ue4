@@ -53,6 +53,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "MainMenu")
 	TSubclassOf<UUserWidget> MainMenuWidgetClass;
 
+	UPROPERTY(EditAnywhere, Category = "Count")
+	TSubclassOf<UUserWidget> CountWidgetClass;
+
 	UPROPERTY(EditAnywhere, Category = "Widget")
 	UUserWidget* CurrentWidget;
 

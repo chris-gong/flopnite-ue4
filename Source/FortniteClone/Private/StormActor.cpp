@@ -29,8 +29,8 @@ void AStormActor::BeginPlay()
 		FString LogMsg = FString("storm actor constructor ") + FString::FromInt(X) + FString(" ") + FString::FromInt(Y);
 		UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
 		//after 30 seconds, start shrinking the circle at the last 30 seconds of every 2 and a half minute interval
-		FTimerHandle StormSetupTimerHandle;
-		GetWorldTimerManager().SetTimer(StormSetupTimerHandle, this, &AStormActor::ServerStartStorm, 30.0f, false);
+		//FTimerHandle StormSetupTimerHandle;
+		//GetWorldTimerManager().SetTimer(StormSetupTimerHandle, this, &AStormActor::ServerStartStorm, 30.0f, false);
 		LogMsg = FString("begin play circle ") + FString::FromInt(GetNetMode());
 		UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
 	}

@@ -52,6 +52,7 @@ void AFortniteClonePlayerState::GetLifetimeReplicatedProps(TArray< FLifetimeProp
 	DOREPLIFETIME(AFortniteClonePlayerState, JustReloadedRifle);
 	DOREPLIFETIME(AFortniteClonePlayerState, JustReloadedShotgun);
 	DOREPLIFETIME(AFortniteClonePlayerState, KillCount);
+	DOREPLIFETIME(AFortniteClonePlayerState, bIsSpectator);
 }
 
 void AFortniteClonePlayerState::Tick(float DeltaSeconds) {

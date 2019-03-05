@@ -89,7 +89,7 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 										}
 										AFortniteClonePlayerController* FortniteClonePlayerController = Cast<AFortniteClonePlayerController>(FortniteCloneCharacter->GetController());
 										if (FortniteClonePlayerController) {
-											FortniteClonePlayerController->SwitchToSpectatorMode();
+											FortniteClonePlayerController->ServerSwitchToSpectatorMode();
 										}
 										FortniteCloneCharacter->Destroy();
 									}
@@ -136,7 +136,7 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 										}
 										AFortniteClonePlayerController* FortniteClonePlayerController = Cast<AFortniteClonePlayerController>(FortniteCloneCharacter->GetController());
 										if (FortniteClonePlayerController) {
-											FortniteClonePlayerController->SwitchToSpectatorMode();
+											FortniteClonePlayerController->ServerSwitchToSpectatorMode();
 										}
 										FortniteCloneCharacter->Destroy();
 									}
@@ -192,7 +192,7 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 							if (FortniteCloneCharacter) {
 								AFortniteClonePlayerController* FortniteClonePlayerController = Cast<AFortniteClonePlayerController>(FortniteCloneCharacter->GetController());
 								if (FortniteClonePlayerController) {
-									FortniteClonePlayerController->SwitchToSpectatorMode();
+									FortniteClonePlayerController->ServerSwitchToSpectatorMode();
 								}
 								FortniteCloneCharacter->Destroy();
 							}

@@ -23,6 +23,8 @@ AFortniteCloneHUD::AFortniteCloneHUD()
 	HitMarkerWidgetClass = HitMarkerObj.Class;
 	static ConstructorHelpers::FClassFinder<UUserWidget> MainMenuObj(TEXT("/Game/UI/Widgets/UI_MainMenu"));
 	MainMenuWidgetClass = MainMenuObj.Class;
+	static ConstructorHelpers::FClassFinder<UUserWidget> CountObj(TEXT("/Game/UI/Widgets/UI_RemainingPlayersCount"));
+	CountWidgetClass = CountObj.Class;
 }
 
 void AFortniteCloneHUD::DrawHUD()
@@ -111,6 +113,16 @@ void AFortniteCloneHUD::DrawGameUI() {
 	if (KillsWidgetClass != nullptr)
 	{
 		CurrentWidget = CreateWidget<UUserWidget>(GetWorld(), KillsWidgetClass);
+
+		if (CurrentWidget)
+		{
+			CurrentWidget->AddToViewport();
+		}
+	}
+
+	if (CountWidgetClass != nullptr)
+	{
+		CurrentWidget = CreateWidget<UUserWidget>(GetWorld(), CountWidgetClass);
 
 		if (CurrentWidget)
 		{

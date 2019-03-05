@@ -16,6 +16,8 @@ public:
 	// Sets default values for this character's properties
 	AFortniteCloneSpectator();
 
+	float BaseTurnRate;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -37,4 +39,6 @@ protected:
 
 	/** Called for up/down input */
 	void MoveUp(float Value);
+
+	void TurnAtRate(float Value);
 };

@@ -6,6 +6,8 @@
 #include "GameFramework/GameModeBase.h"
 #include "FortniteCloneGameMode.generated.h"
 
+class AStormActor;
+
 DECLARE_LOG_CATEGORY_EXTERN(LogMyServer, Log, All);
 
 UCLASS(minimalapi)
@@ -15,6 +17,10 @@ class AFortniteCloneGameMode : public AGameModeBase
 
 public:
 	AFortniteCloneGameMode();
+
+	bool Initialized; 
+
+	AStormActor* CurrentStorm;
 
 	virtual void BeginPlay() override;
 
@@ -26,6 +32,14 @@ public:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void NetMulticastSpawnStorm();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void GameModeStartStorm();
+
+	int TimeSinceInitialization;
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void TickInitializationClock();
 };
 
 

@@ -7,6 +7,7 @@
 #include "GameFramework/PlayerState.h"
 #include "Engine.h"
 #include "StormActor.h"
+#include "UnrealNetwork.h"
 
 AFortniteClonePlayerController::AFortniteClonePlayerController() {
 	/*AFortniteClonePlayerState* State= Cast<AFortniteClonePlayerState>(GetPlayerState());
@@ -16,12 +17,14 @@ AFortniteClonePlayerController::AFortniteClonePlayerController() {
 	//PlayerState->bIsSpectator = true;
 	 static ConstructorHelpers::FClassFinder<AFortniteCloneSpectator> PlayerSpectatorBP(TEXT("/Game/Blueprints/BP_Spectator"));
 	 PlayerSpectatorClass = PlayerSpectatorBP.Class;
+	 PlayerCount = 0;
+	 SpectatorCount = 0;
+	 Initialized = false;
 }
 
 void AFortniteClonePlayerController::BeginPlay() {
 	Super::BeginPlay();
 	if (HasAuthority()) {
-		Initialized = false;
 		TArray<AActor*> StormActors;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AStormActor::StaticClass(), StormActors);
 		if (StormActors.Num() > 0) {
@@ -35,34 +38,128 @@ void AFortniteClonePlayerController::BeginPlay() {
 void AFortniteClonePlayerController::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 	if (HasAuthority()) {
-		if (!Initialized && PlayerState && !PlayerState->bIsSpectator) {
-			Initialized = true;
-			float TimeSinceGameStarted = 0;
-			TimeSinceGameStarted = CurrentStorm->GetGameTimeSinceCreation();
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Player controller player state exists in begin play ") + FString::SanitizeFloat(TimeSinceGameStarted));
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::SanitizeFloat(TimeSinceGameStarted));
-			/* if the game has been going for more than 2 and a half minutes, automatically make the player a spectator*/
-			if (TimeSinceGameStarted >= 150) {
-				PlayerState->bIsSpectator = true;
-				ChangeState(NAME_Spectating);
-				ClientGotoState(NAME_Spectating);
-				APawn* Pawn = Cast<APawn>(GetWorld()->SpawnActor<AFortniteCloneSpectator>(PlayerSpectatorClass, FVector(-900, 350.0, 31812), FRotator::ZeroRotator));
-				//SetSpectatorPawn(Pawn);
-				Possess(Pawn);
-			}
+		if (SpawnAsSpectator && PlayerState && !PlayerState->bIsSpectator) {
+			ChangeState(NAME_Spectating);
+			ClientGotoState(NAME_Spectating);
+			APawn* Pawn = Cast<APawn>(GetWorld()->SpawnActor<AFortniteCloneSpectator>(PlayerSpectatorClass, FVector(-900, 350.0, 31812), FRotator::ZeroRotator));
+			//SetSpectatorPawn(Pawn);
+			Possess(Pawn);
+			Cast<AFortniteClonePlayerState>(PlayerState)->bIsSpectator = true; // ORDER MATTERS HERE, HAS TO BE SET AFTER POSSESSING A PAWN
 		}
 	}
 }
 
-void AFortniteClonePlayerController::SwitchToSpectatorMode() {
+void AFortniteClonePlayerController::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AFortniteClonePlayerController, PlayerCount);
+	DOREPLIFETIME(AFortniteClonePlayerController, SpectatorCount);
+}
+
+void AFortniteClonePlayerController::ServerSwitchToSpectatorMode_Implementation() {
 	if (PlayerState) {
-		PlayerState->bIsSpectator = true;
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Player state is not null"));
+		//Cast<AFortniteClonePlayerState>(PlayerState)->bIsSpectator = true;
 		ChangeState(NAME_Spectating);
 		ClientGotoState(NAME_Spectating);
 		APawn* Pawn = Cast<APawn>(GetWorld()->SpawnActor<AFortniteCloneSpectator>(PlayerSpectatorClass, FVector(-900, 350.0, 31812), FRotator::ZeroRotator));
 		//SetSpectatorPawn(Pawn);
 		Possess(Pawn);
+		Cast<AFortniteClonePlayerState>(PlayerState)->bIsSpectator = true; // ORDER MATTERS HERE, HAS TO BE SET AFTER POSSESSING A PAWN
 		FString LogMsg = FString("switch to spectator mode ") + FString::FromInt(GetNetMode());
 		UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+		LogMsg = FString("test ") + FString::FromInt(GetNetMode());
+		UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+		if (Cast<AFortniteClonePlayerState>(PlayerState)->bIsSpectator) {
+			LogMsg = FString("What a spectator");
+			UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+		}
+		else {
+			LogMsg = FString("What not a spectator");
+			UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+		}
 	}
+}
+
+bool AFortniteClonePlayerController::ServerSwitchToSpectatorMode_Validate() {
+	return true;
+}
+
+void AFortniteClonePlayerController::ServerGetNumPlayers_Implementation() {
+	int Count = 0;
+	//FLocalPlayerContext Context(this);
+	//UWorld* World = Context.GetWorld();
+	/*AGameState* GameState = Cast<AGameState>(GetWorld()->GetGameState());
+	if (GameState) {
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Gamestate is not null"));
+		TArray<APlayerState*> States = GameState->PlayerArray;
+		for (int i = 0; i < States.Num(); i++) {
+			if (States[i]->bIsSpectator == false) {
+				Count++;
+			}
+		}
+	}
+	else {
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Gamestate is null"));
+	}
+	PlayerCount = Count;*/
+}
+
+bool AFortniteClonePlayerController::ServerGetNumPlayers_Validate() {
+	return true;
+}
+
+void AFortniteClonePlayerController::ServerGetNumSpectators_Implementation() {
+	int Count = 0;
+	//FLocalPlayerContext Context(this);
+	//UWorld* World = Context.GetWorld();
+	/*AGameState* GameState = Cast<AGameState>(GetWorld()->GetGameState);
+	if (GameState) {
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Gamemode is not null"));
+		TArray<APlayerState*> States = GameState->PlayerArray;
+		for (int i = 0; i < States.Num(); i++) {
+			if (States[i]->bIsSpectator == true) {
+				Count++;
+			}
+		}
+	}
+	SpectatorCount = Count;*/
+}
+
+bool AFortniteClonePlayerController::ServerGetNumSpectators_Validate() {
+	return true;
+}
+
+void AFortniteClonePlayerController::ServerUpdateCountAfterDeath_Implementation() {
+	
+}
+
+bool AFortniteClonePlayerController::ServerUpdateCountAfterDeath_Validate() {
+	return true;
+}
+
+int AFortniteClonePlayerController::GetKillCount() {
+	if (PlayerState) {
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(PlayerState);
+		if (State) {
+			return State->KillCount;
+		}
+		else {
+			return 0;
+		}
+	}
+	else {
+		return 0;
+	}
+}
+
+int AFortniteClonePlayerController::GetPlayerCount() {
+	ServerGetNumPlayers();
+	return PlayerCount;
+}
+
+int AFortniteClonePlayerController::GetSpectatorCount() {
+	ServerGetNumSpectators();
+	return SpectatorCount;
 }

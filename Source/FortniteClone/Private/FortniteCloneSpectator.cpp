@@ -10,6 +10,7 @@ AFortniteCloneSpectator::AFortniteCloneSpectator()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	BaseTurnRate = 45.f;
 }
 
 // Called when the game starts or when spawned
@@ -38,6 +39,9 @@ void AFortniteCloneSpectator::SetupPlayerInputComponent(UInputComponent* PlayerI
 	PlayerInputComponent->BindAxis("MoveForward", this, &AFortniteCloneSpectator::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AFortniteCloneSpectator::MoveRight);
 	PlayerInputComponent->BindAxis("MoveUp", this, &AFortniteCloneSpectator::MoveUp);
+
+	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
+	PlayerInputComponent->BindAxis("TurnRate", this, &AFortniteCloneSpectator::TurnAtRate);
 }
 
 void AFortniteCloneSpectator::MoveForward(float Value) {
@@ -91,4 +95,11 @@ void AFortniteCloneSpectator::MoveUp(float Value) {
 	}
 
 }
+
+void AFortniteCloneSpectator::TurnAtRate(float Rate)
+{
+	// calculate delta for this frame from the rate information
+	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
+}
+
 

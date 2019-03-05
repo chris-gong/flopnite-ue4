@@ -879,21 +879,6 @@ int AFortniteCloneCharacter::GetBandageCount() {
 	}
 }
 
-int AFortniteCloneCharacter::GetKillCount() {
-	if (GetController()) {
-		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-		if (State) {
-			return State->KillCount;
-		}
-		else {
-			return 0;
-		}
-	}
-	else {
-		return 0;
-	}
-}
-
 void AFortniteCloneCharacter::ServerSetIsWalkingTrue_Implementation() {
 	IsWalking = true;
 }
@@ -2034,7 +2019,7 @@ void AFortniteCloneCharacter::ServerApplyStormDamage_Implementation() {
 			if (GetController()) {
 				AFortniteClonePlayerController* FortniteClonePlayerController = Cast<AFortniteClonePlayerController>(GetController());
 				if (FortniteClonePlayerController) {
-					FortniteClonePlayerController->SwitchToSpectatorMode();
+					FortniteClonePlayerController->ServerSwitchToSpectatorMode();
 				}
 			}
 			Destroy();

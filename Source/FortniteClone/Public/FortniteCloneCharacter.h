@@ -134,8 +134,6 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Items")
 	int GetBandageCount();
 
-	UFUNCTION(BlueprintPure, Category = "Kills")
-	int GetKillCount();
 
 	/* The current weapon being held */
 	UPROPERTY(Replicated)
@@ -339,6 +337,11 @@ public:
 
 	UFUNCTION()
 	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	virtual bool IsSupportedForNetworking() const override
+	{
+		return true;
+	}
 
 public:
 	UFUNCTION(Server, Reliable, WithValidation)
