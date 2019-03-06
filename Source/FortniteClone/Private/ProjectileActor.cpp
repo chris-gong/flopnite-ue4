@@ -22,6 +22,7 @@ AProjectileActor::AProjectileActor()
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
 	CollisionComp->InitSphereRadius(5.0f);
 	CollisionComp->SetCollisionProfileName("Projectile");
+	CollisionComp->bEditableWhenInherited = true;
 	
 	RootComponent = CollisionComp;
 
