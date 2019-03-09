@@ -9,6 +9,5 @@ public class FortniteCloneTarget : TargetRules
 	{
 		Type = TargetType.Game;
 		ExtraModuleNames.Add("FortniteClone");
-        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public"));
     }
 }
