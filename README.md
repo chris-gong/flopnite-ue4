@@ -1,6 +1,6 @@
 # Fortnite Clone UE4
 ## What is Fortnite Clone
-Relatively new to game development, my friends and I wanted to challenge ourselves by recreating the popular triple A game, Fortnite, in a limited time frame while having fun doing so. We also documented the process and posted this documentary to our [youtube channel](https://www.youtube.com/channel/UCO77KLKwplncMHLo6gLpIHw). The remake was recreated using Unreal Engine 4 and Amazon Gamelift.
+Relatively new to game development, my friends and I wanted to challenge ourselves by recreating the popular triple A game, Fortnite, in a limited time frame while having fun doing so. We also documented the process and posted this documentary to our [youtube channel](https://www.youtube.com/watch?v=UCyIgPcXKLQ). The remake was recreated using Unreal Engine 4 and Amazon Gamelift.
 
 ## How to build and run Fortnite Clone
 ### Note that we developed this game in Windows 10 using Visual Studio 2017, so these two will be required.
