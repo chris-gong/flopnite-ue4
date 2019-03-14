@@ -31,3 +31,6 @@ Now since this is a multiplayer game, you will need to set some multiplayer sett
 
 ## Who was involved in Fornite Clone
 I am proud to say that this was truly a community effort. Although I was the main programmer, I had two friends, Ryan and Mike, who made all the models and designed the map. Also, a big thanks has to be given to all the people who helped me in the Unreal Slackers discord, all the people who answer questions on the Unreal Q&A forums, all the youtubers who post amazing Unreal tutorials, and all the people in our discord who came out to test the game.
+
+## For those who want to test
+We are currently looking for testers for a huge game session! If you're interested, then join our [discord](https://discord.gg/2xbR5qT).
