@@ -3,7 +3,7 @@
 Relatively new to game development, my friends and I wanted to challenge ourselves by recreating the popular triple A game, Fortnite, in a limited time frame while having fun doing so. We also documented the process and posted this documentary to our [youtube channel](https://www.youtube.com/watch?v=UCyIgPcXKLQ). The remake was recreated using Unreal Engine 4 and Amazon Gamelift.
 
 ## How to build and run Fortnite Clone
-### Note that we developed this game in Windows 10 using Visual Studio 2017, so these two will be required.
+### Note that we developed this game in Windows 10 using Visual Studio 2019, so these two will be required. Current Unreal version: 4.22.0
 
 ### Step 1: Download the project
 Simply clone or download the project from here, and make sure everything is extracted (no zip files!)
