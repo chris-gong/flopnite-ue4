@@ -206,6 +206,7 @@ void AFortniteCloneCharacter::BeginPlay() {
 			State->CurrentWeapon = 0;
 		}
 	}*/
+
 }
 
 void AFortniteCloneCharacter::PostInitializeComponents()
@@ -279,12 +280,43 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 					if (BuildingPreview) {
 						BuildingPreview->Destroy(); //destroy the last wall preview
 					}
-					FString LogMsg = FString("Current building material ") + FString::FromInt(CurrentBuildingMaterial);
+					FVector ProjectedLocation = GetActorLocation() + (GetActorForwardVector() * FVector(200.0, 50.0, 1.0)) + (FVector(0,0,DirectionVector.Z) * 5.0); // projected location before setting to grid using actor forward and direction (aim offset) vectors
+					float GridLocationX = FMath::RoundHalfFromZero(ProjectedLocation.X / 400.0) * 400;
+					float GridLocationY = FMath::RoundHalfFromZero(ProjectedLocation.Y / 400.0) * 400;
+					float GridLocationZ = FMath::RoundHalfFromZero(ProjectedLocation.Z / 400.0) * 400;
+					FVector GridLocation = FVector(GridLocationX, GridLocationY, GridLocationZ);
+					FRotator ProjectedRotation = GetActorRotation().Add(0, 90, 0); // projected rotation before setting to grid using the actor's rotation
+					float GridRotationYaw = FMath::RoundHalfFromZero(ProjectedRotation.Yaw / 90.0) * 90;
+
+					FRotator GridRotation = FRotator(0, GridRotationYaw, 0) ;
+					FString LogMsg = FString("GridLocation X ") + FString::SanitizeFloat(GridLocation.X) + FString(" ProjectedLocation X") + FString::SanitizeFloat(ProjectedLocation.X);
+					UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+					// to make the structures connect with each other, have to add an offset when in a different rotation
+					if (FMath::Abs(GridRotationYaw) == 0) {
+						GridLocation.Y -= 200.0;
+						if (ProjectedLocation.X < GridLocation.X) {
+							GridLocation.X -= 200.0;
+						}
+						else {
+							GridLocation.X += 200.0;
+						}
+					}
+					if (FMath::Abs(GridRotationYaw) == 180) {
+						GridLocation.Y += 200.0;
+						if (ProjectedLocation.X > GridLocation.X) {
+							GridLocation.X += 200.0;
+						}
+						else {
+							GridLocation.X -= 200.0;
+						}
+					}
+
+					LogMsg = FString("Current building material ") + FString::FromInt(CurrentBuildingMaterial) + FString(" ") + FString::SanitizeFloat(GridRotationYaw) + FString(" ") + FString::SanitizeFloat(ProjectedRotation.Yaw);
 					UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
 					if (CurrentBuildingMaterial >= 0 && CurrentBuildingMaterial <= 2) {
 						if (WallPreviewClasses.IsValidIndex(CurrentBuildingMaterial)) {
 							if (WallPreviewClasses[CurrentBuildingMaterial] != nullptr) {
-								BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(WallPreviewClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 200) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0)); //set the new wall preview
+								BuildingPreview = GetWorld()->SpawnActor<ABuildingActor>(WallPreviewClasses[CurrentBuildingMaterial], GridLocation, GridRotation); //set the new wall preview
 							}
 						}
 					}
@@ -1332,9 +1364,52 @@ void AFortniteCloneCharacter::ServerBuildStructures_Implementation() {
 			FVector DirectionVector = FVector(0, AimYaw, AimPitch);
 			if (State->InBuildMode && State->BuildMode == FString("Wall") && State->MaterialCounts[CurrentBuildingMaterial] >= 10) {
 				TArray<AActor*> OverlappingActors;
-				ABuildingActor* Wall = GetWorld()->SpawnActor<ABuildingActor>(WallClasses[CurrentBuildingMaterial], GetActorLocation() + (GetActorForwardVector() * 200) + (DirectionVector * 3), GetActorRotation().Add(0, 90, 0));
 
+				FVector ProjectedLocation = GetActorLocation() + (GetActorForwardVector() * FVector(200.0, 50.0, 1.0)) + (FVector(0, 0, DirectionVector.Z) * 5.0); // projected location before setting to grid using actor forward and direction (aim offset) vectors
+				float GridLocationX = FMath::RoundHalfFromZero(ProjectedLocation.X / 400.0) * 400;
+				float GridLocationY = FMath::RoundHalfFromZero(ProjectedLocation.Y / 400.0) * 400;
+				float GridLocationZ = FMath::RoundHalfFromZero(ProjectedLocation.Z / 400.0) * 400;
+				FVector GridLocation = FVector(GridLocationX, GridLocationY, GridLocationZ);
+				FRotator ProjectedRotation = GetActorRotation().Add(0, 90, 0); // projected rotation before setting to grid using the actor's rotation
+				float GridRotationYaw = FMath::RoundHalfFromZero(ProjectedRotation.Yaw / 90.0) * 90;
+
+				FRotator GridRotation = FRotator(0, GridRotationYaw, 0);
+				FString LogMsg = FString("GridLocation X ") + FString::SanitizeFloat(GridLocation.X) + FString(" ProjectedLocation X") + FString::SanitizeFloat(ProjectedLocation.X);
+				UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+				// to make the structures connect with each other, have to add an offset when in a different rotation
+				if (FMath::Abs(GridRotationYaw) == 0) {
+					GridLocation.Y -= 200.0;
+					if (ProjectedLocation.X < GridLocation.X) {
+						GridLocation.X -= 200.0;
+					}
+					else {
+						GridLocation.X += 200.0;
+					}
+				}
+				if (FMath::Abs(GridRotationYaw) == 180) {
+					GridLocation.Y += 200.0;
+					if (ProjectedLocation.X > GridLocation.X) {
+						GridLocation.X += 200.0;
+					}
+					else {
+						GridLocation.X -= 200.0;
+					}
+				}
+
+				ABuildingActor* Wall = GetWorld()->SpawnActor<ABuildingActor>(WallClasses[CurrentBuildingMaterial], GridLocation, GridRotation);
+
+				// Commented code below was meant for getting the size of the static mesh component, but it wasn't accurate since I change the scaling so I had to go to the editor and calculate by hand
+				/*
+				TArray<UStaticMeshComponent*> Components;
+				Wall->GetComponents<UStaticMeshComponent>(Components);
 				Wall->GetOverlappingActors(OverlappingActors);
+				for (int i = 0; i < Components.Num(); i++) {
+					UStaticMeshComponent* StaticMeshComponent = Components[i];
+					UStaticMesh* StaticMesh = StaticMeshComponent->GetStaticMesh();
+
+					FVector Size = StaticMesh->GetBoundingBox().GetSize();
+					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Size of wall ") + FString::SanitizeFloat(Size.X) + FString(" ") + FString::SanitizeFloat(Size.Y) + FString(" ") + FString::SanitizeFloat(Size.Z));
+				}*/
 
 				for (int i = 0; i < OverlappingActors.Num(); i++) {
 					//don't allow a player to build a structure that overlaps with another player

@@ -5,7 +5,9 @@ public class AWSCore : ModuleRules
 {
 	public AWSCore(ReadOnlyTargetRules Target ): base(Target)
 	{
-		PrivateIncludePaths.AddRange(new string[] { "AWSCore/Private" });
+        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public"));
+
+        PrivateIncludePaths.AddRange(new string[] { "AWSCore/Private" });
 		PublicIncludePaths.AddRange(new string[] { "AWSCore/Public" });
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Engine", "Core", "CoreUObject", "InputCore", "Projects"});
