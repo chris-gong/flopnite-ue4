@@ -7,8 +7,6 @@ public class GameLiftClientSDK : ModuleRules
 {
 	public GameLiftClientSDK(ReadOnlyTargetRules Target) : base(Target)
 	{
-        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public"));
-
         bEnableExceptions = true;
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
