@@ -1731,6 +1731,9 @@ bool AFortniteCloneCharacter::ServerFireWeapons_Validate() {
 }
 
 void AFortniteCloneCharacter::ServerHealWithBandage_Implementation() {
+	if (Health >= 100) {
+		return; // player has full health
+	}
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		if (State && State->HoldingBandage) {
