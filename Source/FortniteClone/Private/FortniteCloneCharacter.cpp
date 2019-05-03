@@ -381,7 +381,7 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 						BuildingPreview->Destroy(); //destroy the last wall preview
 					}
 
-					FVector ProjectedLocation = GetActorLocation() + (GetActorForwardVector() * FVector(200.0, 50.0, 1.0)) + (FVector(0, 0, DirectionVector.Z) * 8.0); // projected location before setting to grid using actor forward and direction (aim offset) vectors
+					FVector ProjectedLocation = GetActorLocation() + (GetActorForwardVector() * FVector(200.0, 50.0, 1.0)) + (FVector(0, 0, (DirectionVector.Z * 4.0) + 150)); // projected location before setting to grid using actor forward and direction (aim offset) vectors
 					float GridLocationX = FMath::RoundHalfFromZero(ProjectedLocation.X / 400.0) * 400;
 					float GridLocationY = FMath::RoundHalfFromZero(ProjectedLocation.Y / 400.0) * 400;
 					float GridLocationZ = FMath::RoundHalfFromZero(ProjectedLocation.Z / 400.0) * 400;
@@ -1570,7 +1570,7 @@ void AFortniteCloneCharacter::ServerBuildStructures_Implementation() {
 			else if (State->InBuildMode && State->BuildMode == FString("Floor") && State->MaterialCounts[CurrentBuildingMaterial] >= 10) {
 				TArray<AActor*> OverlappingActors;
 
-				FVector ProjectedLocation = GetActorLocation() + (GetActorForwardVector() * FVector(200.0, 50.0, 1.0)) + (FVector(0, 0, DirectionVector.Z) * 8.0); // projected location before setting to grid using actor forward and direction (aim offset) vectors
+				FVector ProjectedLocation = GetActorLocation() + (GetActorForwardVector() * FVector(200.0, 50.0, 1.0)) + (FVector(0, 0, (DirectionVector.Z * 4.0) + 150)); // projected location before setting to grid using actor forward and direction (aim offset) vectors
 				float GridLocationX = FMath::RoundHalfFromZero(ProjectedLocation.X / 400.0) * 400;
 				float GridLocationY = FMath::RoundHalfFromZero(ProjectedLocation.Y / 400.0) * 400;
 				float GridLocationZ = FMath::RoundHalfFromZero(ProjectedLocation.Z / 400.0) * 400;
