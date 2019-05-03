@@ -494,6 +494,9 @@ public:
 	UFUNCTION(Client, Reliable)
 	void ClientDrawHitMarker();
 
+	UFUNCTION(Client, Reliable)
+	void ClientDrawBloodEffect();
+
 private:
 	// Object creation can only happen after the character has finished being constructed
 	virtual void BeginPlay() override;

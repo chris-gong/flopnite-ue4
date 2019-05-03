@@ -25,6 +25,8 @@ AFortniteCloneHUD::AFortniteCloneHUD()
 	MainMenuWidgetClass = MainMenuObj.Class;
 	static ConstructorHelpers::FClassFinder<UUserWidget> CountObj(TEXT("/Game/UI/Widgets/UI_RemainingPlayersCount"));
 	CountWidgetClass = CountObj.Class;
+	static ConstructorHelpers::FClassFinder<UUserWidget> BloodEffectObj(TEXT("/Game/UI/Widgets/UI_BloodEffect"));
+	BloodEffectWidgetClass = BloodEffectObj.Class;
 }
 
 void AFortniteCloneHUD::DrawHUD()
@@ -83,6 +85,16 @@ void AFortniteCloneHUD::DrawHitMarker() {
 	}
 }
 
+void AFortniteCloneHUD::DrawBloodSplash() {
+	if (BloodEffectWidgetClass != nullptr) {
+		CurrentWidget = CreateWidget<UUserWidget>(GetWorld(), BloodEffectWidgetClass);
+		if (CurrentWidget)
+		{
+			CurrentWidget->AddToViewport();
+			// TODO for later: Implement your own UUserWidget class to retrieve animation from a blueprint and play the animation here
+		}
+	}
+}
 void AFortniteCloneHUD::DrawGameUI() {
 	// remove main screen widget
 	/*if (CurrentWidget != nullptr) {

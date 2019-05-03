@@ -72,6 +72,7 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 						else {
 							AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(WeaponActor->Holder);
 							if (FortniteCloneCharacter) {
+								FortniteCloneCharacter->ClientDrawBloodEffect();
 								FortniteCloneCharacter->Health -= Damage;
 								if (WeaponHolder) {
 									// draw hitmarker
@@ -119,6 +120,7 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 						else {
 							AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(HealingActor->Holder);
 							if (FortniteCloneCharacter) {
+								FortniteCloneCharacter->ClientDrawBloodEffect();
 								FortniteCloneCharacter->Health -= Damage;
 								if (WeaponHolder) {
 									// draw hitmarker
@@ -175,6 +177,7 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 				else if (OtherActor->IsA(AFortniteCloneCharacter::StaticClass())) {
 					AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(OtherActor);
 					if (FortniteCloneCharacter) {
+						FortniteCloneCharacter->ClientDrawBloodEffect();
 						FortniteCloneCharacter->Health -= Damage;
 						if (WeaponHolder) {
 							// draw hitmarker

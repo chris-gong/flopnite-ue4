@@ -2361,3 +2361,13 @@ void AFortniteCloneCharacter::ClientDrawHitMarker_Implementation() {
 		}
 	}
 }
+
+void AFortniteCloneCharacter::ClientDrawBloodEffect_Implementation() {
+	if (GetController()) {
+		APlayerController* PlayerController = Cast<APlayerController>(GetController());
+		if (PlayerController->GetHUD()) {
+			AFortniteCloneHUD* FortniteCloneHUD = Cast<AFortniteCloneHUD>(PlayerController->GetHUD());
+			FortniteCloneHUD->DrawBloodSplash();
+		}
+	}
+}

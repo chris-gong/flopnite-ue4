@@ -32,6 +32,8 @@ public:
 
 	void DrawGameUI();
 
+	void DrawBloodSplash();
+
 private:
 	UTexture2D* CrosshairTexture;
 
@@ -55,6 +57,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Count")
 	TSubclassOf<UUserWidget> CountWidgetClass;
+
+	UPROPERTY(EditAnywhere, Category = "BloodEffect")
+	TSubclassOf<UUserWidget> BloodEffectWidgetClass;
 
 	UPROPERTY(EditAnywhere, Category = "Widget")
 	UUserWidget* CurrentWidget;
