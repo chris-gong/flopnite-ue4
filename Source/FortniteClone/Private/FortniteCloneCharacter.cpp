@@ -174,7 +174,7 @@ void AFortniteCloneCharacter::BeginPlay() {
 	}*/
 	if (HasAuthority()) {
 		if (WeaponClasses[CurrentWeaponType]) {
-			FName WeaponSocketName = TEXT("hand_right_socket");
+			FName WeaponSocketName = TEXT("hand_right_socket_pickaxe");
 			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 			CurrentWeapon = GetWorld()->SpawnActor<AWeaponActor>(WeaponClasses[CurrentWeaponType], GetActorLocation(), GetActorRotation());
 			UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
@@ -485,7 +485,7 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 							CurrentHealingItem = nullptr;
 						}
 						// PICK UP WEAPON
-						FName WeaponSocketName = TEXT("hand_right_socket");
+						FName WeaponSocketName = TEXT("hand_right_socket_pickaxe");
 						FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 
 						CurrentWeapon = WeaponActor;
@@ -493,7 +493,12 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 						CurrentWeapon->Holder = this;
 						int MagazineSize = CurrentWeapon->MagazineSize;
 						CurrentWeapon->CurrentBulletCount = MagazineSize;
-
+						if (CurrentWeaponType == 1) {
+							WeaponSocketName = TEXT("hand_right_socket_rifle");
+						}
+						else if (CurrentWeaponType == 2) {
+							WeaponSocketName = TEXT("hand_right_socket_shotgun");
+						}
 						UStaticMeshComponent* OutHitStaticMeshComponent = Cast<UStaticMeshComponent>(WeaponActor->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 						OutHitStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
 
@@ -537,7 +542,7 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 					}
 					// PICK UP BANDAGE 
 					FName BandageSocketName = TEXT("hand_left_socket");
-					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::SnapToTarget, true);
 
 					CurrentWeapon = nullptr;
 					CurrentWeaponType = -1;
@@ -1128,7 +1133,7 @@ void AFortniteCloneCharacter::ServerSetBuildModeWall_Implementation() {
 				}
 				// equip weapon being held before
 				if (CurrentWeaponType > -1 && CurrentWeaponType < 3) {
-					FName WeaponSocketName = TEXT("hand_right_socket");
+					FName WeaponSocketName = TEXT("hand_right_socket_pickaxe");
 					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 
 					FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
@@ -1139,6 +1144,12 @@ void AFortniteCloneCharacter::ServerSetBuildModeWall_Implementation() {
 						CurrentWeapon->Holder = this;
 						if (CurrentWeaponType > 0 && CurrentWeaponType < 3) {
 							CurrentWeapon->CurrentBulletCount = State->EquippedWeaponsClips[CurrentWeaponType];
+							if (CurrentWeaponType == 1) {
+								WeaponSocketName = TEXT("hand_right_socket_rifle");
+							}
+							else if (CurrentWeaponType == 2) {
+								WeaponSocketName = TEXT("hand_right_socket_shotgun");
+							}
 						}
 						UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
 					}
@@ -1158,7 +1169,7 @@ void AFortniteCloneCharacter::ServerSetBuildModeWall_Implementation() {
 				else {
 					//equip bandage since current weapon was null
 					FName BandageSocketName = TEXT("hand_left_socket");
-					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::SnapToTarget, true);
 
 					FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 					auto CurrentHealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
@@ -1238,7 +1249,7 @@ void AFortniteCloneCharacter::ServerSetBuildModeRamp_Implementation() {
 				}
 				// equip weapon being held before
 				if (CurrentWeaponType > -1 && CurrentWeaponType < 3) {
-					FName WeaponSocketName = TEXT("hand_right_socket");
+					FName WeaponSocketName = TEXT("hand_right_socket_pickaxe");
 					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 
 					FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
@@ -1249,6 +1260,12 @@ void AFortniteCloneCharacter::ServerSetBuildModeRamp_Implementation() {
 						CurrentWeapon->Holder = this;
 						if (CurrentWeaponType > 0 && CurrentWeaponType < 3) {
 							CurrentWeapon->CurrentBulletCount = State->EquippedWeaponsClips[CurrentWeaponType];
+							if (CurrentWeaponType == 1) {
+								WeaponSocketName = TEXT("hand_right_socket_rifle");
+							}
+							else if (CurrentWeaponType == 2) {
+								WeaponSocketName = TEXT("hand_right_socket_shotgun");
+							}
 						}
 						UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
 					}
@@ -1266,7 +1283,7 @@ void AFortniteCloneCharacter::ServerSetBuildModeRamp_Implementation() {
 				else {
 					//equip bandage since current weapon was null
 					FName BandageSocketName = TEXT("hand_left_socket");
-					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::SnapToTarget, true);
 
 					FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 					auto CurrentHealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
@@ -1343,7 +1360,7 @@ void AFortniteCloneCharacter::ServerSetBuildModeFloor_Implementation() {
 				}
 				// equip weapon being held before
 				if (CurrentWeaponType > -1 && CurrentWeaponType < 3) {
-					FName WeaponSocketName = TEXT("hand_right_socket");
+					FName WeaponSocketName = TEXT("hand_right_socket_pickaxe");
 					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 
 					FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
@@ -1354,6 +1371,12 @@ void AFortniteCloneCharacter::ServerSetBuildModeFloor_Implementation() {
 						CurrentWeapon->Holder = this;
 						if (CurrentWeaponType > 0 && CurrentWeaponType < 3) {
 							CurrentWeapon->CurrentBulletCount = State->EquippedWeaponsClips[CurrentWeaponType];
+							if (CurrentWeaponType == 1) {
+								WeaponSocketName = TEXT("hand_right_socket_rifle");
+							}
+							else if (CurrentWeaponType == 2) {
+								WeaponSocketName = TEXT("hand_right_socket_shotgun");
+							}
 						}
 						UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
 					}
@@ -1372,7 +1395,7 @@ void AFortniteCloneCharacter::ServerSetBuildModeFloor_Implementation() {
 				else {
 					//equip bandage since current weapon was null
 					FName BandageSocketName = TEXT("hand_left_socket");
-					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::SnapToTarget, true);
 
 					FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 					auto CurrentHealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
@@ -1672,7 +1695,13 @@ void AFortniteCloneCharacter::ServerFireWeapons_Implementation() {
 					}
 
 				}
-				FName WeaponSocketName = TEXT("hand_right_socket");
+				FName WeaponSocketName = TEXT("hand_right_socket_pickaxe");
+				if (CurrentWeaponType == 1) {
+					WeaponSocketName = TEXT("hand_right_socket_rifle");
+				}
+				else if (CurrentWeaponType == 2) {
+					WeaponSocketName = TEXT("hand_right_socket_shotgun");
+				}
 				FVector BulletLocation = GetMesh()->GetSocketLocation(WeaponSocketName);
 				FRotator BulletRotation = GetMesh()->GetSocketRotation(WeaponSocketName);
 				FVector DirectionVector = FVector(0, AimYaw * 70, AimPitch * 20);
@@ -1886,7 +1915,7 @@ void AFortniteCloneCharacter::ServerSwitchToPickaxe_Implementation() {
 					CurrentHealingItem->Destroy();
 					CurrentHealingItem = nullptr;
 				}
-				FName WeaponSocketName = TEXT("hand_right_socket");
+				FName WeaponSocketName = TEXT("hand_right_socket_pickaxe");
 				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 
 				FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
@@ -1949,7 +1978,7 @@ void AFortniteCloneCharacter::ServerSwitchToRifle_Implementation() {
 					CurrentHealingItem->Destroy();
 					CurrentHealingItem = nullptr;
 				}
-				FName WeaponSocketName = TEXT("hand_right_socket");
+				FName WeaponSocketName = TEXT("hand_right_socket_rifle");
 				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 
 				FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
@@ -2012,7 +2041,7 @@ void AFortniteCloneCharacter::ServerSwitchToShotgun_Implementation() {
 					CurrentHealingItem->Destroy();
 					CurrentHealingItem = nullptr;
 				}
-				FName WeaponSocketName = TEXT("hand_right_socket");
+				FName WeaponSocketName = TEXT("hand_right_socket_shotgun");
 				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 
 				FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
@@ -2073,7 +2102,7 @@ void AFortniteCloneCharacter::ServerSwitchToBandage_Implementation() {
 					CurrentWeapon = nullptr;
 				}
 				FName BandageSocketName = TEXT("hand_left_socket");
-				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+				FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::SnapToTarget, true);
 
 				FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 				CurrentHealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
