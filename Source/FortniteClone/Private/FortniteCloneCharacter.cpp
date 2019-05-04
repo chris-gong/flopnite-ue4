@@ -1702,25 +1702,53 @@ void AFortniteCloneCharacter::ServerFireWeapons_Implementation() {
 				else if (CurrentWeaponType == 2) {
 					WeaponSocketName = TEXT("hand_right_socket_shotgun");
 				}
-				FVector BulletLocation = GetMesh()->GetSocketLocation(WeaponSocketName);
-				FRotator BulletRotation = GetMesh()->GetSocketRotation(WeaponSocketName);
-				FVector DirectionVector = FVector(0, AimYaw * 70, AimPitch * 20);
-				FRotator DirectionRotation = FRotator(BulletRotation.Pitch, GetActorRotation().Yaw, BulletRotation.Roll);
-				APlayerController* PlayerController = Cast<APlayerController>(GetController());
-				FRotator CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
-				FVector CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation() + GetActorForwardVector() * 210 + FVector(0,0,50);
-				FVector CameraDirection = GetActorLocation() - CameraLocation;
-				CameraDirection.Normalize();
-				FTransform SpawnTransform(CameraRotation + FRotator(2,-1.25,0), BulletLocation);
-				auto Bullet = Cast<AProjectileActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, CurrentWeapon->BulletClass, SpawnTransform));
-				if (Bullet != nullptr)
-				{
-					//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
-					Bullet->Weapon = CurrentWeapon;
-					Bullet->WeaponHolder = this;
+				TArray<UStaticMeshComponent*> Components;
+				CurrentWeapon->GetComponents(Components);
+				// find the muzzle component
+				for (int i = 0; i < Components.Num(); i++) {
+					if (Components[i]->GetName() == "Weapon") {
+						UStaticMeshComponent* WeaponComponent = Components[i];
 
-					UGameplayStatics::FinishSpawningActor(Bullet, SpawnTransform);
+						FVector MuzzleLocation = WeaponComponent->GetSocketLocation("Muzzle");
+						/*if (CurrentWeaponType == 0) {
+							MuzzleLocation += FVector(0, 0, 100.0);
+						}
+						else if (CurrentWeaponType == 1) {
+							MuzzleLocation += FVector(GetActorRotation().Yaw * 0.25, GetActorRotation().Yaw * -0.25, 100.0);
+						}
+						else if (CurrentWeaponType == 2) {
+							MuzzleLocation += FVector(GetActorRotation().Yaw * 0.25, GetActorRotation().Yaw * -0.25, 75.0);
+						}*/
+						//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::SanitizeFloat(GetActorRotation().Roll) +FString(" ") + FString::SanitizeFloat(GetActorRotation().Pitch) +FString(" ") + FString::SanitizeFloat(GetActorRotation().Yaw));
+						//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::SanitizeFloat(MuzzleLocation.X) + FString(" ") + FString::SanitizeFloat(MuzzleLocation.Y) + FString(" ") + FString::SanitizeFloat(MuzzleLocation.Z));
+						APlayerController* PlayerController = Cast<APlayerController>(GetController());
+						FRotator CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
+						FVector CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
+						PlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
+						FVector ShootDirection = CameraRotation.Vector();
+						const FVector StartTrace = FollowCamera->GetComponentLocation();
+						const FVector EndTrace = StartTrace + ShootDirection * 100000.0;
+						FHitResult Impact;
+						FCollisionQueryParams CollisionParams;
+						GetWorld()->LineTraceSingleByChannel(Impact, StartTrace, EndTrace, ECC_Visibility, CollisionParams);
+
+						if (Impact.bBlockingHit) {
+							FTransform SpawnTransform(ShootDirection.Rotation(), MuzzleLocation);
+							auto Bullet = Cast<AProjectileActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, CurrentWeapon->BulletClass, SpawnTransform));
+							if (Bullet != nullptr)
+							{
+								//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
+								Bullet->Weapon = CurrentWeapon;
+								Bullet->WeaponHolder = this;
+
+								UGameplayStatics::FinishSpawningActor(Bullet, SpawnTransform);
+							}
+						}
+						break;
+					}
 				}
+				
+
 			}
 		}
 	}

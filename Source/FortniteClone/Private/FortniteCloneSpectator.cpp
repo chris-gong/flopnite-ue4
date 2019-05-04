@@ -52,6 +52,7 @@ void AFortniteCloneSpectator::MoveForward(float Value) {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Move forward ") + FString::SanitizeFloat(Value));
 	if ((Controller != nullptr) && (Value != 0.0f))
 	{
+		
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -59,6 +60,8 @@ void AFortniteCloneSpectator::MoveForward(float Value) {
 		// get forward vector
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		AddMovementInput(Direction, Value);
+		//FVector CurrentLocation = RootComponent->GetComponentLocation();
+		//RootComponent->SetWorldLocation(FVector(CurrentLocation.X + Value, CurrentLocation.Y, CurrentLocation.Z));
 	}
 }
 
@@ -73,6 +76,8 @@ void AFortniteCloneSpectator::MoveRight(float Value) {
 		// get forward vector
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		AddMovementInput(Direction, Value);
+		//FVector CurrentLocation = RootComponent->GetComponentLocation();
+		//RootComponent->SetWorldLocation(FVector(CurrentLocation.X, CurrentLocation.Y + Value, CurrentLocation.Z));
 	}
 }
 
@@ -94,6 +99,10 @@ void AFortniteCloneSpectator::MoveUp(float Value) {
 		else {
 			AddMovementInput(Direction, Value);
 		}
+		/*FVector CurrentLocation = RootComponent->GetComponentLocation();
+		if (IsShiftDown) {
+			RootComponent->SetWorldLocation(FVector(CurrentLocation.X, CurrentLocation.Y, CurrentLocation.Z + (Value * -1)));
+		}*/
 	}
 
 }
