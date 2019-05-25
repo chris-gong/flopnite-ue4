@@ -330,7 +330,8 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 					}
 					// TODO print out directionvector.z (looking straight forward vs up and down affects x value)
 					// TODO check why the overlapping function when building is not working
-					FVector ProjectedLocation = GetActorLocation() + (GetActorForwardVector() * FVector(400.0, 200.0, 1.0)) + (FVector(0, 0, DirectionVector.Z) * 2.0);// projected location before setting to grid using actor forward and direction (aim offset) vectors
+					//original 400, 200, 2
+					FVector ProjectedLocation = GetActorLocation() + (GetActorForwardVector() * FVector(475.0, 335.0, 1.0)) + (FVector(0, 0, DirectionVector.Z) * 3.0);// projected location before setting to grid using actor forward and direction (aim offset) vectors
 					float GridLocationX = FMath::RoundHalfFromZero(ProjectedLocation.X / 400.0) * 400;
 					float GridLocationY = FMath::RoundHalfFromZero(ProjectedLocation.Y / 400.0) * 400;
 					float GridLocationZ = FMath::RoundHalfFromZero(ProjectedLocation.Z / 400.0) * 400;
@@ -1530,8 +1531,8 @@ void AFortniteCloneCharacter::ServerBuildStructures_Implementation() {
 			}
 			else if (State->InBuildMode && State->BuildMode == FString("Ramp") && State->MaterialCounts[CurrentBuildingMaterial] >= 10) {
 				TArray<AActor*> OverlappingActors;
-
-				FVector ProjectedLocation = GetActorLocation() + (GetActorForwardVector() * FVector(400.0, 200.0, 1.0)) + (FVector(0, 0, DirectionVector.Z) * 2.0); // projected location before setting to grid using actor forward and direction (aim offset) vectors
+				//original 400, 200, 2
+				FVector ProjectedLocation = GetActorLocation() + (GetActorForwardVector() * FVector(475.0, 335.0, 1.0)) + (FVector(0, 0, DirectionVector.Z) * 3.0); // projected location before setting to grid using actor forward and direction (aim offset) vectors
 				float GridLocationX = FMath::RoundHalfFromZero(ProjectedLocation.X / 400.0) * 400;
 				float GridLocationY = FMath::RoundHalfFromZero(ProjectedLocation.Y / 400.0) * 400;
 				float GridLocationZ = FMath::RoundHalfFromZero(ProjectedLocation.Z / 400.0) * 400;
