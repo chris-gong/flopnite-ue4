@@ -34,6 +34,8 @@ public:
 
 	void DrawBloodSplash();
 
+	void DrawSettingsMenu();
+
 private:
 	UTexture2D* CrosshairTexture;
 
@@ -61,8 +63,14 @@ private:
 	UPROPERTY(EditAnywhere, Category = "BloodEffect")
 	TSubclassOf<UUserWidget> BloodEffectWidgetClass;
 
+	UPROPERTY(EditAnywhere, Category = "SettingsMenu")
+	TSubclassOf<UUserWidget> SettingsMenuWidgetClass;
+
 	UPROPERTY(EditAnywhere, Category = "Widget")
 	UUserWidget* CurrentWidget;
+
+	UPROPERTY(EditAnywhere, Category = "Widget")
+	UUserWidget* SettingsMenuWidget;
 
 	UPROPERTY(EditAnywhere, Category = "Animations")
 	UWidgetAnimation* HitMarkerAnimation;

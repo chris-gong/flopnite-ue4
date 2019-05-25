@@ -284,7 +284,8 @@ protected:
 	void HoldBandage();
 
 	UFUNCTION()
-	void FinishSpawningProjectile(AProjectileActor* Projectile, FTransform SpawnTransform);
+	void OpenSettingsMenu();
+
 
 	/*UFUNCTION(Server, WithValidation)
 	void ServerSetAnimInstance(UThirdPersonAnimInstance* AnimInstance);*/

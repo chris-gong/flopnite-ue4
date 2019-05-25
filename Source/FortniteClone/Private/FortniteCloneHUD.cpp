@@ -27,6 +27,8 @@ AFortniteCloneHUD::AFortniteCloneHUD()
 	CountWidgetClass = CountObj.Class;
 	static ConstructorHelpers::FClassFinder<UUserWidget> BloodEffectObj(TEXT("/Game/UI/Widgets/UI_BloodEffect"));
 	BloodEffectWidgetClass = BloodEffectObj.Class;
+	static ConstructorHelpers::FClassFinder<UUserWidget> SettingsMenuObj(TEXT("/Game/UI/Widgets/UI_SettingsMenu"));
+	SettingsMenuWidgetClass = SettingsMenuObj.Class;
 }
 
 void AFortniteCloneHUD::DrawHUD()
@@ -147,6 +149,38 @@ void AFortniteCloneHUD::DrawGameUI() {
 		if (CurrentWidget)
 		{
 			CurrentWidget->AddToViewport();
+		}
+	}
+}
+
+void AFortniteCloneHUD::DrawSettingsMenu() {
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	if (PlayerController) {
+		// change the flags back to their default values after going from settings menu to fortnite clone
+		// or change the flags to ui mode if going from fortnite clone to settings menu
+		if (PlayerController->bShowMouseCursor) {
+			PlayerController->bShowMouseCursor = false;
+			PlayerController->bEnableClickEvents = false;
+			PlayerController->bEnableMouseOverEvents = false; 
+			PlayerController->SetInputMode(FInputModeGameOnly());
+			if (SettingsMenuWidget) {
+				SettingsMenuWidget->RemoveFromViewport();
+			}
+		}
+		else {
+			PlayerController->bShowMouseCursor = true;
+			PlayerController->bEnableClickEvents = true;
+			PlayerController->bEnableMouseOverEvents = true;
+			PlayerController->SetInputMode(FInputModeGameAndUI());
+			if (SettingsMenuWidgetClass != nullptr)
+			{
+				SettingsMenuWidget = CreateWidget<UUserWidget>(GetWorld(), SettingsMenuWidgetClass);
+
+				if (SettingsMenuWidget)
+				{
+					SettingsMenuWidget->AddToViewport();
+				}
+			}
 		}
 	}
 }

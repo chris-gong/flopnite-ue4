@@ -147,6 +147,7 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAction("HoldBandage", IE_Pressed, this, &AFortniteCloneCharacter::HoldBandage);
 	PlayerInputComponent->BindAction("Ironsights", IE_Pressed, this, &AFortniteCloneCharacter::AimGunIn);
 	PlayerInputComponent->BindAction("Ironsights", IE_Released, this, &AFortniteCloneCharacter::AimGunOut);
+	PlayerInputComponent->BindAction("OpenSettings", IE_Pressed, this, &AFortniteCloneCharacter::OpenSettingsMenu);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
@@ -990,8 +991,14 @@ int AFortniteCloneCharacter::GetBandageCount() {
 	}
 }
 
-void AFortniteCloneCharacter::FinishSpawningProjectile(AProjectileActor* Projectile, FTransform SpawnTransform) {
-	UGameplayStatics::FinishSpawningActor(Projectile, SpawnTransform);
+void AFortniteCloneCharacter::OpenSettingsMenu() {
+	if (GetController()) {
+		APlayerController* PlayerController = Cast<APlayerController>(GetController());
+		if (PlayerController->GetHUD()) {
+			AFortniteCloneHUD* FortniteCloneHUD = Cast<AFortniteCloneHUD>(PlayerController->GetHUD());
+			FortniteCloneHUD->DrawSettingsMenu();
+		}
+	}
 }
 
 void AFortniteCloneCharacter::ServerSetIsWalkingTrue_Implementation() {
