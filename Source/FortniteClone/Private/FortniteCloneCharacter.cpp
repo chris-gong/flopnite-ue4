@@ -2328,35 +2328,40 @@ void AFortniteCloneCharacter::ClientGetBulletTransform_Implementation() {
 	else if (CurrentWeaponType == 2) {
 		WeaponSocketName = TEXT("hand_right_socket_shotgun");
 	}
-	TArray<UStaticMeshComponent*> Components;
-	CurrentWeapon->GetComponents(Components);
-	// find the muzzle component
-	for (int i = 0; i < Components.Num(); i++) {
-		if (Components[i]->GetName() == "Weapon") {
-			UStaticMeshComponent* WeaponComponent = Components[i];
+	if (CurrentWeapon != nullptr) {
+		TArray<UStaticMeshComponent*> Components;
+		CurrentWeapon->GetComponents(Components);
+		// find the muzzle component
+		for (int i = 0; i < Components.Num(); i++) {
+			if (Components[i]->GetName() == "Weapon") {
+				UStaticMeshComponent* WeaponComponent = Components[i];
 
-			FVector MuzzleLocation = WeaponComponent->GetSocketLocation("muzzle");
-			//DrawDebugSphere(GetWorld(), MuzzleLocation, 200, 26, FColor(255, 0, 0), true, -1, 0, 2);
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::SanitizeFloat(GetActorRotation().Roll) +FString(" ") + FString::SanitizeFloat(GetActorRotation().Pitch) +FString(" ") + FString::SanitizeFloat(GetActorRotation().Yaw));
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::SanitizeFloat(MuzzleLocation.X) + FString(" ") + FString::SanitizeFloat(MuzzleLocation.Y) + FString(" ") + FString::SanitizeFloat(MuzzleLocation.Z));
-			APlayerController* PlayerController = Cast<APlayerController>(GetController());
-			FRotator CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
-			FVector CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
-			PlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
-			FVector ShootDirection = CameraRotation.Vector();
-			const FVector StartTrace = FollowCamera->GetComponentLocation();
-			const FVector EndTrace = StartTrace + ShootDirection * 100000.0;
-			FHitResult Impact;
-			FCollisionQueryParams CollisionParams;
-			GetWorld()->LineTraceSingleByChannel(Impact, StartTrace, EndTrace, ECC_Visibility, CollisionParams);
+				FVector MuzzleLocation = WeaponComponent->GetSocketLocation("muzzle");
+				//DrawDebugSphere(GetWorld(), MuzzleLocation, 200, 26, FColor(255, 0, 0), true, -1, 0, 2);
+				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::SanitizeFloat(GetActorRotation().Roll) +FString(" ") + FString::SanitizeFloat(GetActorRotation().Pitch) +FString(" ") + FString::SanitizeFloat(GetActorRotation().Yaw));
+				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::SanitizeFloat(MuzzleLocation.X) + FString(" ") + FString::SanitizeFloat(MuzzleLocation.Y) + FString(" ") + FString::SanitizeFloat(MuzzleLocation.Z));
+				if (GetController() != nullptr) {
+					APlayerController* PlayerController = Cast<APlayerController>(GetController());
+					FRotator CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
+					FVector CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
+					PlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
+					FVector ShootDirection = CameraRotation.Vector();
+					const FVector StartTrace = FollowCamera->GetComponentLocation();
+					const FVector EndTrace = StartTrace + ShootDirection * 100000.0;
+					FHitResult Impact;
+					FCollisionQueryParams CollisionParams;
+					GetWorld()->LineTraceSingleByChannel(Impact, StartTrace, EndTrace, ECC_Visibility, CollisionParams);
 
-			if (Impact.bBlockingHit) {
-				FTransform SpawnTransform(ShootDirection.Rotation(), MuzzleLocation);
-				ServerSpawnProjectile(SpawnTransform);
+					if (Impact.bBlockingHit) {
+						FTransform SpawnTransform(ShootDirection.Rotation(), MuzzleLocation);
+						ServerSpawnProjectile(SpawnTransform);
+					}
+					break;
+				}
 			}
-			break;
 		}
 	}
+	
 }
 
 void AFortniteCloneCharacter::NetMulticastPlayPickaxeSwingAnimation_Implementation() {
