@@ -283,6 +283,9 @@ protected:
 	UFUNCTION()
 	void HoldBandage();
 
+	UFUNCTION()
+	void FinishSpawningProjectile(AProjectileActor* Projectile, FTransform SpawnTransform);
+
 	/*UFUNCTION(Server, WithValidation)
 	void ServerSetAnimInstance(UThirdPersonAnimInstance* AnimInstance);*/
 
@@ -455,6 +458,9 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerApplyStormDamage();
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSpawnProjectile(FTransform SpawnTransform);
+
 	UFUNCTION(Client, Reliable)
 	void ClientCameraAimIn();
 
@@ -496,6 +502,9 @@ public:
 
 	UFUNCTION(Client, Reliable)
 	void ClientDrawBloodEffect();
+
+	UFUNCTION(Client, Reliable)
+	void ClientGetBulletTransform();
 
 private:
 	// Object creation can only happen after the character has finished being constructed

@@ -21,6 +21,7 @@
 #include "FortniteCloneHUD.h"
 #include "StormActor.h"
 #include "FortniteClonePlayerController.h"
+#include "DrawDebugHelpers.h"
 
 DEFINE_LOG_CATEGORY(LogMyGame);
 //////////////////////////////////////////////////////////////////////////
@@ -989,6 +990,10 @@ int AFortniteCloneCharacter::GetBandageCount() {
 	}
 }
 
+void AFortniteCloneCharacter::FinishSpawningProjectile(AProjectileActor* Projectile, FTransform SpawnTransform) {
+	UGameplayStatics::FinishSpawningActor(Projectile, SpawnTransform);
+}
+
 void AFortniteCloneCharacter::ServerSetIsWalkingTrue_Implementation() {
 	IsWalking = true;
 }
@@ -1695,58 +1700,7 @@ void AFortniteCloneCharacter::ServerFireWeapons_Implementation() {
 					}
 
 				}
-				FName WeaponSocketName = TEXT("hand_right_socket_pickaxe");
-				if (CurrentWeaponType == 1) {
-					WeaponSocketName = TEXT("hand_right_socket_rifle");
-				}
-				else if (CurrentWeaponType == 2) {
-					WeaponSocketName = TEXT("hand_right_socket_shotgun");
-				}
-				TArray<UStaticMeshComponent*> Components;
-				CurrentWeapon->GetComponents(Components);
-				// find the muzzle component
-				for (int i = 0; i < Components.Num(); i++) {
-					if (Components[i]->GetName() == "Weapon") {
-						UStaticMeshComponent* WeaponComponent = Components[i];
-
-						FVector MuzzleLocation = WeaponComponent->GetSocketLocation("Muzzle");
-						/*if (CurrentWeaponType == 0) {
-							MuzzleLocation += FVector(0, 0, 100.0);
-						}
-						else if (CurrentWeaponType == 1) {
-							MuzzleLocation += FVector(GetActorRotation().Yaw * 0.25, GetActorRotation().Yaw * -0.25, 100.0);
-						}
-						else if (CurrentWeaponType == 2) {
-							MuzzleLocation += FVector(GetActorRotation().Yaw * 0.25, GetActorRotation().Yaw * -0.25, 75.0);
-						}*/
-						//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::SanitizeFloat(GetActorRotation().Roll) +FString(" ") + FString::SanitizeFloat(GetActorRotation().Pitch) +FString(" ") + FString::SanitizeFloat(GetActorRotation().Yaw));
-						//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::SanitizeFloat(MuzzleLocation.X) + FString(" ") + FString::SanitizeFloat(MuzzleLocation.Y) + FString(" ") + FString::SanitizeFloat(MuzzleLocation.Z));
-						APlayerController* PlayerController = Cast<APlayerController>(GetController());
-						FRotator CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
-						FVector CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
-						PlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
-						FVector ShootDirection = CameraRotation.Vector();
-						const FVector StartTrace = FollowCamera->GetComponentLocation();
-						const FVector EndTrace = StartTrace + ShootDirection * 100000.0;
-						FHitResult Impact;
-						FCollisionQueryParams CollisionParams;
-						GetWorld()->LineTraceSingleByChannel(Impact, StartTrace, EndTrace, ECC_Visibility, CollisionParams);
-
-						if (Impact.bBlockingHit) {
-							FTransform SpawnTransform(ShootDirection.Rotation(), MuzzleLocation);
-							auto Bullet = Cast<AProjectileActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, CurrentWeapon->BulletClass, SpawnTransform));
-							if (Bullet != nullptr)
-							{
-								//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
-								Bullet->Weapon = CurrentWeapon;
-								Bullet->WeaponHolder = this;
-
-								UGameplayStatics::FinishSpawningActor(Bullet, SpawnTransform);
-							}
-						}
-						break;
-					}
-				}
+				ClientGetBulletTransform();
 				
 
 			}
@@ -2332,12 +2286,77 @@ bool AFortniteCloneCharacter::ServerShotgunReloadTimeOut_Validate() {
 	return true;
 }
 
+void AFortniteCloneCharacter::ServerSpawnProjectile_Implementation(FTransform SpawnTransform) {
+	
+	auto Bullet = Cast<AProjectileActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, CurrentWeapon->BulletClass, SpawnTransform, ESpawnActorCollisionHandlingMethod::AlwaysSpawn));
+	if (Bullet != nullptr)
+	{
+		//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
+		Bullet->Weapon = CurrentWeapon;
+		Bullet->WeaponHolder = this;
+
+		/*FTimerHandle BulletTimerHandle;
+		FTimerDelegate BulletTimerDelegate;
+		BulletTimerDelegate.BindUFunction(this, FName("FinishSpawningProjectile"), Bullet, SpawnTransform);
+		GetWorldTimerManager().SetTimer(BulletTimerHandle, BulletTimerDelegate, 0.2, false);*/
+		UGameplayStatics::FinishSpawningActor(Bullet, SpawnTransform);
+		Bullet->SetOwner(this);
+	}
+	/*AProjectileActor* Bullet = NewObject < AProjectileActor>(CurrentWeapon->BulletClass);
+	Bullet->SetActorTransform(SpawnTransform);
+	Bullet->Weapon = CurrentWeapon;
+	Bullet->WeaponHolder = this;*/
+}
+
+bool AFortniteCloneCharacter::ServerSpawnProjectile_Validate(FTransform SpawnTransform) {
+	return true;
+}
+
 void AFortniteCloneCharacter::ClientCameraAimIn_Implementation() {
 	FollowCamera->FieldOfView = 45;
 }
 
 void AFortniteCloneCharacter::ClientCameraAimOut_Implementation() {
 	FollowCamera->FieldOfView = 90;
+}
+
+void AFortniteCloneCharacter::ClientGetBulletTransform_Implementation() {
+	FName WeaponSocketName = TEXT("hand_right_socket_pickaxe");
+	if (CurrentWeaponType == 1) {
+		WeaponSocketName = TEXT("hand_right_socket_rifle");
+	}
+	else if (CurrentWeaponType == 2) {
+		WeaponSocketName = TEXT("hand_right_socket_shotgun");
+	}
+	TArray<UStaticMeshComponent*> Components;
+	CurrentWeapon->GetComponents(Components);
+	// find the muzzle component
+	for (int i = 0; i < Components.Num(); i++) {
+		if (Components[i]->GetName() == "Weapon") {
+			UStaticMeshComponent* WeaponComponent = Components[i];
+
+			FVector MuzzleLocation = WeaponComponent->GetSocketLocation("muzzle");
+			//DrawDebugSphere(GetWorld(), MuzzleLocation, 200, 26, FColor(255, 0, 0), true, -1, 0, 2);
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::SanitizeFloat(GetActorRotation().Roll) +FString(" ") + FString::SanitizeFloat(GetActorRotation().Pitch) +FString(" ") + FString::SanitizeFloat(GetActorRotation().Yaw));
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::SanitizeFloat(MuzzleLocation.X) + FString(" ") + FString::SanitizeFloat(MuzzleLocation.Y) + FString(" ") + FString::SanitizeFloat(MuzzleLocation.Z));
+			APlayerController* PlayerController = Cast<APlayerController>(GetController());
+			FRotator CameraRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
+			FVector CameraLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
+			PlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
+			FVector ShootDirection = CameraRotation.Vector();
+			const FVector StartTrace = FollowCamera->GetComponentLocation();
+			const FVector EndTrace = StartTrace + ShootDirection * 100000.0;
+			FHitResult Impact;
+			FCollisionQueryParams CollisionParams;
+			GetWorld()->LineTraceSingleByChannel(Impact, StartTrace, EndTrace, ECC_Visibility, CollisionParams);
+
+			if (Impact.bBlockingHit) {
+				FTransform SpawnTransform(ShootDirection.Rotation(), MuzzleLocation);
+				ServerSpawnProjectile(SpawnTransform);
+			}
+			break;
+		}
+	}
 }
 
 void AFortniteCloneCharacter::NetMulticastPlayPickaxeSwingAnimation_Implementation() {
