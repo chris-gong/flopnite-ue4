@@ -468,6 +468,9 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerBuildStructure(TSubclassOf<ABuildingActor> StructureClass, FVector SpawnLocationFRotator, FRotator SpawnRotation, int StructureId);
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSetMaterialCount(int Count, int MaterialType);
+
 	UFUNCTION(Client, Reliable)
 	void ClientCameraAimIn();
 

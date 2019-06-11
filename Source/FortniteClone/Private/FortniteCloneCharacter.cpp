@@ -874,6 +874,7 @@ void AFortniteCloneCharacter::BuildStructure() {
 				State->MaterialCounts[CurrentBuildingMaterial] -= 10;
 
 				ServerBuildStructure(WallClasses[CurrentBuildingMaterial], GridLocation, GridRotation, Wall->Id);
+				ServerSetMaterialCount(State->MaterialCounts[CurrentBuildingMaterial], CurrentBuildingMaterial);
 			}
 			else if (State->InBuildMode && State->BuildMode == FString("Ramp") && State->MaterialCounts[CurrentBuildingMaterial] >= 10) {
 				TArray<AActor*> OverlappingActors;
@@ -930,6 +931,7 @@ void AFortniteCloneCharacter::BuildStructure() {
 				State->MaterialCounts[CurrentBuildingMaterial] -= 10;
 
 				ServerBuildStructure(RampClasses[CurrentBuildingMaterial], GridLocation, GridRotation, Ramp->Id);
+				ServerSetMaterialCount(State->MaterialCounts[CurrentBuildingMaterial], CurrentBuildingMaterial);
 			}
 			else if (State->InBuildMode && State->BuildMode == FString("Floor") && State->MaterialCounts[CurrentBuildingMaterial] >= 10) {
 				TArray<AActor*> OverlappingActors;
@@ -981,6 +983,7 @@ void AFortniteCloneCharacter::BuildStructure() {
 				State->MaterialCounts[CurrentBuildingMaterial] -= 10;
 
 				ServerBuildStructure(FloorClasses[CurrentBuildingMaterial], GridLocation, GridRotation, Floor->Id);
+				ServerSetMaterialCount(State->MaterialCounts[CurrentBuildingMaterial], CurrentBuildingMaterial);
 			}
 		}
 	}
@@ -1291,6 +1294,20 @@ void AFortniteCloneCharacter::ServerResetMovingRight_Implementation() {
 bool AFortniteCloneCharacter::ServerResetMovingRight_Validate() {
 	return true;
 }
+
+void AFortniteCloneCharacter::ServerSetMaterialCount_Implementation(int Count, int MaterialType) {
+	if (GetController()) {
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+		if (State) {
+			State->MaterialCounts[MaterialType] = Count;
+		}
+	}
+}
+
+bool AFortniteCloneCharacter::ServerSetMaterialCount_Validate(int Count, int MaterialType) {
+	return true;
+}
+
 void AFortniteCloneCharacter::ServerBuildStructure_Implementation(TSubclassOf<ABuildingActor> StructureClass, FVector SpawnLocation, FRotator SpawnRotation, int StructureId) {
 	if (StructureClass != nullptr) {
 		GetWorld()->SpawnActor<ABuildingActor>(StructureClass, SpawnLocation, SpawnRotation);
