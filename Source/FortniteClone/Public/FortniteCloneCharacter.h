@@ -237,7 +237,7 @@ protected:
 
 	/* When the wall is shown, you will have the option to attempt to build it*/
 	UFUNCTION()
-	void BuildStructure();
+	void BuildStructure(float Value);
 
 	UFUNCTION()
 	void SwitchBuildingMaterial();
