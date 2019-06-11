@@ -5,13 +5,16 @@ public class AWSCore : ModuleRules
 {
 	public AWSCore(ReadOnlyTargetRules Target ): base(Target)
 	{
-        PrivateIncludePaths.AddRange(new string[] { "AWSCore/Private" });
-		PublicIncludePaths.AddRange(new string[] { "AWSCore/Public" });
+        PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "Private"));
+		PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public"));
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Engine", "Core", "CoreUObject", "InputCore", "Projects"});
 		PrivateDependencyModuleNames.AddRange(new string[] { });
 
-		string BaseDirectory = System.IO.Path.GetFullPath(System.IO.Path.Combine(ModuleDirectory, "..", ".."));
+        // This is required to fix a warning for Unreal Engine 4.21 and later
+        PrivatePCHHeaderFile = "Private/AWSCorePrivatePCH.h";
+
+        string BaseDirectory = System.IO.Path.GetFullPath(System.IO.Path.Combine(ModuleDirectory, "..", ".."));
         string ThirdPartyPath = System.IO.Path.Combine(BaseDirectory, "ThirdParty", "GameLiftClientSDK", Target.Platform.ToString());
         bool bIsThirdPartyPathValid = System.IO.Directory.Exists(ThirdPartyPath);
 
@@ -32,7 +35,7 @@ public class AWSCore : ModuleRules
 			if (File.Exists(AWSCoreDLLFile))
 			{
                 PublicDelayLoadDLLs.Add("aws-cpp-sdk-core.dll");
-                RuntimeDependencies.Add(new RuntimeDependency(AWSCoreDLLFile));
+                RuntimeDependencies.Add(AWSCoreDLLFile);
 			}
 			else
 			{
