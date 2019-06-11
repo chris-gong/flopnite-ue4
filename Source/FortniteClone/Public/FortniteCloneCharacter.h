@@ -466,6 +466,12 @@ public:
 	void ServerSpawnProjectile(FTransform SpawnTransform);
 
 	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSpawnAndAttachWeapon(int WeaponType, FTransform SpawnTransform);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSpawnAndAttachBandage(FTransform SpawnTransform);
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerBuildStructure(TSubclassOf<ABuildingActor> StructureClass, FVector SpawnLocationFRotator, FRotator SpawnRotation, int StructureId);
 
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -515,6 +521,12 @@ public:
 
 	UFUNCTION(Client, Reliable)
 	void ClientGetBulletTransform();
+
+	UFUNCTION(Client, Reliable)
+	void ClientGetWeaponTransform(int WeaponType);
+
+	UFUNCTION(Client, Reliable)
+	void ClientGetBandageTransform();
 
 	UFUNCTION(Client, Reliable)
 	void ClientDestroyStructure(int StructureId);
