@@ -66,6 +66,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "SettingsMenu")
 	TSubclassOf<UUserWidget> SettingsMenuWidgetClass;
 
+	UPROPERTY(EditAnywhere, Category = "BuildingHotkeys")
+	TSubclassOf<UUserWidget> BuildingHotkeysWidgetClass;
+
 	UPROPERTY(EditAnywhere, Category = "Widget")
 	UUserWidget* CurrentWidget;
 

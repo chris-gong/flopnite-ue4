@@ -29,6 +29,8 @@ AFortniteCloneHUD::AFortniteCloneHUD()
 	BloodEffectWidgetClass = BloodEffectObj.Class;
 	static ConstructorHelpers::FClassFinder<UUserWidget> SettingsMenuObj(TEXT("/Game/UI/Widgets/UI_SettingsMenu"));
 	SettingsMenuWidgetClass = SettingsMenuObj.Class;
+	static ConstructorHelpers::FClassFinder<UUserWidget> BuildingHotkeysObj(TEXT("/Game/UI/Widgets/UI_BuildingHotkeys"));
+	BuildingHotkeysWidgetClass = BuildingHotkeysObj.Class;
 }
 
 void AFortniteCloneHUD::DrawHUD()
@@ -145,6 +147,14 @@ void AFortniteCloneHUD::DrawGameUI() {
 	if (CountWidgetClass != nullptr)
 	{
 		CurrentWidget = CreateWidget<UUserWidget>(GetWorld(), CountWidgetClass);
+
+		if (CurrentWidget)
+		{
+			CurrentWidget->AddToViewport();
+		}
+	}
+	if (BuildingHotkeysWidgetClass != nullptr) {
+		CurrentWidget = CreateWidget<UUserWidget>(GetWorld(), BuildingHotkeysWidgetClass);
 
 		if (CurrentWidget)
 		{
