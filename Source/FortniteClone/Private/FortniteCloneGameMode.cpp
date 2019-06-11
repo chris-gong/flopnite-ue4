@@ -8,8 +8,8 @@
 #include "UObject/ConstructorHelpers.h"
 #include "FortniteClone.h"
 #include "GameLiftServerSDK.h"
-#include "GameLiftClientSDK/Public/GameLiftClientObject.h"
-#include "GameLiftClientSDK/Public/GameLiftClientApi.h"
+//#include "GameLiftClientSDK/Public/GameLiftClientObject.h"
+//#include "GameLiftClientSDK/Public/GameLiftClientApi.h"
 #include "StormActor.h"
 #include "FortniteClonePlayerController.h"
 
@@ -42,7 +42,7 @@ AFortniteCloneGameMode::AFortniteCloneGameMode()
 
 	//Let's run this code only if GAMELIFT is enabled. Only with Server targets!
 #if WITH_GAMELIFT
-
+	i =
 	//Getting the module first.
 	FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
 
@@ -143,8 +143,8 @@ void AFortniteCloneGameMode::PostLogin(APlayerController *NewPlayer) {
 
 void AFortniteCloneGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) {
 	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
-#if WITH_GAMELIFT
-	/*if (*Options) {
+/*#if WITH_GAMELIFT
+	if (*Options) {
 		FString PlayerSessionId = *Options;
 
 		FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
@@ -158,8 +158,8 @@ void AFortniteCloneGameMode::PreLogin(const FString& Options, const FString& Add
 	}
 	else {
 		UE_LOG(LogMyServer, Log, TEXT("Options does not exist"));
-	}*/
-#endif
+	}
+#endif*/
 }
 
 void AFortniteCloneGameMode::NetMulticastSpawnStorm_Implementation() {

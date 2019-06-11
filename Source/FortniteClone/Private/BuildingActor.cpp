@@ -2,6 +2,7 @@
 
 #include "BuildingActor.h"
 #include "UnrealNetwork.h"
+#include "Engine.h"
 
 // Sets default values
 ABuildingActor::ABuildingActor()
@@ -15,7 +16,6 @@ ABuildingActor::ABuildingActor()
 void ABuildingActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame

@@ -8,7 +8,17 @@ public class FortniteClone : ModuleRules
 	{
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         bEnableExceptions = true;
+        bEnforceIWYU = true;
+        if (Target.Configuration != UnrealTargetConfiguration.Shipping)
+        {
+            bFasterWithoutUnity = true;
+        }
         //bForceEnableExceptions = true;
         PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "UMG", "GameLiftServerSDK", "GameLiftClientSDK"});
+        if(Target.Configuration != UnrealTargetConfiguration.Shipping)
+        {
+            MinFilesUsingPrecompiledHeaderOverride = 1;
+            bFasterWithoutUnity = true;
+        }
     }
 }

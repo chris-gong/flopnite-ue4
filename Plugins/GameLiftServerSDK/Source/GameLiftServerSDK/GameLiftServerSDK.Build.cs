@@ -48,6 +48,13 @@ public class GameLiftServerSDK : ModuleRules
         PrivatePCHHeaderFile = "Private/GameLiftServerSDKPrivatePCH.h";
 
         bEnableExceptions = true;
+        bEnforceIWYU = true;
+
+        if (Target.Configuration != UnrealTargetConfiguration.Shipping)
+        {
+            MinFilesUsingPrecompiledHeaderOverride = 1;
+            bFasterWithoutUnity = true;
+        }
 
         string BaseDirectory = System.IO.Path.GetFullPath(System.IO.Path.Combine(ModuleDirectory, "..", ".."));
         string SDKDirectory = System.IO.Path.Combine(BaseDirectory, "ThirdParty", "GameLiftServerSDK", Target.Platform.ToString());

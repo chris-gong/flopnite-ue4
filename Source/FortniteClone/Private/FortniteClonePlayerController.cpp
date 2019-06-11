@@ -41,9 +41,9 @@ void AFortniteClonePlayerController::Tick(float DeltaTime) {
 		if (SpawnAsSpectator && PlayerState && !PlayerState->bIsSpectator) {
 			ChangeState(NAME_Spectating);
 			ClientGotoState(NAME_Spectating);
-			APawn* Pawn = Cast<APawn>(GetWorld()->SpawnActor<AFortniteCloneSpectator>(PlayerSpectatorClass, FVector(-900, 350.0, 31812), FRotator::ZeroRotator));
+			APawn* PlayerPawn = Cast<APawn>(GetWorld()->SpawnActor<AFortniteCloneSpectator>(PlayerSpectatorClass, FVector(-900, 350.0, 31812), FRotator::ZeroRotator));
 			//SetSpectatorPawn(Pawn);
-			Possess(Pawn);
+			Possess(PlayerPawn);
 			Cast<AFortniteClonePlayerState>(PlayerState)->bIsSpectator = true; // ORDER MATTERS HERE, HAS TO BE SET AFTER POSSESSING A PAWN
 		}
 	}
@@ -63,9 +63,9 @@ void AFortniteClonePlayerController::ServerSwitchToSpectatorMode_Implementation(
 		//Cast<AFortniteClonePlayerState>(PlayerState)->bIsSpectator = true;
 		ChangeState(NAME_Spectating);
 		ClientGotoState(NAME_Spectating);
-		APawn* Pawn = Cast<APawn>(GetWorld()->SpawnActor<AFortniteCloneSpectator>(PlayerSpectatorClass, FVector(-900, 350.0, 31812), FRotator::ZeroRotator));
+		APawn* PlayerPawn = Cast<APawn>(GetWorld()->SpawnActor<AFortniteCloneSpectator>(PlayerSpectatorClass, FVector(-900, 350.0, 31812), FRotator::ZeroRotator));
 		//SetSpectatorPawn(Pawn);
-		Possess(Pawn);
+		Possess(PlayerPawn);
 		Cast<AFortniteClonePlayerState>(PlayerState)->bIsSpectator = true; // ORDER MATTERS HERE, HAS TO BE SET AFTER POSSESSING A PAWN
 		FString LogMsg = FString("switch to spectator mode ") + FString::FromInt(GetNetMode());
 		UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);

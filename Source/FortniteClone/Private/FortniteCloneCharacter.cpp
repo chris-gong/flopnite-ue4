@@ -85,7 +85,7 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	RunningX = 0;
 	RunningY = 0;
 	InStorm = true;
-
+	CurrentStructureId = 0;
 	// Playerstate properties
 	/*InBuildMode = false;
 	BuildMode = FString("None");
@@ -819,7 +819,172 @@ void AFortniteCloneCharacter::PreviewFloor() {
 }
 
 void AFortniteCloneCharacter::BuildStructure() {
-	ServerBuildStructures();
+	// Build a structure on the client side first then run a server rpc that destroys that structure and respawns it
+	if (GetController()) {
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+		if (State) {
+			FVector DirectionVector = FVector(0, AimYaw, AimPitch);
+			if (State->InBuildMode && State->BuildMode == FString("Wall") && State->MaterialCounts[CurrentBuildingMaterial] >= 10) {
+				TArray<AActor*> OverlappingActors;
+
+				FVector ProjectedLocation = GetActorLocation() + (GetActorForwardVector() * FVector(200.0, 50.0, 1.0)) + (FVector(0, 0, DirectionVector.Z) * 4.0); // projected location before setting to grid using actor forward and direction (aim offset) vectors
+				float GridLocationX = FMath::RoundHalfFromZero(ProjectedLocation.X / 400.0) * 400;
+				float GridLocationY = FMath::RoundHalfFromZero(ProjectedLocation.Y / 400.0) * 400;
+				float GridLocationZ = FMath::RoundHalfFromZero(ProjectedLocation.Z / 400.0) * 400;
+				FVector GridLocation = FVector(GridLocationX, GridLocationY, GridLocationZ);
+				FRotator ProjectedRotation = GetActorRotation().Add(0, 90, 0); // projected rotation before setting to grid using the actor's rotation
+				float GridRotationYaw = FMath::RoundHalfFromZero(ProjectedRotation.Yaw / 90.0) * 90;
+
+				FRotator GridRotation = FRotator(0, GridRotationYaw, 0);
+				/*FString LogMsg = FString("GridLocation X ") + FString::SanitizeFloat(GridLocation.X) + FString(" ProjectedLocation X") + FString::SanitizeFloat(ProjectedLocation.X);
+				UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
+				// to make the structures connect with each other, have to add an offset when in a different rotation
+				if (FMath::Abs(GridRotationYaw) == 0) {
+					GridLocation.Y -= 200.0;
+					if (ProjectedLocation.X < GridLocation.X) {
+						GridLocation.X -= 200.0;
+					}
+					else {
+						GridLocation.X += 200.0;
+					}
+				}
+				if (FMath::Abs(GridRotationYaw) == 180) {
+					GridLocation.Y += 200.0;
+					if (ProjectedLocation.X > GridLocation.X) {
+						GridLocation.X += 200.0;
+					}
+					else {
+						GridLocation.X -= 200.0;
+					}
+				}
+
+				ABuildingActor* Wall = GetWorld()->SpawnActor<ABuildingActor>(WallClasses[CurrentBuildingMaterial], GridLocation, GridRotation);
+				
+				for (int i = 0; i < OverlappingActors.Num(); i++) {
+					//don't allow a player to build a structure that overlaps with another player
+					if (OverlappingActors[i]->IsA(AFortniteCloneCharacter::StaticClass())) {
+						Wall->Destroy();
+						return;
+					}
+				}
+				Wall->Id = CurrentStructureId;
+				CurrentStructureId += 1;
+				ClientSpawnedStructures.Add(Wall);
+
+				State->MaterialCounts[CurrentBuildingMaterial] -= 10;
+
+				ServerBuildStructure(WallClasses[CurrentBuildingMaterial], GridLocation, GridRotation, Wall->Id);
+			}
+			else if (State->InBuildMode && State->BuildMode == FString("Ramp") && State->MaterialCounts[CurrentBuildingMaterial] >= 10) {
+				TArray<AActor*> OverlappingActors;
+				//original 400, 200, 2
+				FVector ProjectedLocation = GetActorLocation() + (GetActorForwardVector() * FVector(475.0, 335.0, 1.0)) + (FVector(0, 0, DirectionVector.Z) * 3.0); // projected location before setting to grid using actor forward and direction (aim offset) vectors
+				float GridLocationX = FMath::RoundHalfFromZero(ProjectedLocation.X / 400.0) * 400;
+				float GridLocationY = FMath::RoundHalfFromZero(ProjectedLocation.Y / 400.0) * 400;
+				float GridLocationZ = FMath::RoundHalfFromZero(ProjectedLocation.Z / 400.0) * 400;
+				FVector GridLocation = FVector(GridLocationX, GridLocationY, GridLocationZ);
+				FRotator ProjectedRotation = GetActorRotation().Add(0, 90, 0); // projected rotation before setting to grid using the actor's rotation
+				float GridRotationYaw = FMath::RoundHalfFromZero(ProjectedRotation.Yaw / 90.0) * 90;
+
+				FRotator GridRotation = FRotator(0, GridRotationYaw, 0);
+
+				// to make the structures connect with each other, have to add an offset based on rotation
+				if (GridRotationYaw == 90 || GridRotationYaw == -270) {
+					GridLocation.X -= 200;
+				}
+				if (GridRotationYaw == 270 || GridRotationYaw == -90) {
+					GridLocation.X += 200;
+				}
+				if (FMath::Abs(GridRotationYaw) == 0) {
+					if (ProjectedLocation.X < GridLocation.X) {
+						GridLocation.X -= 200.0;
+					}
+					else {
+						GridLocation.X += 200.0;
+					}
+				}
+				if (FMath::Abs(GridRotationYaw) == 180) {
+					if (ProjectedLocation.X > GridLocation.X) {
+						GridLocation.X += 200.0;
+					}
+					else {
+						GridLocation.X -= 200.0;
+					}
+				}
+
+				ABuildingActor* Ramp = GetWorld()->SpawnActor<ABuildingActor>(RampClasses[CurrentBuildingMaterial], GridLocation, GridRotation);
+
+				Ramp->GetOverlappingActors(OverlappingActors);
+
+				for (int i = 0; i < OverlappingActors.Num(); i++) {
+					//don't allow a player to build a structure that overlaps with another player
+					if (OverlappingActors[i]->IsA(AFortniteCloneCharacter::StaticClass())) {
+						Ramp->Destroy();
+						return;
+					}
+				}
+				Ramp->Id = CurrentStructureId;
+				CurrentStructureId += 1;
+				ClientSpawnedStructures.Add(Ramp);
+
+				State->MaterialCounts[CurrentBuildingMaterial] -= 10;
+
+				ServerBuildStructure(RampClasses[CurrentBuildingMaterial], GridLocation, GridRotation, Ramp->Id);
+			}
+			else if (State->InBuildMode && State->BuildMode == FString("Floor") && State->MaterialCounts[CurrentBuildingMaterial] >= 10) {
+				TArray<AActor*> OverlappingActors;
+
+				FVector ProjectedLocation = GetActorLocation() + (GetActorForwardVector() * FVector(200.0, 50.0, 1.0)) + (FVector(0, 0, (DirectionVector.Z * 4.0) + 150)); // projected location before setting to grid using actor forward and direction (aim offset) vectors
+				float GridLocationX = FMath::RoundHalfFromZero(ProjectedLocation.X / 400.0) * 400;
+				float GridLocationY = FMath::RoundHalfFromZero(ProjectedLocation.Y / 400.0) * 400;
+				float GridLocationZ = FMath::RoundHalfFromZero(ProjectedLocation.Z / 400.0) * 400;
+				FVector GridLocation = FVector(GridLocationX, GridLocationY, GridLocationZ);
+				FRotator ProjectedRotation = GetActorRotation().Add(0, 90, 0); // projected rotation before setting to grid using the actor's rotation
+				float GridRotationYaw = FMath::RoundHalfFromZero(ProjectedRotation.Yaw / 90.0) * 90;
+
+				FRotator GridRotation = FRotator(0, GridRotationYaw, 0);
+
+				if (FMath::Abs(GridRotationYaw) == 0) {
+					GridLocation.Y -= 200.0;
+					if (ProjectedLocation.X < GridLocation.X) {
+						GridLocation.X -= 200.0;
+					}
+					else {
+						GridLocation.X += 200.0;
+					}
+				}
+				if (FMath::Abs(GridRotationYaw) == 180) {
+					GridLocation.Y += 200.0;
+					if (ProjectedLocation.X > GridLocation.X) {
+						GridLocation.X += 200.0;
+					}
+					else {
+						GridLocation.X -= 200.0;
+					}
+				}
+
+				ABuildingActor* Floor = GetWorld()->SpawnActor<ABuildingActor>(FloorClasses[CurrentBuildingMaterial], GridLocation, GridRotation);
+
+				Floor->GetOverlappingActors(OverlappingActors);
+
+				for (int i = 0; i < OverlappingActors.Num(); i++) {
+					//don't allow a player to build a structure that overlaps with another player
+					if (OverlappingActors[i]->IsA(AFortniteCloneCharacter::StaticClass())) {
+						Floor->Destroy();
+						return;
+					}
+				}
+				Floor->Id = CurrentStructureId;
+				CurrentStructureId += 1;
+				ClientSpawnedStructures.Add(Floor);
+
+				State->MaterialCounts[CurrentBuildingMaterial] -= 10;
+
+				ServerBuildStructure(FloorClasses[CurrentBuildingMaterial], GridLocation, GridRotation, Floor->Id);
+			}
+		}
+	}
+	
 }
 
 void AFortniteCloneCharacter::SwitchBuildingMaterial() {
@@ -827,7 +992,7 @@ void AFortniteCloneCharacter::SwitchBuildingMaterial() {
 }
 
 void AFortniteCloneCharacter::ShootGun() {
-	ServerFireWeapons();
+	ServerFireWeapon();
 }
 
 void AFortniteCloneCharacter::UseBandage() {
@@ -1126,6 +1291,17 @@ void AFortniteCloneCharacter::ServerResetMovingRight_Implementation() {
 bool AFortniteCloneCharacter::ServerResetMovingRight_Validate() {
 	return true;
 }
+void AFortniteCloneCharacter::ServerBuildStructure_Implementation(TSubclassOf<ABuildingActor> StructureClass, FVector SpawnLocation, FRotator SpawnRotation, int StructureId) {
+	if (StructureClass != nullptr) {
+		GetWorld()->SpawnActor<ABuildingActor>(StructureClass, SpawnLocation, SpawnRotation);
+
+		ClientDestroyStructure(StructureId);
+	}
+}
+
+bool AFortniteCloneCharacter::ServerBuildStructure_Validate(TSubclassOf<ABuildingActor> StructureClass, FVector SpawnLocation, FRotator SpawnRotation, int StructureId) {
+	return true;
+}
 
 void AFortniteCloneCharacter::ServerSetBuildModeWall_Implementation() {
 	if (GetController()) {
@@ -1185,9 +1361,10 @@ void AFortniteCloneCharacter::ServerSetBuildModeWall_Implementation() {
 					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::SnapToTarget, true);
 
 					FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
-					auto CurrentHealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
-					if (CurrentHealingItem != nullptr)
+					auto HealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
+					if (HealingItem != nullptr)
 					{
+						CurrentHealingItem = HealingItem;
 						//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
 						CurrentHealingItem->Holder = this;
 
@@ -1299,9 +1476,10 @@ void AFortniteCloneCharacter::ServerSetBuildModeRamp_Implementation() {
 					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::SnapToTarget, true);
 
 					FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
-					auto CurrentHealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
-					if (CurrentHealingItem != nullptr)
+					auto HealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
+					if (HealingItem != nullptr)
 					{
+						CurrentHealingItem = HealingItem;
 						//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
 						CurrentHealingItem->Holder = this;
 
@@ -1411,9 +1589,10 @@ void AFortniteCloneCharacter::ServerSetBuildModeFloor_Implementation() {
 					FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::SnapToTarget, true);
 
 					FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
-					auto CurrentHealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
-					if (CurrentHealingItem != nullptr)
+					auto HealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
+					if (HealingItem != nullptr)
 					{
+						CurrentHealingItem = HealingItem;
 						//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
 						CurrentHealingItem->Holder = this;
 
@@ -1466,176 +1645,7 @@ bool AFortniteCloneCharacter::ServerSetBuildModeFloor_Validate() {
 	return true;
 }
 
-void AFortniteCloneCharacter::ServerBuildStructures_Implementation() {
-	if (GetController()) {
-		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-		if (State) {
-			FVector DirectionVector = FVector(0, AimYaw, AimPitch);
-			if (State->InBuildMode && State->BuildMode == FString("Wall") && State->MaterialCounts[CurrentBuildingMaterial] >= 10) {
-				TArray<AActor*> OverlappingActors;
-
-				FVector ProjectedLocation = GetActorLocation() + (GetActorForwardVector() * FVector(200.0, 50.0, 1.0)) + (FVector(0, 0, DirectionVector.Z) * 4.0); // projected location before setting to grid using actor forward and direction (aim offset) vectors
-				float GridLocationX = FMath::RoundHalfFromZero(ProjectedLocation.X / 400.0) * 400;
-				float GridLocationY = FMath::RoundHalfFromZero(ProjectedLocation.Y / 400.0) * 400;
-				float GridLocationZ = FMath::RoundHalfFromZero(ProjectedLocation.Z / 400.0) * 400;
-				FVector GridLocation = FVector(GridLocationX, GridLocationY, GridLocationZ);
-				FRotator ProjectedRotation = GetActorRotation().Add(0, 90, 0); // projected rotation before setting to grid using the actor's rotation
-				float GridRotationYaw = FMath::RoundHalfFromZero(ProjectedRotation.Yaw / 90.0) * 90;
-
-				FRotator GridRotation = FRotator(0, GridRotationYaw, 0);
-				FString LogMsg = FString("GridLocation X ") + FString::SanitizeFloat(GridLocation.X) + FString(" ProjectedLocation X") + FString::SanitizeFloat(ProjectedLocation.X);
-				UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
-				// to make the structures connect with each other, have to add an offset when in a different rotation
-				if (FMath::Abs(GridRotationYaw) == 0) {
-					GridLocation.Y -= 200.0;
-					if (ProjectedLocation.X < GridLocation.X) {
-						GridLocation.X -= 200.0;
-					}
-					else {
-						GridLocation.X += 200.0;
-					}
-				}
-				if (FMath::Abs(GridRotationYaw) == 180) {
-					GridLocation.Y += 200.0;
-					if (ProjectedLocation.X > GridLocation.X) {
-						GridLocation.X += 200.0;
-					}
-					else {
-						GridLocation.X -= 200.0;
-					}
-				}
-
-				ABuildingActor* Wall = GetWorld()->SpawnActor<ABuildingActor>(WallClasses[CurrentBuildingMaterial], GridLocation, GridRotation);
-
-				// Commented code below was meant for getting the size of the static mesh component, but it wasn't accurate since I change the scaling so I had to go to the editor and calculate by hand
-				/*
-				TArray<UStaticMeshComponent*> Components;
-				Wall->GetComponents<UStaticMeshComponent>(Components);
-				Wall->GetOverlappingActors(OverlappingActors);
-				for (int i = 0; i < Components.Num(); i++) {
-					UStaticMeshComponent* StaticMeshComponent = Components[i];
-					UStaticMesh* StaticMesh = StaticMeshComponent->GetStaticMesh();
-
-					FVector Size = StaticMesh->GetBoundingBox().GetSize();
-					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Size of wall ") + FString::SanitizeFloat(Size.X) + FString(" ") + FString::SanitizeFloat(Size.Y) + FString(" ") + FString::SanitizeFloat(Size.Z));
-				}*/
-
-				for (int i = 0; i < OverlappingActors.Num(); i++) {
-					//don't allow a player to build a structure that overlaps with another player
-					if (OverlappingActors[i]->IsA(AFortniteCloneCharacter::StaticClass())) {
-						Wall->Destroy();
-						return;
-					}
-				}
-				State->MaterialCounts[CurrentBuildingMaterial] -= 10;
-			}
-			else if (State->InBuildMode && State->BuildMode == FString("Ramp") && State->MaterialCounts[CurrentBuildingMaterial] >= 10) {
-				TArray<AActor*> OverlappingActors;
-				//original 400, 200, 2
-				FVector ProjectedLocation = GetActorLocation() + (GetActorForwardVector() * FVector(475.0, 335.0, 1.0)) + (FVector(0, 0, DirectionVector.Z) * 3.0); // projected location before setting to grid using actor forward and direction (aim offset) vectors
-				float GridLocationX = FMath::RoundHalfFromZero(ProjectedLocation.X / 400.0) * 400;
-				float GridLocationY = FMath::RoundHalfFromZero(ProjectedLocation.Y / 400.0) * 400;
-				float GridLocationZ = FMath::RoundHalfFromZero(ProjectedLocation.Z / 400.0) * 400;
-				FVector GridLocation = FVector(GridLocationX, GridLocationY, GridLocationZ);
-				FRotator ProjectedRotation = GetActorRotation().Add(0, 90, 0); // projected rotation before setting to grid using the actor's rotation
-				float GridRotationYaw = FMath::RoundHalfFromZero(ProjectedRotation.Yaw / 90.0) * 90;
-
-				FRotator GridRotation = FRotator(0, GridRotationYaw, 0);
-				FString LogMsg = FString("GridLocation X ") + FString::SanitizeFloat(GridLocation.X) + FString(" ProjectedLocation X") + FString::SanitizeFloat(ProjectedLocation.X);
-				UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
-				// to make the structures connect with each other, have to add an offset based on rotation
-				if (GridRotationYaw == 90 || GridRotationYaw == -270) {
-					GridLocation.X -= 200;
-				}
-				if (GridRotationYaw == 270 || GridRotationYaw == -90) {
-					GridLocation.X += 200;
-				}
-				if (FMath::Abs(GridRotationYaw) == 0) {
-					if (ProjectedLocation.X < GridLocation.X) {
-						GridLocation.X -= 200.0;
-					}
-					else {
-						GridLocation.X += 200.0;
-					}
-				}
-				if (FMath::Abs(GridRotationYaw) == 180) {
-					if (ProjectedLocation.X > GridLocation.X) {
-						GridLocation.X += 200.0;
-					}
-					else {
-						GridLocation.X -= 200.0;
-					}
-				}
-
-				ABuildingActor* Ramp = GetWorld()->SpawnActor<ABuildingActor>(RampClasses[CurrentBuildingMaterial], GridLocation, GridRotation);
-
-				Ramp->GetOverlappingActors(OverlappingActors);
-
-				for (int i = 0; i < OverlappingActors.Num(); i++) {
-					//don't allow a player to build a structure that overlaps with another player
-					if (OverlappingActors[i]->IsA(AFortniteCloneCharacter::StaticClass())) {
-						Ramp->Destroy();
-						return;
-					}
-				}
-				State->MaterialCounts[CurrentBuildingMaterial] -= 10;
-			}
-			else if (State->InBuildMode && State->BuildMode == FString("Floor") && State->MaterialCounts[CurrentBuildingMaterial] >= 10) {
-				TArray<AActor*> OverlappingActors;
-
-				FVector ProjectedLocation = GetActorLocation() + (GetActorForwardVector() * FVector(200.0, 50.0, 1.0)) + (FVector(0, 0, (DirectionVector.Z * 4.0) + 150)); // projected location before setting to grid using actor forward and direction (aim offset) vectors
-				float GridLocationX = FMath::RoundHalfFromZero(ProjectedLocation.X / 400.0) * 400;
-				float GridLocationY = FMath::RoundHalfFromZero(ProjectedLocation.Y / 400.0) * 400;
-				float GridLocationZ = FMath::RoundHalfFromZero(ProjectedLocation.Z / 400.0) * 400;
-				FVector GridLocation = FVector(GridLocationX, GridLocationY, GridLocationZ);
-				FRotator ProjectedRotation = GetActorRotation().Add(0, 90, 0); // projected rotation before setting to grid using the actor's rotation
-				float GridRotationYaw = FMath::RoundHalfFromZero(ProjectedRotation.Yaw / 90.0) * 90;
-
-				FRotator GridRotation = FRotator(0, GridRotationYaw, 0);
-				//FString LogMsg = FString("GridLocation X ") + FString::SanitizeFloat(GridLocation.X) + FString(" ProjectedLocation X") + FString::SanitizeFloat(ProjectedLocation.X);
-				//UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
-				// to make the structures connect with each other, have to add an offset when in a different rotation
-				if (FMath::Abs(GridRotationYaw) == 0) {
-					GridLocation.Y -= 200.0;
-					if (ProjectedLocation.X < GridLocation.X) {
-						GridLocation.X -= 200.0;
-					}
-					else {
-						GridLocation.X += 200.0;
-					}
-				}
-				if (FMath::Abs(GridRotationYaw) == 180) {
-					GridLocation.Y += 200.0;
-					if (ProjectedLocation.X > GridLocation.X) {
-						GridLocation.X += 200.0;
-					}
-					else {
-						GridLocation.X -= 200.0;
-					}
-				}
-
-				ABuildingActor* Floor = GetWorld()->SpawnActor<ABuildingActor>(FloorClasses[CurrentBuildingMaterial], GridLocation, GridRotation);
-
-				Floor->GetOverlappingActors(OverlappingActors);
-
-				for (int i = 0; i < OverlappingActors.Num(); i++) {
-					//don't allow a player to build a structure that overlaps with another player
-					if (OverlappingActors[i]->IsA(AFortniteCloneCharacter::StaticClass())) {
-						Floor->Destroy();
-						return;
-					}
-				}
-				State->MaterialCounts[CurrentBuildingMaterial] -= 10;
-			}
-		}
-	}
-}
-
-bool AFortniteCloneCharacter::ServerBuildStructures_Validate() {
-	return true;
-}
-
-void AFortniteCloneCharacter::ServerFireWeapons_Implementation() {
+void AFortniteCloneCharacter::ServerFireWeapon_Implementation() {
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		if (State) {
@@ -1716,7 +1726,7 @@ void AFortniteCloneCharacter::ServerFireWeapons_Implementation() {
 	}
 }
 
-bool AFortniteCloneCharacter::ServerFireWeapons_Validate() {
+bool AFortniteCloneCharacter::ServerFireWeapon_Validate() {
 	return true;
 }
 
@@ -2302,18 +2312,10 @@ void AFortniteCloneCharacter::ServerSpawnProjectile_Implementation(FTransform Sp
 		//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
 		Bullet->Weapon = CurrentWeapon;
 		Bullet->WeaponHolder = this;
-
-		/*FTimerHandle BulletTimerHandle;
-		FTimerDelegate BulletTimerDelegate;
-		BulletTimerDelegate.BindUFunction(this, FName("FinishSpawningProjectile"), Bullet, SpawnTransform);
-		GetWorldTimerManager().SetTimer(BulletTimerHandle, BulletTimerDelegate, 0.2, false);*/
-		UGameplayStatics::FinishSpawningActor(Bullet, SpawnTransform);
 		Bullet->SetOwner(this);
+
+		UGameplayStatics::FinishSpawningActor(Bullet, SpawnTransform);
 	}
-	/*AProjectileActor* Bullet = NewObject < AProjectileActor>(CurrentWeapon->BulletClass);
-	Bullet->SetActorTransform(SpawnTransform);
-	Bullet->Weapon = CurrentWeapon;
-	Bullet->WeaponHolder = this;*/
 }
 
 bool AFortniteCloneCharacter::ServerSpawnProjectile_Validate(FTransform SpawnTransform) {
@@ -2429,5 +2431,19 @@ void AFortniteCloneCharacter::ClientDrawBloodEffect_Implementation() {
 			AFortniteCloneHUD* FortniteCloneHUD = Cast<AFortniteCloneHUD>(PlayerController->GetHUD());
 			FortniteCloneHUD->DrawBloodSplash();
 		}
+	}
+}
+
+void AFortniteCloneCharacter::ClientDestroyStructure_Implementation(int StructureId) {
+	for (int i = 0; i < ClientSpawnedStructures.Num(); i++) {
+		if (ClientSpawnedStructures[i] != nullptr) {
+			if (ClientSpawnedStructures[i]->Id == StructureId) {
+				ABuildingActor* Structure = ClientSpawnedStructures[i];
+				ClientSpawnedStructures.Remove(Structure);
+				Structure->Destroy();
+				break;
+			}
+		}
+		
 	}
 }

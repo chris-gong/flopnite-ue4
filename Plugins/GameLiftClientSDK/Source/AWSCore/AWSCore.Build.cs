@@ -13,6 +13,13 @@ public class AWSCore : ModuleRules
 
         // This is required to fix a warning for Unreal Engine 4.21 and later
         PrivatePCHHeaderFile = "Private/AWSCorePrivatePCH.h";
+        bEnforceIWYU = true;
+
+        if (Target.Configuration != UnrealTargetConfiguration.Shipping)
+        {
+            MinFilesUsingPrecompiledHeaderOverride = 1;
+            bFasterWithoutUnity = true;
+        }
 
         string BaseDirectory = System.IO.Path.GetFullPath(System.IO.Path.Combine(ModuleDirectory, "..", ".."));
         string ThirdPartyPath = System.IO.Path.Combine(BaseDirectory, "ThirdParty", "GameLiftClientSDK", Target.Platform.ToString());

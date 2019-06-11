@@ -191,6 +191,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category="Storm")
 	bool InStorm;
 
+	UPROPERTY()
+	TArray<ABuildingActor*> ClientSpawnedStructures;
+	
+	UPROPERTY()
+	int CurrentStructureId;
+
 protected:
 
 	/** Resets HMD orientation in VR. */
@@ -406,10 +412,7 @@ public:
 	void ServerSetBuildModeFloor();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerBuildStructures();
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerFireWeapons();
+	void ServerFireWeapon();
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerHealWithBandage();
@@ -462,6 +465,9 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSpawnProjectile(FTransform SpawnTransform);
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerBuildStructure(TSubclassOf<ABuildingActor> StructureClass, FVector SpawnLocationFRotator, FRotator SpawnRotation, int StructureId);
+
 	UFUNCTION(Client, Reliable)
 	void ClientCameraAimIn();
 
@@ -506,6 +512,9 @@ public:
 
 	UFUNCTION(Client, Reliable)
 	void ClientGetBulletTransform();
+
+	UFUNCTION(Client, Reliable)
+	void ClientDestroyStructure(int StructureId);
 
 private:
 	// Object creation can only happen after the character has finished being constructed
