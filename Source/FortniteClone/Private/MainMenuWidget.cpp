@@ -2,12 +2,13 @@
 
 #include "MainMenuWidget.h"
 #include "Kismet/GameplayStatics.h"
+#include "TextReaderComponent.h"
 
 // Add default functionality here for any IMainMenuWidget functions that are not pure virtual.
 
-UMainMenuWidget::UMainMenuWidget(const FObjectInitializer& ObjectInitializer):Super(ObjectInitializer)
+UMainMenuWidget::UMainMenuWidget(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
-
+	TextReader = CreateDefaultSubobject<UTextReaderComponent>(TEXT("TextReaderComp"));
 }
 
 /** Retrieves FText value currently held in DisplayText */

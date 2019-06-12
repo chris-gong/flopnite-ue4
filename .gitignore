@@ -88,4 +88,11 @@ DerivedDataCache/*
 # Soul Cave
 /Content/SoulCave
 
+# Packaged project for windows
 /WindowsNoEditor
+
+# Packaged project for linux
+/LinuxNoEditor
+
+# AWS access and secret access keys
+/Content/Credentials

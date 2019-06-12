@@ -5,9 +5,11 @@
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "UserWidget.h"
+#include "TextReaderComponent.h"
 #include "MainMenuWidget.generated.h"
 
 class UUserWidget;
+class UTextReaderComponent;
 
 // This class does not need to be modified.
 UCLASS(BlueprintType, Blueprintable)
@@ -20,6 +22,9 @@ public:
 	/** FText value displayed by this widget */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Text")
 	FText Code;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Reader")
+	UTextReaderComponent* TextReader;
 
 	/** Retrieves FText value currently held in DisplayText */
 	UFUNCTION(BlueprintPure, Category = "Widgets|Text")
