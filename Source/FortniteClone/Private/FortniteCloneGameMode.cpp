@@ -42,7 +42,6 @@ AFortniteCloneGameMode::AFortniteCloneGameMode()
 
 	//Let's run this code only if GAMELIFT is enabled. Only with Server targets!
 #if WITH_GAMELIFT
-	i =
 	//Getting the module first.
 	FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
 
