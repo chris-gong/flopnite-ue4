@@ -21,7 +21,7 @@ public class GameLiftServerSDK : ModuleRules
     {
         PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "Private"));
         PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public"));
-
+        PCHUsage = PCHUsageMode.UseSharedPCHs;
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
@@ -49,12 +49,6 @@ public class GameLiftServerSDK : ModuleRules
 
         bEnableExceptions = true;
         bEnforceIWYU = true;
-
-        if (Target.Configuration != UnrealTargetConfiguration.Shipping)
-        {
-            MinFilesUsingPrecompiledHeaderOverride = 1;
-            bFasterWithoutUnity = true;
-        }
 
         string BaseDirectory = System.IO.Path.GetFullPath(System.IO.Path.Combine(ModuleDirectory, "..", ".."));
         string SDKDirectory = System.IO.Path.Combine(BaseDirectory, "ThirdParty", "GameLiftServerSDK", Target.Platform.ToString());

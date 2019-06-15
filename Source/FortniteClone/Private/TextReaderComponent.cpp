@@ -38,7 +38,7 @@ void UTextReaderComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 FString UTextReaderComponent::ReadFile(FString filename)
 {
 	//Read file from [project]/Content/
-	FString directory = FPaths::GameContentDir();
+	FString directory = FPaths::ProjectContentDir();
 	FString result;
 	IPlatformFile& file = FPlatformFileManager::Get().GetPlatformFile();
 	if (file.CreateDirectory(*directory)) {

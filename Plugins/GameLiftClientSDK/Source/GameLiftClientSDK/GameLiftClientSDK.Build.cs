@@ -15,9 +15,6 @@ public class GameLiftClientSDK : ModuleRules
         PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "Private"));
         PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public"));
 
-        /*MinFilesUsingPrecompiledHeaderOverride = 1;
-        bFasterWithoutUnity = true;*/
-
         string BaseDirectory = System.IO.Path.GetFullPath(System.IO.Path.Combine(ModuleDirectory, "..", ".."));
         string ThirdPartyPath = System.IO.Path.Combine(BaseDirectory, "ThirdParty", "GameLiftClientSDK", Target.Platform.ToString());
         bool bIsThirdPartyPathValid = System.IO.Directory.Exists(ThirdPartyPath);

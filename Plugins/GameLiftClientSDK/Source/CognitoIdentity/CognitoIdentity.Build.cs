@@ -14,12 +14,6 @@ public class CognitoIdentity : ModuleRules
         PrivatePCHHeaderFile = "Private/CognitoIdentityPrivatePCH.h";
         bEnforceIWYU = true;
 
-        if (Target.Configuration != UnrealTargetConfiguration.Shipping)
-        {
-            MinFilesUsingPrecompiledHeaderOverride = 1;
-            bFasterWithoutUnity = true;
-        }
-
         string BaseDirectory = System.IO.Path.GetFullPath(System.IO.Path.Combine(ModuleDirectory, "..", ".."));
         string ThirdPartyPath = System.IO.Path.Combine(BaseDirectory, "ThirdParty", "GameLiftClientSDK", Target.Platform.ToString());
         bool bIsThirdPartyPathValid = System.IO.Directory.Exists(ThirdPartyPath);
