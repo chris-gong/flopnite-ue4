@@ -1,7 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "FortniteClonePlayerState.h"
-#include "UnrealNetwork.h"
 #include "FortniteCloneCharacter.h"
 
 AFortniteClonePlayerState::AFortniteClonePlayerState() {

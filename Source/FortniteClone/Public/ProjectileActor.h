@@ -5,6 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Engine/Engine.h"
+#include "UnrealNetwork.h"
+#include "Components/SphereComponent.h"
 #include "ProjectileActor.generated.h"
 
 class UProjectileMovementComponent;

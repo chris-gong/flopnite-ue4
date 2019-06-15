@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "UnrealNetwork.h"
+#include "Engine/Engine.h"
 #include "BuildingActor.generated.h"
 
 UCLASS()

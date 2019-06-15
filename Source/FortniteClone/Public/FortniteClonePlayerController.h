@@ -4,11 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/PlayerState.h"
+#include "Engine/Engine.h"
+#include "UnrealNetwork.h"
 #include "FortniteClonePlayerController.generated.h"
 
 class AFortniteCloneSpectator;
 class AStormActor;
 class AGameMode;
+class AFortniteClonePlayerState;
 /**
  * 
  */

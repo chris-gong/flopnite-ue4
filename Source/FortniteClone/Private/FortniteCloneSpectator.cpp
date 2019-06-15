@@ -1,7 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "FortniteCloneSpectator.h"
-#include "Engine.h"
 #include "FortniteCloneCharacter.h"
 
 // Sets default values

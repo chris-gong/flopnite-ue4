@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "UnrealNetwork.h"
+#include "Kismet/GameplayStatics.h"
 #include "StormActor.generated.h"
 
 

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Engine/Engine.h"
 #include "FortniteCloneSpectator.generated.h"
 
 

@@ -2,7 +2,6 @@
 
 #include "MainMenuGameMode.h"
 #include "MainMenuHUD.h"
-#include "Engine.h"
 
 AMainMenuGameMode::AMainMenuGameMode()
 {

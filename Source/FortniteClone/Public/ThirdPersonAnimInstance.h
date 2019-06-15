@@ -5,8 +5,11 @@
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "Runtime/Engine/Classes/Animation/AnimInstance.h"
+#include "UnrealNetwork.h"
+#include "Engine/Engine.h"
 #include "ThirdPersonAnimInstance.generated.h"
 
+class AFortniteCloneCharacter;
 // This class does not need to be modified.
 UCLASS(transient, Blueprintable, hideCategories = AnimInstance, BlueprintType)
 class UThirdPersonAnimInstance : public UAnimInstance

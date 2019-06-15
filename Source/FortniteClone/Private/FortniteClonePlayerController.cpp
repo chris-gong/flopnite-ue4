@@ -1,13 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "FortniteClonePlayerController.h"
+#include "FortniteClonePlayerController.h"
 #include "FortniteClonePlayerState.h"
 #include "FortniteCloneCharacter.h"
 #include "FortniteCloneSpectator.h"
-#include "GameFramework/PlayerState.h"
-#include "Engine.h"
 #include "StormActor.h"
-#include "UnrealNetwork.h"
 
 AFortniteClonePlayerController::AFortniteClonePlayerController() {
 	/*AFortniteClonePlayerState* State= Cast<AFortniteClonePlayerState>(GetPlayerState());
@@ -18,7 +16,7 @@ AFortniteClonePlayerController::AFortniteClonePlayerController() {
 	 static ConstructorHelpers::FClassFinder<AFortniteCloneSpectator> PlayerSpectatorBP(TEXT("/Game/Blueprints/BP_Spectator"));
 	 PlayerSpectatorClass = PlayerSpectatorBP.Class;
 	 PlayerCount = 0;
-	 SpectatorCount = 0;
+	 SpectatorCount = 1;
 	 Initialized = false;
 }
 

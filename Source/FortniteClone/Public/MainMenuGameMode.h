@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
+#include "Engine/Engine.h"
 #include "MainMenuGameMode.generated.h"
 
 /**

@@ -2,6 +2,11 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "Kismet/GameplayStatics.h"
+#if WITH_GAMELIFTCLIENTSDK
+#include "GameLiftClientSDK/Public/GameLiftClientObject.h"
+#include "GameLiftClientSDK/Public/GameLiftClientApi.h"
+#endif
 #include "FortniteCloneGameInstance.generated.h"
 
 

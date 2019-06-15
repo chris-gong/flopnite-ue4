@@ -4,6 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "HeadMountedDisplayFunctionLibrary.h"
+#include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "Components/InputComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/Controller.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "Engine/Engine.h"
+#include "UnrealNetwork.h"
+#include "Engine/ActorChannel.h"
+#include "DrawDebugHelpers.h"
 #include "FortniteCloneCharacter.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogMyGame, Log, All);

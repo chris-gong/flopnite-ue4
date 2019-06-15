@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "UserWidget.h"
-#include "TextReaderComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "MainMenuWidget.generated.h"
 
 class UUserWidget;

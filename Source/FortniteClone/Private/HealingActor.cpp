@@ -1,7 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "HealingActor.h"
-#include "UnrealNetwork.h"
 
 // Sets default values
 AHealingActor::AHealingActor()
