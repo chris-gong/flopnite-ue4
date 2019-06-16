@@ -15,6 +15,12 @@
 #include "UnrealNetwork.h"
 #include "Engine/ActorChannel.h"
 #include "DrawDebugHelpers.h"
+#include "StormActor.h"
+#include "FortniteCloneHUD.h"
+#include "WeaponActor.h"
+#include "BuildingActor.h"
+#include "HealingActor.h"
+#include "AmmunitionActor.h"
 #include "FortniteCloneCharacter.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogMyGame, Log, All);

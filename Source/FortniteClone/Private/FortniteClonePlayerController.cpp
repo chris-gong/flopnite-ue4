@@ -1,11 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "FortniteClonePlayerController.h"
-#include "FortniteClonePlayerController.h"
 #include "FortniteClonePlayerState.h"
 #include "FortniteCloneCharacter.h"
 #include "FortniteCloneSpectator.h"
-#include "StormActor.h"
+
 
 AFortniteClonePlayerController::AFortniteClonePlayerController() {
 	/*AFortniteClonePlayerState* State= Cast<AFortniteClonePlayerState>(GetPlayerState());

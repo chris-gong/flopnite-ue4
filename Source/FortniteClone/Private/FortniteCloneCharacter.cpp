@@ -1,16 +1,10 @@
 // Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
 #include "FortniteCloneCharacter.h"
-#include "FortniteCloneHUD.h"
-#include "StormActor.h"
 #include "FortniteClonePlayerController.h"
-#include "WeaponActor.h"
 #include "FortniteClonePlayerState.h"
-#include "BuildingActor.h"
 #include "ThirdPersonAnimInstance.h"
 #include "ProjectileActor.h"
-#include "HealingActor.h"
-#include "AmmunitionActor.h"
 
 DEFINE_LOG_CATEGORY(LogMyGame);
 //////////////////////////////////////////////////////////////////////////

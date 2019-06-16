@@ -1,11 +1,8 @@
 // Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
 #include "FortniteCloneGameMode.h"
-#include "FortniteCloneGameMode.h"
 #include "FortniteCloneCharacter.h"
 #include "FortniteClonePlayerState.h"
-#include "FortniteCloneHUD.h"
-#include "StormActor.h"
 #include "FortniteClonePlayerController.h"
 
 DEFINE_LOG_CATEGORY(LogMyServer);
