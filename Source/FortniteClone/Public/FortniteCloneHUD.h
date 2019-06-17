@@ -4,11 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
-#include "Engine/Canvas.h"
-#include "Engine/Texture2D.h"
-#include "UObject/ConstructorHelpers.h"
-#include "Blueprint/UserWidget.h"
-#include "Engine/Engine.h"
 #include "FortniteCloneHUD.generated.h"
 
 class UUserWidget;

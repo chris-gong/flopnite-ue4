@@ -10,6 +10,10 @@
 #include "FortniteCloneHUD.h"
 #include "StormActor.h"
 #include "FortniteClonePlayerController.h"
+#include "GameFramework/ProjectileMovementComponent.h"
+#include "Engine/Engine.h"
+#include "UnrealNetwork.h"
+#include "Components/SphereComponent.h"
 
 // Sets default values
 AProjectileActor::AProjectileActor()

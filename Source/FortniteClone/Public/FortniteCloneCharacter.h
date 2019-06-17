@@ -4,33 +4,20 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "HeadMountedDisplayFunctionLibrary.h"
-#include "Camera/CameraComponent.h"
-#include "Components/CapsuleComponent.h"
-#include "Components/InputComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/Controller.h"
-#include "GameFramework/SpringArmComponent.h"
-#include "Engine/Engine.h"
-#include "UnrealNetwork.h"
-#include "Engine/ActorChannel.h"
-#include "DrawDebugHelpers.h"
-#include "StormActor.h"
-#include "FortniteCloneHUD.h"
-#include "WeaponActor.h"
-#include "BuildingActor.h"
-#include "HealingActor.h"
-#include "AmmunitionActor.h"
 #include "FortniteCloneCharacter.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogMyGame, Log, All);
 
+class USpringArmComponent;
+class UCameraComponent;
+class UCapsuleComponent;
 class ABuildingActor;
 class AWeaponActor;
 class AHealingActor;
 class AFortniteClonePlayerState;
 class UThirdPersonAnimInstance;
 class AStormActor;
+class UAnimMontage;
 
 UCLASS(config=Game)
 class AFortniteCloneCharacter : public ACharacter
@@ -39,14 +26,14 @@ class AFortniteCloneCharacter : public ACharacter
 
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class USpringArmComponent* CameraBoom;
+	USpringArmComponent* CameraBoom;
 
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* FollowCamera;
+	UCameraComponent* FollowCamera;
 
 	UPROPERTY(VisibleAnywhere, Category = "Trigger Capsule")
-	class UCapsuleComponent* TriggerCapsule;
+	UCapsuleComponent* TriggerCapsule;
 
 public:
 	AFortniteCloneCharacter();

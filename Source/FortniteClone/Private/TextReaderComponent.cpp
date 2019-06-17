@@ -2,6 +2,9 @@
 
 
 #include "TextReaderComponent.h"
+#include "Runtime/Core/Public/Misc/Paths.h"
+#include "Runtime/Core/Public/HAL/PlatformFilemanager.h"
+#include "Runtime/Core/Public/Misc/FileHelper.h"
 
 // Sets default values for this component's properties
 UTextReaderComponent::UTextReaderComponent()

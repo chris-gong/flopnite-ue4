@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
-#include "UnrealNetwork.h"
 #include "FortniteClonePlayerState.generated.h"
 
 class AFortniteCloneCharacter;

@@ -1,4 +1,11 @@
 #include "FortniteCloneGameInstance.h"
+#include "Engine/GameInstance.h"
+#include "Kismet/GameplayStatics.h"
+#include "StormActor.h"
+#if WITH_GAMELIFTCLIENTSDK
+#include "GameLiftClientSDK/Public/GameLiftClientObject.h"
+#include "GameLiftClientSDK/Public/GameLiftClientApi.h"
+#endif
 
 void UFortniteCloneGameInstance::Init()
 {

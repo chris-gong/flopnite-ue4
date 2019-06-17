@@ -1,6 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "FortniteCloneHUD.h"
+#include "Engine/Canvas.h"
+#include "Engine/Texture2D.h"
+#include "UObject/ConstructorHelpers.h"
+#include "Blueprint/UserWidget.h"
+#include "Engine/Engine.h"
 
 AFortniteCloneHUD::AFortniteCloneHUD()
 {

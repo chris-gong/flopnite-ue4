@@ -2,6 +2,8 @@
 
 #include "ThirdPersonAnimInstance.h"
 #include "FortniteCloneCharacter.h"
+#include "UnrealNetwork.h"
+#include "Engine/Engine.h"
 
 // Add default functionality here for any IGuyAnimInstance functions that are not pure virtual.
 

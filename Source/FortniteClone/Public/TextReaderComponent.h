@@ -4,9 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Runtime/Core/Public/Misc/Paths.h"
-#include "Runtime/Core/Public/HAL/PlatformFilemanager.h"
-#include "Runtime/Core/Public/Misc/FileHelper.h"
 #include "TextReaderComponent.generated.h"
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )

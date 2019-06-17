@@ -5,6 +5,23 @@
 #include "FortniteClonePlayerState.h"
 #include "ThirdPersonAnimInstance.h"
 #include "ProjectileActor.h"
+#include "StormActor.h"
+#include "FortniteCloneHUD.h"
+#include "WeaponActor.h"
+#include "BuildingActor.h"
+#include "HealingActor.h"
+#include "AmmunitionActor.h"
+#include "Engine/Engine.h"
+#include "UnrealNetwork.h"
+#include "Engine/ActorChannel.h"
+#include "HeadMountedDisplayFunctionLibrary.h"
+#include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "Components/InputComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/Controller.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 
 DEFINE_LOG_CATEGORY(LogMyGame);
 //////////////////////////////////////////////////////////////////////////

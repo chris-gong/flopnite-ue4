@@ -4,13 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "Kismet/GameplayStatics.h"
-#include "UObject/ConstructorHelpers.h"
-#include "GameLiftServerSDK.h"
-#include "FortniteCloneHUD.h"
-#include "StormActor.h"
-//#include "GameLiftClientSDK/Public/GameLiftClientObject.h"
-//#include "GameLiftClientSDK/Public/GameLiftClientApi.h"
 #include "FortniteCloneGameMode.generated.h"
 
 class AStormActor;

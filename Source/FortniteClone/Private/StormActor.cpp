@@ -2,6 +2,8 @@
 
 #include "StormActor.h"
 #include "FortniteCloneCharacter.h"
+#include "UnrealNetwork.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AStormActor::AStormActor()

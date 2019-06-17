@@ -2,6 +2,7 @@
 
 #include "FortniteCloneSpectator.h"
 #include "FortniteCloneCharacter.h"
+#include "Engine/Engine.h"
 
 // Sets default values
 AFortniteCloneSpectator::AFortniteCloneSpectator()

@@ -4,8 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
-#include "Blueprint/UserWidget.h"
-#include "Engine/Engine.h"
 #include "MainMenuHUD.generated.h"
 
 /**

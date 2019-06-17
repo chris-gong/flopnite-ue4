@@ -2,6 +2,7 @@
 
 #include "FortniteClonePlayerState.h"
 #include "FortniteCloneCharacter.h"
+#include "UnrealNetwork.h"
 
 AFortniteClonePlayerState::AFortniteClonePlayerState() {
 	InBuildMode = false;

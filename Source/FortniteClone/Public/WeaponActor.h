@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "UnrealNetwork.h"
 #include "WeaponActor.generated.h"
 
 class AProjectileActor;
