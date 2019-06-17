@@ -138,7 +138,6 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Items")
 	int GetBandageCount();
 
-
 	/* The current weapon being held */
 	UPROPERTY(Replicated)
 	AWeaponActor* CurrentWeapon;
