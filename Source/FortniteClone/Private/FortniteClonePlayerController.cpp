@@ -15,7 +15,7 @@ AFortniteClonePlayerController::AFortniteClonePlayerController() {
 		State->bIsSpectator = true;
 	}*/
 	//PlayerState->bIsSpectator = true;
-	 static ConstructorHelpers::FClassFinder<AFortniteCloneSpectator> PlayerSpectatorBP(TEXT("/Game/Blueprints/BP_Spectator"));
+	 static ConstructorHelpers::FClassFinder<AFortniteCloneSpectator> PlayerSpectatorBP(TEXT("/Game/ThirdPersonCPP/Blueprints/BP_SpectatorCharacter"));
 	 PlayerSpectatorClass = PlayerSpectatorBP.Class;
 	 PlayerCount = 0;
 	 SpectatorCount = 1;

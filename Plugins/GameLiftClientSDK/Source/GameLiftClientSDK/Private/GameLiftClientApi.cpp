@@ -12,6 +12,7 @@
 #include "aws/gamelift/model/SearchGameSessionsRequest.h"
 #include "aws/gamelift/model/CreatePlayerSessionRequest.h"
 #include "aws/gamelift/model/CreateGameSessionRequest.h"
+#include "aws/gamelift/model/DescribeGameSessionQueuesRequest.h"
 #include <aws/core/http/HttpRequest.h>
 #endif
 
@@ -251,6 +252,77 @@ void UGameLiftCreatePlayerSession::OnCreatePlayerSession(const Aws::GameLift::Ga
 		const FString MyErrorMessage = FString(Outcome.GetError().GetMessage().c_str());
 		LOG_ERROR("Received OnCreatePlayerSession with failed outcome. Error: " + MyErrorMessage);
 		OnCreatePlayerSessionFailed.Broadcast(MyErrorMessage);
+	}
+#endif
+}
+
+UGameLiftDescribeGameSessionQueues* UGameLiftDescribeGameSessionQueues::DescribeGameSessionQueues(FString QueueName)
+{
+#if WITH_GAMELIFTCLIENTSDK
+	UGameLiftDescribeGameSessionQueues* Proxy = NewObject<UGameLiftDescribeGameSessionQueues>();
+	Proxy->QueueName = QueueName;
+	return Proxy;
+#endif
+	return nullptr;
+}
+
+EActivateStatus UGameLiftDescribeGameSessionQueues::Activate()
+{
+#if WITH_GAMELIFTCLIENTSDK
+	if (GameLiftClient)
+	{
+		LOG_NORMAL("Preparing to create player session...");
+
+		if (OnDescribeGameSessionQueuesSuccess.IsBound() == false)
+		{
+			LOG_ERROR("No functions were bound to OnDescribeGameSessionQueuesSuccess multi-cast delegate! Aborting Activate.");
+			return EActivateStatus::ACTIVATE_NoSuccessCallback;
+		}
+
+		if (OnDescribeGameSessionQueuesFailed.IsBound() == false)
+		{
+			LOG_ERROR("No functions were bound to OnDescribeGameSessionQueuesFailed multi-cast delegate! Aborting Activate.");
+			return EActivateStatus::ACTIVATE_NoFailCallback;
+		}
+
+		Aws::GameLift::Model::DescribeGameSessionQueuesRequest Request;
+		LOG_NORMAL("Setting queue name: " + QueueName);
+		std::vector<Aws::String, Aws::Allocator<Aws::String>> QueueNames;
+		Aws::String QueueNameStr(TCHAR_TO_UTF8(*QueueName), QueueName.GetAllocatedSize());
+		QueueNames.push_back(QueueNameStr);
+		Request.SetNames(QueueNames);
+
+		Aws::GameLift::DescribeGameSessionQueuesResponseReceivedHandler Handler;
+		Handler = std::bind(&UGameLiftDescribeGameSessionQueues::OnDescribeGameSessionQueues, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+
+		LOG_NORMAL("Creating new player session...");
+		GameLiftClient->DescribeGameSessionQueuesAsync(Request, Handler);
+		return EActivateStatus::ACTIVATE_Success;
+	}
+	LOG_ERROR("GameLiftClient is null. Did you call CreateGameLiftObject first?");
+#endif
+	return EActivateStatus::ACTIVATE_NoGameLift;
+}
+void UGameLiftDescribeGameSessionQueues::OnDescribeGameSessionQueues(const Aws::GameLift::GameLiftClient* Client, const Aws::GameLift::Model::DescribeGameSessionQueuesRequest& Request, const Aws::GameLift::Model::DescribeGameSessionQueuesOutcome& Outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>& Context)
+{
+#if WITH_GAMELIFTCLIENTSDK
+	if (Outcome.IsSuccess())
+	{
+		LOG_NORMAL("Received OnDescribeGameSessionQueues with Success outcome.");
+		const std::vector<Aws::GameLift::Model::GameSessionQueueDestination, Aws::Allocator<Aws::GameLift::Model::GameSessionQueueDestination>> Destinations = Outcome.GetResult().GetGameSessionQueues().data()->GetDestinations();
+		TArray<FString> FleetARNs; // NOTE: STILL HAVE TO SPLIT THE STRINGS IN HERE BY REGION AND FLEET ID/ALIAS
+		for (int i = 0; i < Destinations.size(); i++) {
+			FleetARNs.Add(Destinations[i].GetDestinationArn().c_str());
+		}
+
+		//const TArray<FString> FleetARNsCopy = TArray<FString>(FleetARNs);
+		OnDescribeGameSessionQueuesSuccess.Broadcast(FleetARNs);
+	}
+	else
+	{
+		const FString MyErrorMessage = FString(Outcome.GetError().GetMessage().c_str());
+		LOG_ERROR("Received OnDescribeGameSessionQueues with failed outcome. Error: " + MyErrorMessage);
+		OnDescribeGameSessionQueuesFailed.Broadcast(MyErrorMessage);
 	}
 #endif
 }

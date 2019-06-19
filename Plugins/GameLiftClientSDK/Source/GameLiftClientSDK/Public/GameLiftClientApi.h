@@ -124,3 +124,35 @@ public:
 private:
 	void OnCreatePlayerSession(const Aws::GameLift::GameLiftClient* Client, const Aws::GameLift::Model::CreatePlayerSessionRequest& Request, const Aws::GameLift::Model::CreatePlayerSessionOutcome& Outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>& Context);
 };
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDescribeGameSessionQueuesSuccess, const TArray<FString>&, FleetARNs);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDescribeGameSessionQueuesFailed, const FString&, ErrorMessage);
+UCLASS()
+class GAMELIFTCLIENTSDK_API UGameLiftDescribeGameSessionQueues : public UObject
+{
+	GENERATED_BODY()
+
+	friend class UGameLiftClientObject;
+
+public:
+
+	UPROPERTY(BlueprintAssignable, Category = "GameLift DescribeGameSessionQueues")
+	FOnDescribeGameSessionQueuesSuccess OnDescribeGameSessionQueuesSuccess;
+
+	UPROPERTY(BlueprintAssignable, Category = "GameLift DescribeGameSessionQueues")
+	FOnDescribeGameSessionQueuesFailed OnDescribeGameSessionQueuesFailed;
+
+private:
+	Aws::GameLift::GameLiftClient* GameLiftClient;
+	FString QueueName;
+
+	static UGameLiftDescribeGameSessionQueues* DescribeGameSessionQueues(FString QueueName);
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "GameLift DescribeGameSessionQueues")
+	EActivateStatus Activate();
+
+private:
+	void OnDescribeGameSessionQueues(const Aws::GameLift::GameLiftClient* Client, const Aws::GameLift::Model::DescribeGameSessionQueuesRequest& Request, const Aws::GameLift::Model::DescribeGameSessionQueuesOutcome& Outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>& Context);
+	
+};
