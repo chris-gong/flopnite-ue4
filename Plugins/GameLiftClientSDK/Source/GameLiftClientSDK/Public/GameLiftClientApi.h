@@ -191,3 +191,37 @@ private:
 	void OnSearchGameSessions(const Aws::GameLift::GameLiftClient* Client, const Aws::GameLift::Model::SearchGameSessionsRequest& Request, const Aws::GameLift::Model::SearchGameSessionsOutcome& Outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>& Context);
 
 };
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStartGameSessionPlacementSuccess, const FString&, GameSessionId);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStartGameSessionPlacementFailed, const FString&, ErrorMessage);
+UCLASS()
+class GAMELIFTCLIENTSDK_API UGameLiftStartGameSessionPlacement : public UObject
+{
+	GENERATED_BODY()
+
+		friend class UGameLiftClientObject;
+
+public:
+
+	UPROPERTY(BlueprintAssignable, Category = "GameLift StartGameSessionPlacement")
+	FOnStartGameSessionPlacementSuccess OnStartGameSessionPlacementSuccess;
+
+	UPROPERTY(BlueprintAssignable, Category = "GameLift StartGameSessionPlacement")
+	FOnStartGameSessionPlacementFailed OnStartGameSessionPlacementFailed;
+
+private:
+	Aws::GameLift::GameLiftClient* GameLiftClient;
+	FString QueueName;
+	int MaxPlayerCount;
+	FString PlacementId;
+
+	static UGameLiftStartGameSessionPlacement* StartGameSessionPlacement(FString QueueName, int MaxPlayerCount, FString PlacementId);
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "GameLift StartGameSessionPlacement")
+		EActivateStatus Activate();
+
+private:
+	void OnStartGameSessionPlacement(const Aws::GameLift::GameLiftClient* Client, const Aws::GameLift::Model::StartGameSessionPlacementRequest& Request, const Aws::GameLift::Model::StartGameSessionPlacementOutcome& Outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>& Context);
+
+};

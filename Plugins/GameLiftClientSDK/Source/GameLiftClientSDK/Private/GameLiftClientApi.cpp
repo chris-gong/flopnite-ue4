@@ -14,6 +14,7 @@
 #include "aws/gamelift/model/CreateGameSessionRequest.h"
 #include "aws/gamelift/model/DescribeGameSessionQueuesRequest.h"
 #include "aws/gamelift/model/SearchGameSessionsRequest.h"
+#include "aws/gamelift/model/StartGameSessionPlacementRequest.h"
 #include <aws/core/http/HttpRequest.h>
 #endif
 
@@ -402,6 +403,77 @@ void UGameLiftSearchGameSessions::OnSearchGameSessions(const Aws::GameLift::Game
 		const FString MyErrorMessage = FString(Outcome.GetError().GetMessage().c_str());
 		LOG_ERROR("Received SearchGameSessions with failed outcome. Error: " + MyErrorMessage);
 		OnSearchGameSessionsFailed.Broadcast(MyErrorMessage);
+	}
+#endif
+}
+
+UGameLiftStartGameSessionPlacement* UGameLiftStartGameSessionPlacement::StartGameSessionPlacement(FString QueueName, int MaxPlayerCount, FString PlacementId)
+{
+#if WITH_GAMELIFTCLIENTSDK
+	UGameLiftStartGameSessionPlacement* Proxy = NewObject<UGameLiftStartGameSessionPlacement>();
+	Proxy->QueueName = QueueName;
+	Proxy->MaxPlayerCount = MaxPlayerCount;
+	Proxy->PlacementId = PlacementId;
+	return Proxy;
+#endif
+	return nullptr;
+}
+
+EActivateStatus UGameLiftStartGameSessionPlacement::Activate()
+{
+#if WITH_GAMELIFTCLIENTSDK
+	if (GameLiftClient)
+	{
+		LOG_NORMAL("Preparing to make a game session if available...");
+
+		if (OnStartGameSessionPlacementSuccess.IsBound() == false)
+		{
+			LOG_ERROR("No functions were bound to OnStartGameSessionPlacement multi-cast delegate! Aborting Activate.");
+			return EActivateStatus::ACTIVATE_NoSuccessCallback;
+		}
+
+		if (OnStartGameSessionPlacementFailed.IsBound() == false)
+		{
+			LOG_ERROR("No functions were bound to OnStartGameSessionPlacement multi-cast delegate! Aborting Activate.");
+			return EActivateStatus::ACTIVATE_NoFailCallback;
+		}
+
+		Aws::GameLift::Model::StartGameSessionPlacementRequest Request;
+
+		LOG_NORMAL("Setting queue name: " + QueueName);
+		Request.SetGameSessionQueueName(TCHAR_TO_UTF8(*QueueName));
+		LOG_NORMAL("Setting max player count: " + MaxPlayerCount);
+		Request.SetMaximumPlayerSessionCount(MaxPlayerCount);
+		LOG_NORMAL("PlacementId " + PlacementId);
+		Request.SetPlacementId(TCHAR_TO_UTF8(*PlacementId));
+
+		Aws::GameLift::StartGameSessionPlacementResponseReceivedHandler Handler;
+		Handler = std::bind(&UGameLiftStartGameSessionPlacement::OnStartGameSessionPlacement, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+
+		LOG_NORMAL("Searching...");
+		GameLiftClient->StartGameSessionPlacementAsync(Request, Handler);
+		return EActivateStatus::ACTIVATE_Success;
+	}
+	LOG_ERROR("GameLiftClient is null. Did you call CreateGameLiftObject first?");
+#endif
+	return EActivateStatus::ACTIVATE_NoGameLift;
+}
+
+void UGameLiftStartGameSessionPlacement::OnStartGameSessionPlacement(const Aws::GameLift::GameLiftClient* Client, const Aws::GameLift::Model::StartGameSessionPlacementRequest& Request, const Aws::GameLift::Model::StartGameSessionPlacementOutcome& Outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>& Context)
+{
+#if WITH_GAMELIFTCLIENTSDK
+	if (Outcome.IsSuccess())
+	{
+		LOG_NORMAL("Received OnSearchGameSessions with Success outcome.");
+		const FString GameSessionId = Outcome.GetResult().GetGameSessionPlacement().GetGameSessionId().c_str();
+
+		OnStartGameSessionPlacementSuccess.Broadcast(GameSessionId);
+	}
+	else
+	{
+		const FString MyErrorMessage = FString(Outcome.GetError().GetMessage().c_str());
+		LOG_ERROR("Received SearchGameSessions with failed outcome. Error: " + MyErrorMessage);
+		OnStartGameSessionPlacementFailed.Broadcast(MyErrorMessage);
 	}
 #endif
 }

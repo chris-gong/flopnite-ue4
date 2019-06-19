@@ -91,3 +91,13 @@ UGameLiftSearchGameSessions* UGameLiftClientObject::SearchGameSessions(FString F
 #endif
 	return nullptr;
 }
+
+UGameLiftStartGameSessionPlacement* UGameLiftClientObject::StartGameSessionPlacement(FString QueueName, int MaxPlayerCount, FString PlacementId)
+{
+#if WITH_GAMELIFTCLIENTSDK
+	UGameLiftStartGameSessionPlacement* Proxy = UGameLiftStartGameSessionPlacement::StartGameSessionPlacement(QueueName, MaxPlayerCount, PlacementId);
+	Proxy->GameLiftClient = GameLiftClient;
+	return Proxy;
+#endif
+	return nullptr;
+}
