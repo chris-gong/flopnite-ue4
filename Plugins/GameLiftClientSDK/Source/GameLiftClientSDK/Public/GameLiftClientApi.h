@@ -156,3 +156,38 @@ private:
 	void OnDescribeGameSessionQueues(const Aws::GameLift::GameLiftClient* Client, const Aws::GameLift::Model::DescribeGameSessionQueuesRequest& Request, const Aws::GameLift::Model::DescribeGameSessionQueuesOutcome& Outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>& Context);
 	
 };
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSearchGameSessionsSuccess, const TArray<FString>&, GameSessionIds);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSearchGameSessionsFailed, const FString&, ErrorMessage);
+UCLASS()
+class GAMELIFTCLIENTSDK_API UGameLiftSearchGameSessions : public UObject
+{
+	GENERATED_BODY()
+
+	friend class UGameLiftClientObject;
+
+public:
+
+	UPROPERTY(BlueprintAssignable, Category = "GameLift SearchGameSessions")
+	FOnSearchGameSessionsSuccess OnSearchGameSessionsSuccess;
+
+	UPROPERTY(BlueprintAssignable, Category = "GameLift SearchGameSessions")
+	FOnSearchGameSessionsFailed OnSearchGameSessionsFailed;
+
+private:
+	Aws::GameLift::GameLiftClient* GameLiftClient;
+	FString FleetId;
+	FString AliasId;
+	FString FilterExpression;
+	FString SortExpression;
+
+	static UGameLiftSearchGameSessions* SearchGameSessions(FString FleetId, FString AliasId, FString FilterExpression, FString SortExpression);
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "GameLift SearchGameSessions")
+	EActivateStatus Activate();
+
+private:
+	void OnSearchGameSessions(const Aws::GameLift::GameLiftClient* Client, const Aws::GameLift::Model::SearchGameSessionsRequest& Request, const Aws::GameLift::Model::SearchGameSessionsOutcome& Outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>& Context);
+
+};

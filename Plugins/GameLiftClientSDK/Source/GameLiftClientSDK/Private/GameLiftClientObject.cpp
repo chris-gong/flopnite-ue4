@@ -81,3 +81,13 @@ UGameLiftDescribeGameSessionQueues* UGameLiftClientObject::DescribeGameSessionQu
 #endif
 	return nullptr;
 }
+
+UGameLiftSearchGameSessions* UGameLiftClientObject::SearchGameSessions(FString FleetId, FString AliasId, FString FilterExpression, FString SortExpression)
+{
+#if WITH_GAMELIFTCLIENTSDK
+	UGameLiftSearchGameSessions* Proxy = UGameLiftSearchGameSessions::SearchGameSessions(FleetId, AliasId, FilterExpression, SortExpression);
+	Proxy->GameLiftClient = GameLiftClient;
+	return Proxy;
+#endif
+	return nullptr;
+}

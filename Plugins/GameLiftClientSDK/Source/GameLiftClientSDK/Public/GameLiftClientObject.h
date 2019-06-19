@@ -76,4 +76,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "GameLift Client Object")
 	UGameLiftDescribeGameSessionQueues* DescribeGameSessionQueues(FString QueueName);
+
+	UFUNCTION(BlueprintCallable, Category = "GameLift Client Object")
+	UGameLiftSearchGameSessions* SearchGameSessions(FString FleetId, FString AliasId, FString FilterExpression, FString SortExpression);
 };

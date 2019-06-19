@@ -13,6 +13,7 @@
 #include "aws/gamelift/model/CreatePlayerSessionRequest.h"
 #include "aws/gamelift/model/CreateGameSessionRequest.h"
 #include "aws/gamelift/model/DescribeGameSessionQueuesRequest.h"
+#include "aws/gamelift/model/SearchGameSessionsRequest.h"
 #include <aws/core/http/HttpRequest.h>
 #endif
 
@@ -271,7 +272,7 @@ EActivateStatus UGameLiftDescribeGameSessionQueues::Activate()
 #if WITH_GAMELIFTCLIENTSDK
 	if (GameLiftClient)
 	{
-		LOG_NORMAL("Preparing to create player session...");
+		LOG_NORMAL("Preparing to search for fleets associated with a queue...");
 
 		if (OnDescribeGameSessionQueuesSuccess.IsBound() == false)
 		{
@@ -288,14 +289,14 @@ EActivateStatus UGameLiftDescribeGameSessionQueues::Activate()
 		Aws::GameLift::Model::DescribeGameSessionQueuesRequest Request;
 		LOG_NORMAL("Setting queue name: " + QueueName);
 		std::vector<Aws::String, Aws::Allocator<Aws::String>> QueueNames;
-		Aws::String QueueNameStr(TCHAR_TO_UTF8(*QueueName), QueueName.GetAllocatedSize());
+		Aws::String QueueNameStr(TCHAR_TO_UTF8(*QueueName), QueueName.Len());
 		QueueNames.push_back(QueueNameStr);
 		Request.SetNames(QueueNames);
 
 		Aws::GameLift::DescribeGameSessionQueuesResponseReceivedHandler Handler;
 		Handler = std::bind(&UGameLiftDescribeGameSessionQueues::OnDescribeGameSessionQueues, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 
-		LOG_NORMAL("Creating new player session...");
+		LOG_NORMAL("Searching...");
 		GameLiftClient->DescribeGameSessionQueuesAsync(Request, Handler);
 		return EActivateStatus::ACTIVATE_Success;
 	}
@@ -303,6 +304,7 @@ EActivateStatus UGameLiftDescribeGameSessionQueues::Activate()
 #endif
 	return EActivateStatus::ACTIVATE_NoGameLift;
 }
+
 void UGameLiftDescribeGameSessionQueues::OnDescribeGameSessionQueues(const Aws::GameLift::GameLiftClient* Client, const Aws::GameLift::Model::DescribeGameSessionQueuesRequest& Request, const Aws::GameLift::Model::DescribeGameSessionQueuesOutcome& Outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>& Context)
 {
 #if WITH_GAMELIFTCLIENTSDK
@@ -315,7 +317,6 @@ void UGameLiftDescribeGameSessionQueues::OnDescribeGameSessionQueues(const Aws::
 			FleetARNs.Add(Destinations[i].GetDestinationArn().c_str());
 		}
 
-		//const TArray<FString> FleetARNsCopy = TArray<FString>(FleetARNs);
 		OnDescribeGameSessionQueuesSuccess.Broadcast(FleetARNs);
 	}
 	else
@@ -323,6 +324,84 @@ void UGameLiftDescribeGameSessionQueues::OnDescribeGameSessionQueues(const Aws::
 		const FString MyErrorMessage = FString(Outcome.GetError().GetMessage().c_str());
 		LOG_ERROR("Received OnDescribeGameSessionQueues with failed outcome. Error: " + MyErrorMessage);
 		OnDescribeGameSessionQueuesFailed.Broadcast(MyErrorMessage);
+	}
+#endif
+}
+
+UGameLiftSearchGameSessions* UGameLiftSearchGameSessions::SearchGameSessions(FString FleetId, FString AliasId, FString FilterExpression, FString SortExpression)
+{
+#if WITH_GAMELIFTCLIENTSDK
+	UGameLiftSearchGameSessions* Proxy = NewObject<UGameLiftSearchGameSessions>();
+	Proxy->FleetId = FleetId;
+	Proxy->AliasId = AliasId;
+	Proxy->FilterExpression = FilterExpression;
+	Proxy->SortExpression = SortExpression;
+	return Proxy;
+#endif
+	return nullptr;
+}
+
+EActivateStatus UGameLiftSearchGameSessions::Activate()
+{
+#if WITH_GAMELIFTCLIENTSDK
+	if (GameLiftClient)
+	{
+		LOG_NORMAL("Preparing to search for game sessions...");
+
+		if (OnSearchGameSessionsSuccess.IsBound() == false)
+		{
+			LOG_ERROR("No functions were bound to OnSearchGameSessionsSuccess multi-cast delegate! Aborting Activate.");
+			return EActivateStatus::ACTIVATE_NoSuccessCallback;
+		}
+
+		if (OnSearchGameSessionsFailed.IsBound() == false)
+		{
+			LOG_ERROR("No functions were bound to OnSearchGameSessionsFailed multi-cast delegate! Aborting Activate.");
+			return EActivateStatus::ACTIVATE_NoFailCallback;
+		}
+
+		Aws::GameLift::Model::SearchGameSessionsRequest Request;
+		
+		LOG_NORMAL("Setting fleet id: " + FleetId);
+		Request.SetFleetId(TCHAR_TO_UTF8(*FleetId));
+		LOG_NORMAL("Setting alias id: " + AliasId);
+		Request.SetAliasId(TCHAR_TO_UTF8(*AliasId));
+		LOG_NORMAL("Setting filter expression: " + FilterExpression);
+		Request.SetFilterExpression(TCHAR_TO_UTF8(*FilterExpression));
+		LOG_NORMAL("Setting sort expression: " + SortExpression);
+		Request.SetSortExpression(TCHAR_TO_UTF8(*SortExpression));
+
+		Aws::GameLift::SearchGameSessionsResponseReceivedHandler Handler;
+		Handler = std::bind(&UGameLiftSearchGameSessions::OnSearchGameSessions, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+
+		LOG_NORMAL("Searching...");
+		GameLiftClient->SearchGameSessionsAsync(Request, Handler);
+		return EActivateStatus::ACTIVATE_Success;
+	}
+	LOG_ERROR("GameLiftClient is null. Did you call CreateGameLiftObject first?");
+#endif
+	return EActivateStatus::ACTIVATE_NoGameLift;
+}
+
+void UGameLiftSearchGameSessions::OnSearchGameSessions(const Aws::GameLift::GameLiftClient* Client, const Aws::GameLift::Model::SearchGameSessionsRequest& Request, const Aws::GameLift::Model::SearchGameSessionsOutcome& Outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>& Context)
+{
+#if WITH_GAMELIFTCLIENTSDK
+	if (Outcome.IsSuccess())
+	{
+		LOG_NORMAL("Received OnSearchGameSessions with Success outcome.");
+		const std::vector<Aws::GameLift::Model::GameSession, Aws::Allocator<Aws::GameLift::Model::GameSession>> GameSessions = Outcome.GetResult().GetGameSessions();
+		TArray<FString> GameSessionIds;
+		for (int i = 0; i < GameSessions.size(); i++) {
+			GameSessionIds.Add(GameSessions[i].GetGameSessionId().c_str());
+		}
+
+		OnSearchGameSessionsSuccess.Broadcast(GameSessionIds);
+	}
+	else
+	{
+		const FString MyErrorMessage = FString(Outcome.GetError().GetMessage().c_str());
+		LOG_ERROR("Received SearchGameSessions with failed outcome. Error: " + MyErrorMessage);
+		OnSearchGameSessionsFailed.Broadcast(MyErrorMessage);
 	}
 #endif
 }
