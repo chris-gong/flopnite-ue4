@@ -318,7 +318,8 @@ void UGameLiftDescribeGameSessionQueues::OnDescribeGameSessionQueues(const Aws::
 			FleetARNs.Add(Destinations[i].GetDestinationArn().c_str());
 		}
 
-		OnDescribeGameSessionQueuesSuccess.Broadcast(FleetARNs);
+		const TArray<FString> FleetARNsCopy = TArray<FString>(FleetARNs);
+		OnDescribeGameSessionQueuesSuccess.Broadcast(FleetARNsCopy);
 	}
 	else
 	{
