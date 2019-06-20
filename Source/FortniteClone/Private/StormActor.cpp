@@ -14,7 +14,7 @@ AStormActor::AStormActor()
 	Damage = 1;
 	IsShrinking = false;
 	SizeScale = GetActorScale3D();
-	Stage = 0; //Stages 0, 1, 2, 3, the circle is not shrinking, stage 4 the circle is shrinking and sets back to 1 afterwards
+	Stage = 0; //Stages 0, 1, 2, 3, the circle is not shrinking, stage 4, 5, 6 the circle is shrinking and sets back to 0 afterwards
 }
 
 // Called when the game starts or when spawned
@@ -61,9 +61,13 @@ void AStormActor::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLi
 }
 
 void AStormActor::ServerSetIsShrinking_Implementation() {
-	if (Stage == 4) {
-		Stage = 0;
-		IsShrinking = !IsShrinking;
+	if (Stage >= 4) {
+		Stage = Stage + 1;
+		if (Stage == 7) {
+			// storm will now shrink for 3 stages (time of stage * 3)
+			Stage = 0; 
+			IsShrinking = !IsShrinking;
+		}
 	}
 	else {
 		Stage = Stage + 1;
@@ -89,7 +93,7 @@ void AStormActor::ServerStartStorm_Implementation() {
 	FTimerHandle StormDamageTimerHandle;
 	GetWorldTimerManager().SetTimer(StormDamageTimerHandle, this, &AStormActor::ServerSetIsShrinking, 30.0f, true);
 	FTimerHandle StormStateTimerHandle;
-	GetWorldTimerManager().SetTimer(StormStateTimerHandle, this, &AStormActor::ServerSetNewDamage, 180.0f, true);
+	GetWorldTimerManager().SetTimer(StormStateTimerHandle, this, &AStormActor::ServerSetNewDamage, 240.0f, true);
 }
 
 bool AStormActor::ServerStartStorm_Validate() {
