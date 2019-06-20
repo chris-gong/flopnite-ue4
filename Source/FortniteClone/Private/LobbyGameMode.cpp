@@ -9,6 +9,7 @@ DEFINE_LOG_CATEGORY(LogMyServerLobby);
 
 ALobbyGameMode::ALobbyGameMode()
 {
+	bUseSeamlessTravel = true;
 	static ConstructorHelpers::FClassFinder<APawn> LobbyPawnBPClass(TEXT("/Game/ThirdPersonCPP/Blueprints/BP_LobbyCharacter"));
 	static ConstructorHelpers::FClassFinder<APawn> SpectatorPawnBPClass(TEXT("/Game/ThirdPersonCPP/Blueprints/BP_SpectatorCharacter"));
 	if (LobbyPawnBPClass.Class != NULL)

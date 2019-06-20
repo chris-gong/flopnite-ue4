@@ -36,10 +36,8 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void GameModeStartStorm();
 
-	int TimeSinceInitialization;
-
 	UFUNCTION(Server, Reliable, WithValidation)
-	void TickInitializationClock();
+	void CheckRemainingPlayers();
 };
 
 

@@ -19,7 +19,6 @@ AFortniteCloneGameMode::AFortniteCloneGameMode()
 {
 	// set default pawn class to our Blueprinted character
 	Initialized = false;
-	TimeSinceInitialization = 0;
 	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/ThirdPersonCPP/Blueprints/BP_ThirdPersonCharacter"));
 	static ConstructorHelpers::FClassFinder<APawn> SpectatorPawnBPClass(TEXT("/Game/ThirdPersonCPP/Blueprints/BP_SpectatorCharacter"));
 	if (PlayerPawnBPClass.Class != NULL && SpectatorPawnBPClass.Class != NULL)
@@ -126,16 +125,11 @@ void AFortniteCloneGameMode::PostLogin(APlayerController *NewPlayer) {
 		FTimerHandle StormSetupTimerHandle;
 		GetWorldTimerManager().SetTimer(StormSetupTimerHandle, this, &AFortniteCloneGameMode::GameModeStartStorm, 30.0f, false);
 
-		FTimerHandle InitializationTimerHandle;
-		GetWorldTimerManager().SetTimer(InitializationTimerHandle, this, &AFortniteCloneGameMode::TickInitializationClock, 1.0f, true);
+		FTimerHandle EndGameTimerHandle;
+		GetWorldTimerManager().SetTimer(EndGameTimerHandle, this, &AFortniteCloneGameMode::CheckRemainingPlayers, 30.0f, true);
 	}
 	if (FortniteClonePlayerController) {
-		if (TimeSinceInitialization > 150) {
-			FortniteClonePlayerController->SpawnAsSpectator = true;
-		}
-		else {
-			FortniteClonePlayerController->SpawnAsSpectator = false;
-		}
+		FortniteClonePlayerController->SpawnAsSpectator = false; // since we have switched to server travel, everyone joining the game should be a player
 	}
 }
 
@@ -172,10 +166,22 @@ bool AFortniteCloneGameMode::GameModeStartStorm_Validate() {
 	return true;
 }
 
-void AFortniteCloneGameMode::TickInitializationClock_Implementation() {
-	TimeSinceInitialization++;
+void AFortniteCloneGameMode::CheckRemainingPlayers_Implementation() {
+	if (GetNumPlayers() < 2) {
+		// the game is over, terminate the game session
+	#if WITH_GAMELIFT
+		FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
+		FGameLiftGenericOutcome outcome = gameLiftSdkModule->TerminateGameSession();
+		UE_LOG(LogMyServerGame, Log, TEXT("FortniteCloneGameMode::EndGame"));
+		if (!outcome.IsSuccess())
+		{
+			const FString ErrorMessage = outcome.GetError().m_errorMessage;
+			UE_LOG(LogMyServerGame, Log, TEXT("FortniteCloneGameMode::EndGame: Error: %s"), *ErrorMessage);
+		}
+	#endif
+	}
 }
 
-bool AFortniteCloneGameMode::TickInitializationClock_Validate() {
+bool AFortniteCloneGameMode::CheckRemainingPlayers_Validate() {
 	return true;
 }
