@@ -13,7 +13,7 @@
 //#include "GameLiftClientSDK/Public/GameLiftClientObject.h"
 //#include "GameLiftClientSDK/Public/GameLiftClientApi.h"
 
-DEFINE_LOG_CATEGORY(LogMyServer);
+DEFINE_LOG_CATEGORY(LogMyServerGame);
 
 AFortniteCloneGameMode::AFortniteCloneGameMode()
 {
@@ -41,7 +41,7 @@ AFortniteCloneGameMode::AFortniteCloneGameMode()
 #endif*/
 
 	//Let's run this code only if GAMELIFT is enabled. Only with Server targets!
-#if WITH_GAMELIFT
+/*#if WITH_GAMELIFT
 	//Getting the module first.
 	FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
 
@@ -89,7 +89,7 @@ AFortniteCloneGameMode::AFortniteCloneGameMode()
 	//Call ProcessReady to tell GameLift this game server is ready to receive game sessions!
 	gameLiftSdkModule->ProcessReady(*params);
 
-#endif
+#endif*/
 }
 
 void AFortniteCloneGameMode::BeginPlay() {
@@ -136,7 +136,6 @@ void AFortniteCloneGameMode::PostLogin(APlayerController *NewPlayer) {
 		else {
 			FortniteClonePlayerController->SpawnAsSpectator = false;
 		}
-		//FortniteClonePlayerController->SpawnAsSpectator = true;
 	}
 }
 
@@ -148,15 +147,15 @@ void AFortniteCloneGameMode::PreLogin(const FString& Options, const FString& Add
 
 		FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
 		FGameLiftGenericOutcome outcome = gameLiftSdkModule->AcceptPlayerSession(*PlayerSessionId);
-		UE_LOG(LogMyServer, Log, TEXT("AMyProjectGameMode::PreLogin: Client connecting with attempting to connect with GameLift PlayerSessionId: %s"), *PlayerSessionId);
+		UE_LOG(LogMyServerGame, Log, TEXT("AMyProjectGameMode::PreLogin: Client connecting with attempting to connect with GameLift PlayerSessionId: %s"), *PlayerSessionId);
 		if (!outcome.IsSuccess())
 		{
 			ErrorMessage = outcome.GetError().m_errorMessage;
-			UE_LOG(LogMyServer, Log, TEXT("AMyProjectGameMode::PreLogin: Client connecting with invalid GameLift PlayerSessionId: %s, Error: %s"), *PlayerSessionId, *ErrorMessage);
+			UE_LOG(LogMyServerGame, Log, TEXT("AMyProjectGameMode::PreLogin: Client connecting with invalid GameLift PlayerSessionId: %s, Error: %s"), *PlayerSessionId, *ErrorMessage);
 		}
 	}
 	else {
-		UE_LOG(LogMyServer, Log, TEXT("Options does not exist"));
+		UE_LOG(LogMyServerGame, Log, TEXT("Options does not exist"));
 	}
 #endif*/
 }

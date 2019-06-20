@@ -6,6 +6,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "LobbyGameMode.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogMyServerLobby, Log, All);
 /**
  * 
  */
@@ -17,8 +18,17 @@ class FORTNITECLONE_API ALobbyGameMode : public AGameModeBase
 public:
 	ALobbyGameMode();
 
-	//virtual void StartPlay() override;
+	bool GameReady;
 
-	//virtual void PostLogin(APlayerController* NewPlayer) override;
+	virtual void BeginPlay() override;
+
+	virtual void StartPlay() override;
+
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+
+	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerStartGame();
 };
 

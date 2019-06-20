@@ -8,7 +8,7 @@
 
 class AStormActor;
 
-DECLARE_LOG_CATEGORY_EXTERN(LogMyServer, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogMyServerGame, Log, All);
 
 UCLASS(minimalapi)
 class AFortniteCloneGameMode : public AGameModeBase
