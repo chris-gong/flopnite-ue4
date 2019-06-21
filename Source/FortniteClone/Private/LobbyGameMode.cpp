@@ -10,6 +10,7 @@ DEFINE_LOG_CATEGORY(LogMyServerLobby);
 ALobbyGameMode::ALobbyGameMode()
 {
 	bUseSeamlessTravel = true;
+	GameReady = false;
 	static ConstructorHelpers::FClassFinder<APawn> LobbyPawnBPClass(TEXT("/Game/ThirdPersonCPP/Blueprints/BP_LobbyCharacter"));
 	static ConstructorHelpers::FClassFinder<APawn> SpectatorPawnBPClass(TEXT("/Game/ThirdPersonCPP/Blueprints/BP_SpectatorCharacter"));
 	if (LobbyPawnBPClass.Class != NULL)
@@ -82,6 +83,7 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer) {
 	Super::PostLogin(NewPlayer);
 
 	if (!GameReady && GetNumPlayers() >= 2) {
+		GameReady = true;
 		// start the game (server travel) in 30 seconds once there's at least 2 players in the lobby
 		FTimerHandle StormSetupTimerHandle;
 		GetWorldTimerManager().SetTimer(StormSetupTimerHandle, this, &ALobbyGameMode::ServerStartGame, 30.0f, false);
@@ -110,6 +112,17 @@ void ALobbyGameMode::PreLogin(const FString& Options, const FString& Address, co
 }
 
 void ALobbyGameMode::ServerStartGame_Implementation() {
+	// make the game unjoinable
+	#if WITH_GAMELIFT
+	FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
+	FGameLiftGenericOutcome outcome = gameLiftSdkModule->UpdatePlayerSessionCreationPolicy(EPlayerSessionCreationPolicy::DENY_ALL);
+	UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::UpdatePlayerSessionCreationPolicy: deny all new player sessions"));
+	if (!outcome.IsSuccess())
+	{
+		const FString ErrorMessage = outcome.GetError().m_errorMessage;
+		UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::UpdatePlayerSessionCreationPolicy: Error: %s"), *ErrorMessage);
+	}
+	#endif
 	FString contentDir = FPaths::ProjectContentDir();
 	FString mapPath = contentDir + "/Maps/Level_BattleRoyale_2.umap";
 	GetWorld()->ServerTravel(mapPath);
