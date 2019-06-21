@@ -452,10 +452,9 @@ EActivateStatus UGameLiftStartGameSessionPlacement::Activate()
 		}
 
 		Aws::GameLift::Model::StartGameSessionPlacementRequest Request;
-
 		LOG_NORMAL("Setting queue name: " + QueueName);
 		Request.SetGameSessionQueueName(TCHAR_TO_UTF8(*QueueName));
-		LOG_NORMAL("Setting max player count: " + MaxPlayerCount);
+		LOG_NORMAL("Setting max player count: " + FString(std::to_string(MaxPlayerCount).c_str()));
 		Request.SetMaximumPlayerSessionCount(MaxPlayerCount);
 		LOG_NORMAL("PlacementId " + PlacementId);
 		Request.SetPlacementId(TCHAR_TO_UTF8(*PlacementId));
