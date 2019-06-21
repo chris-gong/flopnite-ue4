@@ -247,7 +247,19 @@ void UGameLiftCreatePlayerSession::OnCreatePlayerSession(const Aws::GameLift::Ga
 		const FString ServerIpAddress = FString(Outcome.GetResult().GetPlayerSession().GetIpAddress().c_str());
 		const FString ServerPort = FString::FromInt(Outcome.GetResult().GetPlayerSession().GetPort());
 		const FString MyPlayerSessionID = FString(Outcome.GetResult().GetPlayerSession().GetPlayerSessionId().c_str());
-		OnCreatePlayerSessionSuccess.Broadcast(ServerIpAddress, ServerPort, MyPlayerSessionID);
+		Aws::GameLift::Model::PlayerSessionStatus Status = Outcome.GetResult().GetPlayerSession().GetStatus();
+		int PlayerSessionStatus = 0;
+		if (Status == Aws::GameLift::Model::PlayerSessionStatus::ACTIVE) {
+			PlayerSessionStatus = 2;
+		}
+		else if (Status == Aws::GameLift::Model::PlayerSessionStatus::RESERVED) {
+			PlayerSessionStatus = 1;
+		}
+		else if (Status == Aws::GameLift::Model::PlayerSessionStatus::TIMEDOUT || Status == Aws::GameLift::Model::PlayerSessionStatus::COMPLETED) {
+			PlayerSessionStatus = -1;
+		}
+		const int MyPlayerSessionStatus = PlayerSessionStatus;
+		OnCreatePlayerSessionSuccess.Broadcast(ServerIpAddress, ServerPort, MyPlayerSessionID, MyPlayerSessionStatus);
 	}
 	else
 	{

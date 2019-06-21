@@ -34,7 +34,7 @@ public:
 	// Create Player Session /////////////////////////////////////////////////
 	void CreatePlayerSession(const FString& GameSessionID, const FString UniquePlayerID);
 	UFUNCTION()
-	void OnPlayerSessionCreateSuccess(const FString& IPAddress, const FString& Port, const FString& PlayerSessionID);
+	void OnPlayerSessionCreateSuccess(const FString& IPAddress, const FString& Port, const FString& PlayerSessionID, const int& PlayerSessionStatus);
 	UFUNCTION()
 	void OnPlayerSessionCreateFail(const FString& ErrorMessage);
 };

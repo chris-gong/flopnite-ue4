@@ -79,7 +79,7 @@ void UFortniteCloneGameInstance::CreatePlayerSession(const FString& GameSessionI
 #endif
 }
 
-void UFortniteCloneGameInstance::OnPlayerSessionCreateSuccess(const FString& IPAddress, const FString& Port, const FString& PlayerSessionID)
+void UFortniteCloneGameInstance::OnPlayerSessionCreateSuccess(const FString& IPAddress, const FString& Port, const FString& PlayerSessionID, const int& PlayerSessionStatus)
 {
 #if WITH_GAMELIFTCLIENTSDK
 	const FString TravelURL = IPAddress + ":" + Port;
