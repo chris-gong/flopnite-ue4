@@ -221,11 +221,16 @@ EActivateStatus UGameLiftCreatePlayerSession::Activate()
 		}
 
 		Aws::GameLift::Model::CreatePlayerSessionRequest Request;
-		LOG_NORMAL("Setting game session ID: " + GameSessionID);
-		Request.SetGameSessionId(TCHAR_TO_UTF8(*GameSessionID));
-		LOG_NORMAL("Setting player ID: " + PlayerID);
-		Request.SetPlayerId(TCHAR_TO_UTF8(*PlayerID));
-
+		LOG_NORMAL("Create player session game session ID: " + GameSessionID);
+		if (GameSessionID.Len() > 0) {
+			LOG_NORMAL("Setting game session ID: " + GameSessionID);
+			Request.SetGameSessionId(TCHAR_TO_UTF8(*GameSessionID));
+		}
+		if (PlayerID.Len() > 0) {
+			LOG_NORMAL("Setting player ID: " + PlayerID);
+			Request.SetPlayerId(TCHAR_TO_UTF8(*PlayerID));
+		}
+		
 		Aws::GameLift::CreatePlayerSessionResponseReceivedHandler Handler;
 		Handler = std::bind(&UGameLiftCreatePlayerSession::OnCreatePlayerSession, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 
@@ -324,12 +329,16 @@ void UGameLiftDescribeGameSessionQueues::OnDescribeGameSessionQueues(const Aws::
 	if (Outcome.IsSuccess())
 	{
 		LOG_NORMAL("Received OnDescribeGameSessionQueues with Success outcome.");
-		const std::vector<Aws::GameLift::Model::GameSessionQueueDestination, Aws::Allocator<Aws::GameLift::Model::GameSessionQueueDestination>> Destinations = Outcome.GetResult().GetGameSessionQueues().data()->GetDestinations();
+		const std::vector<Aws::GameLift::Model::GameSessionQueue, Aws::Allocator<Aws::GameLift::Model::GameSessionQueue>> Queues = Outcome.GetResult().GetGameSessionQueues();
+		LOG_NORMAL("Received OnDescribeGameSessionQueues after getting destinations");
 		TArray<FString> FleetARNs; // NOTE: STILL HAVE TO SPLIT THE STRINGS IN HERE BY REGION AND FLEET ID/ALIAS
-		for (int i = 0; i < Destinations.size(); i++) {
-			FleetARNs.Add(Destinations[i].GetDestinationArn().c_str());
+		for (int i = 0; i < Queues.size(); i++) {
+			const std::vector<Aws::GameLift::Model::GameSessionQueueDestination, Aws::Allocator<Aws::GameLift::Model::GameSessionQueueDestination>> Destinations = Queues[i].GetDestinations();
+			for (int j = 0; j < Destinations.size(); j++) {
+				FleetARNs.Add(Destinations[j].GetDestinationArn().c_str());
+			}
 		}
-
+		LOG_NORMAL("Received OnDescribeGameSessionQueues after loading fleet arns");
 		const TArray<FString> FleetARNsCopy = TArray<FString>(FleetARNs);
 		OnDescribeGameSessionQueuesSuccess.Broadcast(FleetARNsCopy);
 	}
@@ -376,14 +385,22 @@ EActivateStatus UGameLiftSearchGameSessions::Activate()
 
 		Aws::GameLift::Model::SearchGameSessionsRequest Request;
 		
-		LOG_NORMAL("Setting fleet id: " + FleetId);
-		Request.SetFleetId(TCHAR_TO_UTF8(*FleetId));
-		LOG_NORMAL("Setting alias id: " + AliasId);
-		Request.SetAliasId(TCHAR_TO_UTF8(*AliasId));
-		LOG_NORMAL("Setting filter expression: " + FilterExpression);
-		Request.SetFilterExpression(TCHAR_TO_UTF8(*FilterExpression));
-		LOG_NORMAL("Setting sort expression: " + SortExpression);
-		Request.SetSortExpression(TCHAR_TO_UTF8(*SortExpression));
+		if (FleetId.Len() > 0) {
+			LOG_NORMAL("Setting fleet id: " + FleetId);
+			Request.SetFleetId(TCHAR_TO_UTF8(*FleetId));
+		}
+		if (AliasId.Len() > 0) {
+			LOG_NORMAL("Setting alias id: " + AliasId);
+			Request.SetAliasId(TCHAR_TO_UTF8(*AliasId));
+		}
+		if (FilterExpression.Len() > 0) {
+			LOG_NORMAL("Setting filter expression: " + FilterExpression);
+			Request.SetFilterExpression(TCHAR_TO_UTF8(*FilterExpression));
+		}
+		if (SortExpression.Len() > 0) {
+			LOG_NORMAL("Setting sort expression: " + SortExpression);
+			Request.SetSortExpression(TCHAR_TO_UTF8(*SortExpression));
+		}
 
 		Aws::GameLift::SearchGameSessionsResponseReceivedHandler Handler;
 		Handler = std::bind(&UGameLiftSearchGameSessions::OnSearchGameSessions, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
@@ -406,10 +423,11 @@ void UGameLiftSearchGameSessions::OnSearchGameSessions(const Aws::GameLift::Game
 		const std::vector<Aws::GameLift::Model::GameSession, Aws::Allocator<Aws::GameLift::Model::GameSession>> GameSessions = Outcome.GetResult().GetGameSessions();
 		TArray<FString> GameSessionIds;
 		for (int i = 0; i < GameSessions.size(); i++) {
+			LOG_NORMAL("OnSearchGameSessionsSuccess");
 			GameSessionIds.Add(GameSessions[i].GetGameSessionId().c_str());
 		}
-
-		OnSearchGameSessionsSuccess.Broadcast(GameSessionIds);
+		const TArray<FString> GameSessionIdsCopy = TArray<FString>(GameSessionIds);
+		OnSearchGameSessionsSuccess.Broadcast(GameSessionIdsCopy);
 	}
 	else
 	{
@@ -476,7 +494,7 @@ void UGameLiftStartGameSessionPlacement::OnStartGameSessionPlacement(const Aws::
 #if WITH_GAMELIFTCLIENTSDK
 	if (Outcome.IsSuccess())
 	{
-		LOG_NORMAL("Received OnSearchGameSessions with Success outcome.");
+		LOG_NORMAL("Received OnStartGameSessionPlacement with Success outcome.");
 		const FString GameSessionId = Outcome.GetResult().GetGameSessionPlacement().GetGameSessionId().c_str();
 
 		OnStartGameSessionPlacementSuccess.Broadcast(GameSessionId);
@@ -484,7 +502,7 @@ void UGameLiftStartGameSessionPlacement::OnStartGameSessionPlacement(const Aws::
 	else
 	{
 		const FString MyErrorMessage = FString(Outcome.GetError().GetMessage().c_str());
-		LOG_ERROR("Received SearchGameSessions with failed outcome. Error: " + MyErrorMessage);
+		LOG_ERROR("Received OnStartGameSessionPlacement with failed outcome. Error: " + MyErrorMessage);
 		OnStartGameSessionPlacementFailed.Broadcast(MyErrorMessage);
 	}
 #endif
