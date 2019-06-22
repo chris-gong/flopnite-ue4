@@ -9,6 +9,7 @@
 
 class UUserWidget;
 class UTextReaderComponent;
+class UGameLiftClientObject;
 
 // This class does not need to be modified.
 UCLASS(BlueprintType, Blueprintable)
@@ -25,14 +26,53 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Reader")
 	UTextReaderComponent* TextReader;
 
-	/** Retrieves FText value currently held in DisplayText */
-	UFUNCTION(BlueprintPure, Category = "Widgets|Text")
-	FText GetCodeInput() const;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameLift")
+	FString AccessKey;
 
-	UFUNCTION(BlueprintPure, Category = "Widgets|Text")
-	void SetCodeText(const FText& gmt_NewDisplayText);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameLift")
+	FString SecretKey;
 
-	UFUNCTION(BlueprintPure, Category = "Levels")
-	bool LoadBattleRoyaleLevel();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameLift")
+	FString QueueName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameLift")
+	UGameLiftClientObject* Client;
+
+	UFUNCTION(Category = "GameLift")
+	void JoinGame();
+
+	UFUNCTION(Category = "GameLift")
+	void DescribeGameSessionQueues(const FString& QueueNameInput);
+
+	UFUNCTION(Category = "GameLift")
+	void OnDescribeGameSessionQueuesSuccess(const TArray<FString>& FleetARNs);
+
+	UFUNCTION(Category = "GameLift")
+	void OnDescribeGameSessionQueuesFailed(const FString& ErrorMessage);
+
+	UFUNCTION(Category = "GameLift")
+	void SearchGameSessions(const FString& FleetId);
+
+	UFUNCTION(Category = "GameLift")
+	void OnSearchGameSessionsSuccess(const TArray<FString>& GameSessionIds);
+
+	UFUNCTION(Category = "GameLift")
+	void OnSearchGameSessionsFailed(const FString& ErrorMessage);
+
+	UFUNCTION(Category = "GameLift")
+	void CreatePlayerSession(const FString& GameSessionId, const FString& PlayerSessionId);
+
+	UFUNCTION(Category = "GameLift")
+	void OnCreatePlayerSessionSuccess(const FString& IPAddress, const FString& Port, const FString& PlayerSessionID, const int& PlayerSessionStatus);
+
+	UFUNCTION(Category = "GameLift")
+	void OnCreatePlayerSessionFailed(const FString& ErrorMessage);
+
+private:
+	bool SearchGameSessionsFinished;
+
+	bool CreatePlayerSessionFinished;
+
+	FString GenerateRandomId();
 };
 
