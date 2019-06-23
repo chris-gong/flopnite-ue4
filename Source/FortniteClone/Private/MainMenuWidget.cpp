@@ -7,12 +7,14 @@
 #include "GameLiftClientSDK/Public/GameLiftClientApi.h"
 #include "Engine/Engine.h"
 #include "Runtime\Engine\Classes\Kismet\KismetMathLibrary.h"
+#include "Runtime/UMG/Public/Components/Button.h"
 
 // Add default functionality here for any IMainMenuWidget functions that are not pure virtual.
 
 UMainMenuWidget::UMainMenuWidget(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	TextReader = CreateDefaultSubobject<UTextReaderComponent>(TEXT("TextReaderComp"));
+	//JoinGameButton = (UButton*)GetWidgetFromName(TEXT("Button_JoinGame"));
 	AccessKey = TextReader->ReadFile("Credentials/AWS_AccessKey.txt");
 	SecretKey = TextReader->ReadFile("Credentials/AWS_SecretKey.txt");
 	QueueName = TextReader->ReadFile("Credentials/AWS_QueueName.txt");
@@ -20,10 +22,30 @@ UMainMenuWidget::UMainMenuWidget(const FObjectInitializer& ObjectInitializer) :S
 	Client = UGameLiftClientObject::CreateGameLiftObject(AccessKey, SecretKey, "us-east-1");
 	SearchGameSessionsFinished = false;
 	CreatePlayerSessionFinished = false;
+	DescribeGameSessionQueuesFinished = false;
 }
 
+void UMainMenuWidget::NativeConstruct() {
+	JoinGameButton = (UButton*) GetWidgetFromName(TEXT("Button_JoinGame"));
+	JoinGameButton->OnClicked.AddDynamic(this, &UMainMenuWidget::JoinGame);
+}
 void UMainMenuWidget::JoinGame() {
+	JoinGameButton->SetIsEnabled(false);
 	DescribeGameSessionQueues(QueueName);
+
+	while (!DescribeGameSessionQueuesFinished) {
+		// block this function until describe game session queues finishes
+	}
+	DescribeGameSessionQueuesFinished = false; // reset variable for next time this function is called
+
+	FString PlacementId = GenerateRandomId();
+	StartGameSessionPlacement(QueueName, 100, PlacementId);
+
+	while (!StartGameSessionPlacementFinished) {
+		// block this function until start game session placement finishes
+	}
+	StartGameSessionPlacementFinished = false; // reset variable for next time this function is called
+	JoinGameButton->SetIsEnabled(true);
 }
 
 void UMainMenuWidget::DescribeGameSessionQueues(const FString& QueueNameInput) {
@@ -50,10 +72,12 @@ void UMainMenuWidget::OnDescribeGameSessionQueuesSuccess(const TArray<FString>& 
 
 		SearchGameSessionsFinished = false; // reset variable for next iteration
 	}
+	DescribeGameSessionQueuesFinished = true;
 }
 
 void UMainMenuWidget::OnDescribeGameSessionQueuesFailed(const FString& ErrorMessage) {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, ErrorMessage);
+	DescribeGameSessionQueuesFinished = true;
 }
 
 void UMainMenuWidget::SearchGameSessions(const FString& FleetId) {
@@ -91,12 +115,42 @@ void UMainMenuWidget::CreatePlayerSession(const FString& GameSessionId, const FS
 }
 
 void UMainMenuWidget::OnCreatePlayerSessionSuccess(const FString& IPAddress, const FString& Port, const FString& PlayerSessionID, const int& PlayerSessionStatus) {
+	if (PlayerSessionStatus == 1) {
+		FString LevelName = IPAddress + FString(":") + Port;
+		UGameplayStatics::OpenLevel(GetWorld(), "ThirdPersonExampleMap", false, PlayerSessionID);
+	}
+	else if (PlayerSessionStatus == 2) {
+		// already activated?
+	}
 	CreatePlayerSessionFinished = true;
 }
 
 void UMainMenuWidget::OnCreatePlayerSessionFailed(const FString& ErrorMessage) {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, ErrorMessage);
 	CreatePlayerSessionFinished = true;
+}
+
+void UMainMenuWidget::StartGameSessionPlacement(const FString& QueueNameInput, const int& MaxPlayerCount, const FString& PlacementId) {
+	UGameLiftStartGameSessionPlacement* StartGameSessionPlacementObject = Client->StartGameSessionPlacement(QueueNameInput, MaxPlayerCount, PlacementId);
+	StartGameSessionPlacementObject->OnStartGameSessionPlacementSuccess.AddDynamic(this, &UMainMenuWidget::OnStartGameSessionPlacementSuccess);
+	StartGameSessionPlacementObject->OnStartGameSessionPlacementFailed.AddDynamic(this, &UMainMenuWidget::OnStartGameSessionPlacementFailed);
+	StartGameSessionPlacementObject->Activate();
+}
+
+void UMainMenuWidget::OnStartGameSessionPlacementSuccess(const FString& GameSessionId) {
+	FString PlayerSessionId = GenerateRandomId();
+	CreatePlayerSession(GameSessionId, PlayerSessionId);
+	while (!CreatePlayerSessionFinished) {
+		// block this function until create player session finishes
+	}
+	CreatePlayerSessionFinished = false; // reset variable for next iteration
+
+	StartGameSessionPlacementFinished = true;
+}
+
+void UMainMenuWidget::OnStartGameSessionPlacementFailed(const FString& ErrorMessage) {
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, ErrorMessage);
+	StartGameSessionPlacementFinished = true;
 }
 
 FString UMainMenuWidget::GenerateRandomId() {

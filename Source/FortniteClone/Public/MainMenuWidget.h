@@ -10,6 +10,7 @@
 class UUserWidget;
 class UTextReaderComponent;
 class UGameLiftClientObject;
+class UButton;
 
 // This class does not need to be modified.
 UCLASS(BlueprintType, Blueprintable)
@@ -25,6 +26,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Reader")
 	UTextReaderComponent* TextReader;
+
+	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Custom Buttons")
+	UButton* JoinGameButton;*/
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameLift")
 	FString AccessKey;
@@ -68,11 +72,29 @@ public:
 	UFUNCTION(Category = "GameLift")
 	void OnCreatePlayerSessionFailed(const FString& ErrorMessage);
 
+	UFUNCTION(Category = "GameLift")
+	void StartGameSessionPlacement(const FString& QueueNameInput, const int& MaxPlayerCount, const FString& PlacementId);
+
+	UFUNCTION(Category = "GameLift")
+	void OnStartGameSessionPlacementSuccess(const FString& GameSessionId);
+
+	UFUNCTION(Category = "GameLift")
+	void OnStartGameSessionPlacementFailed(const FString& ErrorMessage);
+
 private:
 	bool SearchGameSessionsFinished;
 
 	bool CreatePlayerSessionFinished;
 
+	bool DescribeGameSessionQueuesFinished;
+
+	bool StartGameSessionPlacementFinished;
+
+	UButton* JoinGameButton;
+
 	FString GenerateRandomId();
+
+	virtual void NativeConstruct() override;
+
 };
 
