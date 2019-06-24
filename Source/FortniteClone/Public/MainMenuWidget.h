@@ -12,6 +12,7 @@ class UTextReaderComponent;
 class UGameLiftClientObject;
 class UButton;
 
+DECLARE_LOG_CATEGORY_EXTERN(LogMyMainMenu, Log, All);
 // This class does not need to be modified.
 UCLASS(BlueprintType, Blueprintable)
 class UMainMenuWidget : public UUserWidget
@@ -82,13 +83,9 @@ public:
 	void OnStartGameSessionPlacementFailed(const FString& ErrorMessage);
 
 private:
-	bool SearchGameSessionsFinished;
+	bool AttemptToJoinGameFinished;
 
-	bool CreatePlayerSessionFinished;
-
-	bool DescribeGameSessionQueuesFinished;
-
-	bool StartGameSessionPlacementFinished;
+	int GameSessionsLeft;
 
 	UButton* JoinGameButton;
 

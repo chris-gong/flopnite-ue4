@@ -28,7 +28,17 @@ public:
 
 	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
 
+	virtual void Logout(AController* Exiting) override;
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerCheckInactivity();
+
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerStartGame();
+
+private:
+	int TimePassed;
+
+	bool SomeoneJoined;
 };
 

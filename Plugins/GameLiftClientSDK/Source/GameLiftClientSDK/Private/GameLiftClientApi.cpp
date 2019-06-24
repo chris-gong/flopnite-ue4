@@ -260,8 +260,11 @@ void UGameLiftCreatePlayerSession::OnCreatePlayerSession(const Aws::GameLift::Ga
 		else if (Status == Aws::GameLift::Model::PlayerSessionStatus::RESERVED) {
 			PlayerSessionStatus = 1;
 		}
-		else if (Status == Aws::GameLift::Model::PlayerSessionStatus::TIMEDOUT || Status == Aws::GameLift::Model::PlayerSessionStatus::COMPLETED) {
+		else if (Status == Aws::GameLift::Model::PlayerSessionStatus::COMPLETED) {
 			PlayerSessionStatus = -1;
+		}
+		else if(Status == Aws::GameLift::Model::PlayerSessionStatus::TIMEDOUT) {
+			PlayerSessionStatus = 0;
 		}
 		const int MyPlayerSessionStatus = PlayerSessionStatus;
 		OnCreatePlayerSessionSuccess.Broadcast(ServerIpAddress, ServerPort, MyPlayerSessionID, MyPlayerSessionStatus);

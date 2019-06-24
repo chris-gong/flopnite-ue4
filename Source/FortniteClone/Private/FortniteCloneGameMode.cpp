@@ -126,7 +126,7 @@ void AFortniteCloneGameMode::PostLogin(APlayerController *NewPlayer) {
 		GetWorldTimerManager().SetTimer(StormSetupTimerHandle, this, &AFortniteCloneGameMode::GameModeStartStorm, 30.0f, false);
 
 		FTimerHandle EndGameTimerHandle;
-		GetWorldTimerManager().SetTimer(EndGameTimerHandle, this, &AFortniteCloneGameMode::CheckRemainingPlayers, 30.0f, true);
+		GetWorldTimerManager().SetTimer(EndGameTimerHandle, this, &AFortniteCloneGameMode::CheckRemainingPlayers, 30.0f, true); //TODO: change this to every second but only quit the game afterl like 10 or 15 seconds as done in lobbygamemode
 	}
 	if (FortniteClonePlayerController) {
 		FortniteClonePlayerController->SpawnAsSpectator = false; // since we have switched to server travel, everyone joining the game should be a player
@@ -170,14 +170,14 @@ void AFortniteCloneGameMode::CheckRemainingPlayers_Implementation() {
 	if (GetNumPlayers() < 2) {
 		// the game is over, terminate the game session
 	#if WITH_GAMELIFT
-		FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
+		/*FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
 		FGameLiftGenericOutcome outcome = gameLiftSdkModule->TerminateGameSession();
 		UE_LOG(LogMyServerGame, Log, TEXT("FortniteCloneGameMode::EndGame"));
 		if (!outcome.IsSuccess())
 		{
 			const FString ErrorMessage = outcome.GetError().m_errorMessage;
 			UE_LOG(LogMyServerGame, Log, TEXT("FortniteCloneGameMode::EndGame: Error: %s"), *ErrorMessage);
-		}
+		}*/
 	#endif
 	}
 }

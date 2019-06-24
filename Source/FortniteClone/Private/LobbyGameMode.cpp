@@ -11,6 +11,8 @@ ALobbyGameMode::ALobbyGameMode()
 {
 	bUseSeamlessTravel = true;
 	GameReady = false;
+	SomeoneJoined = false;
+	TimePassed = 0;
 	static ConstructorHelpers::FClassFinder<APawn> LobbyPawnBPClass(TEXT("/Game/ThirdPersonCPP/Blueprints/BP_LobbyCharacter"));
 	static ConstructorHelpers::FClassFinder<APawn> SpectatorPawnBPClass(TEXT("/Game/ThirdPersonCPP/Blueprints/BP_SpectatorCharacter"));
 	if (LobbyPawnBPClass.Class != NULL)
@@ -71,7 +73,8 @@ ALobbyGameMode::ALobbyGameMode()
 
 void ALobbyGameMode::BeginPlay() {
 	Super::BeginPlay();
-	//NetMulticastSpawnStorm();
+	FTimerHandle InactivityTimerHandle;
+	GetWorldTimerManager().SetTimer(InactivityTimerHandle, this, &ALobbyGameMode::ServerCheckInactivity, 1.0f, true);
 }
 
 void ALobbyGameMode::StartPlay() {
@@ -81,7 +84,7 @@ void ALobbyGameMode::StartPlay() {
 
 void ALobbyGameMode::PostLogin(APlayerController* NewPlayer) {
 	Super::PostLogin(NewPlayer);
-
+	SomeoneJoined = true;
 	if (!GameReady && GetNumPlayers() >= 2) {
 		GameReady = true;
 		// start the game (server travel) in 30 seconds once there's at least 2 players in the lobby
@@ -111,6 +114,22 @@ void ALobbyGameMode::PreLogin(const FString& Options, const FString& Address, co
 	#endif
 }
 
+void ALobbyGameMode::Logout(AController* Exiting) {
+	Super::Logout(Exiting);
+	/*if (GetNumPlayers() < 1) {
+#if WITH_GAMELIFT
+		FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
+		FGameLiftGenericOutcome outcome = gameLiftSdkModule->TerminateGameSession();
+		UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::EndGame"));
+		if (!outcome.IsSuccess())
+		{
+			const FString ErrorMessage = outcome.GetError().m_errorMessage;
+			UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::EndGame: Error: %s"), *ErrorMessage);
+		}
+#endif
+	}*/
+}
+
 void ALobbyGameMode::ServerStartGame_Implementation() {
 	// make the game unjoinable
 	#if WITH_GAMELIFT
@@ -129,5 +148,32 @@ void ALobbyGameMode::ServerStartGame_Implementation() {
 }
 
 bool ALobbyGameMode::ServerStartGame_Validate() {
+	return true;
+}
+
+void ALobbyGameMode::ServerCheckInactivity_Implementation() {
+	// make the game unjoinable
+	if (SomeoneJoined && GetNumPlayers() < 1) {
+		TimePassed += 1;
+		if (TimePassed == 10) {
+#if WITH_GAMELIFT
+			/*FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
+			FGameLiftGenericOutcome outcome = gameLiftSdkModule->TerminateGameSession();
+			UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::EndGame"));
+			if (!outcome.IsSuccess())
+			{
+				const FString ErrorMessage = outcome.GetError().m_errorMessage;
+				UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::EndGame: Error: %s"), *ErrorMessage);
+			}*/
+#endif
+			TimePassed = 0;
+		}
+	}
+	else {
+		TimePassed = 0;
+	}
+}
+
+bool ALobbyGameMode::ServerCheckInactivity_Validate() {
 	return true;
 }
