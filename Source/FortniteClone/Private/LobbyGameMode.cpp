@@ -58,7 +58,7 @@ ALobbyGameMode::ALobbyGameMode()
 	//from a range, such as:
 	//const int32 port = FURL::UrlConfig.DefaultPort;
 	//params->port;
-	params->port = 7777;
+	params->port = GetWorld()->URL.Port;
 
 	//Here, the game server tells GameLift what set of files to upload when the game session 
 	//ends. GameLift uploads everything specified here for the developers to fetch later.
@@ -89,8 +89,8 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer) {
 	if (!GameReady && GetNumPlayers() >= 4) {
 		GameReady = true;
 		// start the game (server travel) in 60 seconds once there's at least 4 players in the lobby
-		FTimerHandle StormSetupTimerHandle;
-		GetWorldTimerManager().SetTimer(StormSetupTimerHandle, this, &ALobbyGameMode::ServerStartGame, 60.0f, false);
+		FTimerHandle ServerTravelTimerHandle;
+		GetWorldTimerManager().SetTimer(ServerTravelTimerHandle, this, &ALobbyGameMode::ServerStartGame, 60.0f, false);
 	}
 }
 
