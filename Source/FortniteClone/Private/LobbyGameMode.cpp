@@ -4,6 +4,7 @@
 #include "LobbyGameMode.h"
 #include "GameLiftServerSDK.h"
 #include "Runtime/Engine/Classes/GameFramework/Actor.h"
+#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 
 DEFINE_LOG_CATEGORY(LogMyServerLobby);
 
@@ -85,20 +86,42 @@ void ALobbyGameMode::StartPlay() {
 void ALobbyGameMode::PostLogin(APlayerController* NewPlayer) {
 	Super::PostLogin(NewPlayer);
 	SomeoneJoined = true;
-	if (!GameReady && GetNumPlayers() >= 2) {
+	if (!GameReady && GetNumPlayers() >= 4) {
 		GameReady = true;
-		// start the game (server travel) in 30 seconds once there's at least 2 players in the lobby
+		// start the game (server travel) in 60 seconds once there's at least 4 players in the lobby
 		FTimerHandle StormSetupTimerHandle;
-		GetWorldTimerManager().SetTimer(StormSetupTimerHandle, this, &ALobbyGameMode::ServerStartGame, 30.0f, false);
+		GetWorldTimerManager().SetTimer(StormSetupTimerHandle, this, &ALobbyGameMode::ServerStartGame, 60.0f, false);
 	}
 }
 
 void ALobbyGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) {
 	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
 	#if WITH_GAMELIFT
-		if (*Options) {
-			const FString PlayerSessionId = *Options;
+		if (*Options && Options.Len() > 0) {
+			const FString PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
+			if (PlayerSessionId.Len() > 0) {
+				FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
+				FGameLiftGenericOutcome outcome = gameLiftSdkModule->AcceptPlayerSession(PlayerSessionId);
+				UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::PreLogin: Client connecting with attempting to connect with GameLift PlayerSessionId: %s"), *PlayerSessionId);
+				if (!outcome.IsSuccess())
+				{
+					ErrorMessage = outcome.GetError().m_errorMessage;
+					UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::PreLogin: Client connecting with invalid GameLift PlayerSessionId: %s, Error: %s"), *PlayerSessionId, **ErrorMessage);
+				}
+			}
+		}
+		else {
+			UE_LOG(LogMyServerLobby, Log, TEXT("Options does not exist"));
+		}
+	#endif
+}
 
+FString ALobbyGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal) {
+	return Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
+/*#if WITH_GAMELIFT
+	if (*Options && Options.Len() > 0) {
+		const FString PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
+		if (PlayerSessionId.Len() > 0) {
 			FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
 			FGameLiftGenericOutcome outcome = gameLiftSdkModule->AcceptPlayerSession(PlayerSessionId);
 			UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::PreLogin: Client connecting with attempting to connect with GameLift PlayerSessionId: %s"), *PlayerSessionId);
@@ -108,10 +131,12 @@ void ALobbyGameMode::PreLogin(const FString& Options, const FString& Address, co
 				UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::PreLogin: Client connecting with invalid GameLift PlayerSessionId: %s, Error: %s"), *PlayerSessionId, **ErrorMessage);
 			}
 		}
-		else {
-			UE_LOG(LogMyServerLobby, Log, TEXT("Options does not exist"));
-		}
-	#endif
+	}
+	else {
+		UE_LOG(LogMyServerLobby, Log, TEXT("Options does not exist"));
+	}
+#endif*/
+
 }
 
 void ALobbyGameMode::Logout(AController* Exiting) {

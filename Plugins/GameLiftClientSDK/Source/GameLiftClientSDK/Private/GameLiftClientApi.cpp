@@ -15,6 +15,7 @@
 #include "aws/gamelift/model/DescribeGameSessionQueuesRequest.h"
 #include "aws/gamelift/model/SearchGameSessionsRequest.h"
 #include "aws/gamelift/model/StartGameSessionPlacementRequest.h"
+#include "aws/gamelift/model/DescribeGameSessionPlacementRequest.h"
 #include <aws/core/http/HttpRequest.h>
 #endif
 
@@ -499,14 +500,92 @@ void UGameLiftStartGameSessionPlacement::OnStartGameSessionPlacement(const Aws::
 	{
 		LOG_NORMAL("Received OnStartGameSessionPlacement with Success outcome.");
 		const FString GameSessionId = Outcome.GetResult().GetGameSessionPlacement().GetGameSessionId().c_str();
+		const FString GameSessionPlacementId = Outcome.GetResult().GetGameSessionPlacement().GetPlacementId().c_str();
 
-		OnStartGameSessionPlacementSuccess.Broadcast(GameSessionId);
+		OnStartGameSessionPlacementSuccess.Broadcast(GameSessionId, GameSessionPlacementId);
 	}
 	else
 	{
 		const FString MyErrorMessage = FString(Outcome.GetError().GetMessage().c_str());
 		LOG_ERROR("Received OnStartGameSessionPlacement with failed outcome. Error: " + MyErrorMessage);
 		OnStartGameSessionPlacementFailed.Broadcast(MyErrorMessage);
+	}
+#endif
+}
+
+UGameLiftDescribeGameSessionPlacement* UGameLiftDescribeGameSessionPlacement::DescribeGameSessionPlacement(FString GameSessionPlacementId)
+{
+#if WITH_GAMELIFTCLIENTSDK
+	UGameLiftDescribeGameSessionPlacement* Proxy = NewObject<UGameLiftDescribeGameSessionPlacement>();
+	Proxy->GameSessionPlacementId = GameSessionPlacementId;
+	return Proxy;
+#endif
+	return nullptr;
+}
+
+EActivateStatus UGameLiftDescribeGameSessionPlacement::Activate()
+{
+#if WITH_GAMELIFTCLIENTSDK
+	if (GameLiftClient)
+	{
+		LOG_NORMAL("Preparing to describe a game session placement if available...");
+
+		if (OnDescribeGameSessionPlacementSuccess.IsBound() == false)
+		{
+			LOG_ERROR("No functions were bound to OnDescribeGameSessionPlacement multi-cast delegate! Aborting Activate.");
+			return EActivateStatus::ACTIVATE_NoSuccessCallback;
+		}
+
+		if (OnDescribeGameSessionPlacementFailed.IsBound() == false)
+		{
+			LOG_ERROR("No functions were bound to OnDescribeGameSessionPlacement multi-cast delegate! Aborting Activate.");
+			return EActivateStatus::ACTIVATE_NoFailCallback;
+		}
+
+		Aws::GameLift::Model::DescribeGameSessionPlacementRequest Request;
+		LOG_NORMAL("PlacementId " + GameSessionPlacementId);
+		Request.SetPlacementId(TCHAR_TO_UTF8(*GameSessionPlacementId));
+
+		Aws::GameLift::DescribeGameSessionPlacementResponseReceivedHandler Handler;
+		Handler = std::bind(&UGameLiftDescribeGameSessionPlacement::OnDescribeGameSessionPlacement, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+
+		LOG_NORMAL("Searching...");
+		GameLiftClient->DescribeGameSessionPlacementAsync(Request, Handler);
+		return EActivateStatus::ACTIVATE_Success;
+	}
+	LOG_ERROR("GameLiftClient is null. Did you call CreateGameLiftObject first?");
+#endif
+	return EActivateStatus::ACTIVATE_NoGameLift;
+}
+
+void UGameLiftDescribeGameSessionPlacement::OnDescribeGameSessionPlacement(const Aws::GameLift::GameLiftClient* Client, const Aws::GameLift::Model::DescribeGameSessionPlacementRequest& Request, const Aws::GameLift::Model::DescribeGameSessionPlacementOutcome& Outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>& Context)
+{
+#if WITH_GAMELIFTCLIENTSDK
+	if (Outcome.IsSuccess())
+	{
+		LOG_NORMAL("Received OnDescribeGameSessionPlacement with Success outcome.");
+		const FString GameSessionId = Outcome.GetResult().GetGameSessionPlacement().GetGameSessionId().c_str();
+		const FString PlacementId = Outcome.GetResult().GetGameSessionPlacement().GetPlacementId().c_str();
+		Aws::GameLift::Model::GameSessionPlacementState Status = Outcome.GetResult().GetGameSessionPlacement().GetStatus();
+		int GameSessionPlacementStatus = 0;
+		if (Status == Aws::GameLift::Model::GameSessionPlacementState::FULFILLED) {
+			GameSessionPlacementStatus = 1;
+		}
+		else if (Status == Aws::GameLift::Model::GameSessionPlacementState::PENDING) {
+			GameSessionPlacementStatus = 0;
+		}
+		else {
+			GameSessionPlacementStatus = -1;
+		}
+
+		const int GameSessionPlacementStatusCopy = GameSessionPlacementStatus;
+		OnDescribeGameSessionPlacementSuccess.Broadcast(GameSessionId, PlacementId, GameSessionPlacementStatusCopy);
+	}
+	else
+	{
+		const FString MyErrorMessage = FString(Outcome.GetError().GetMessage().c_str());
+		LOG_ERROR("Received OnDescribeGameSessionPlacement with failed outcome. Error: " + MyErrorMessage);
+		OnDescribeGameSessionPlacementFailed.Broadcast(MyErrorMessage);
 	}
 #endif
 }

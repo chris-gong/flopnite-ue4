@@ -101,3 +101,13 @@ UGameLiftStartGameSessionPlacement* UGameLiftClientObject::StartGameSessionPlace
 #endif
 	return nullptr;
 }
+
+UGameLiftDescribeGameSessionPlacement* UGameLiftClientObject::DescribeGameSessionPlacement(FString GameSessionPlacementId)
+{
+#if WITH_GAMELIFTCLIENTSDK
+	UGameLiftDescribeGameSessionPlacement* Proxy = UGameLiftDescribeGameSessionPlacement::DescribeGameSessionPlacement(GameSessionPlacementId);
+	Proxy->GameLiftClient = GameLiftClient;
+	return Proxy;
+#endif
+	return nullptr;
+}

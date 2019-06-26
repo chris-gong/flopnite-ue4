@@ -192,7 +192,7 @@ private:
 
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStartGameSessionPlacementSuccess, const FString&, GameSessionId);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnStartGameSessionPlacementSuccess, const FString&, GameSessionId, const FString&, PlacementId);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStartGameSessionPlacementFailed, const FString&, ErrorMessage);
 UCLASS()
 class GAMELIFTCLIENTSDK_API UGameLiftStartGameSessionPlacement : public UObject
@@ -223,5 +223,37 @@ public:
 
 private:
 	void OnStartGameSessionPlacement(const Aws::GameLift::GameLiftClient* Client, const Aws::GameLift::Model::StartGameSessionPlacementRequest& Request, const Aws::GameLift::Model::StartGameSessionPlacementOutcome& Outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>& Context);
+
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnDescribeGameSessionPlacementSuccess, const FString&, GameSessionId, const FString&, PlacementId, const int&, Status);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDescribeGameSessionPlacementFailed, const FString&, ErrorMessage);
+UCLASS()
+class GAMELIFTCLIENTSDK_API UGameLiftDescribeGameSessionPlacement : public UObject
+{
+	GENERATED_BODY()
+
+	friend class UGameLiftClientObject;
+
+public:
+
+	UPROPERTY(BlueprintAssignable, Category = "GameLift DescribeGameSessionPlacement")
+	FOnDescribeGameSessionPlacementSuccess OnDescribeGameSessionPlacementSuccess;
+
+	UPROPERTY(BlueprintAssignable, Category = "GameLift DescribeGameSessionPlacement")
+	FOnDescribeGameSessionPlacementFailed OnDescribeGameSessionPlacementFailed;
+
+private:
+	Aws::GameLift::GameLiftClient* GameLiftClient;
+	FString GameSessionPlacementId;
+
+	static UGameLiftDescribeGameSessionPlacement* DescribeGameSessionPlacement(FString GameSessionPlacementId);
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "GameLift DescribeGameSessionPlacement")
+	EActivateStatus Activate();
+
+private:
+	void OnDescribeGameSessionPlacement(const Aws::GameLift::GameLiftClient* Client, const Aws::GameLift::Model::DescribeGameSessionPlacementRequest& Request, const Aws::GameLift::Model::DescribeGameSessionPlacementOutcome& Outcome, const std::shared_ptr<const Aws::Client::AsyncCallerContext>& Context);
 
 };

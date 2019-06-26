@@ -82,4 +82,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "GameLift Client Object")
 	UGameLiftStartGameSessionPlacement* StartGameSessionPlacement(FString QueueName, int MaxPlayerCount, FString PlacementId);
+
+	UFUNCTION(BlueprintCallable, Category = "GameLift Client Object")
+	UGameLiftDescribeGameSessionPlacement* DescribeGameSessionPlacement(FString GameSessionPlacementId);
 };

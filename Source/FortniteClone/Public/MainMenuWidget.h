@@ -77,10 +77,19 @@ public:
 	void StartGameSessionPlacement(const FString& QueueNameInput, const int& MaxPlayerCount, const FString& PlacementId);
 
 	UFUNCTION(Category = "GameLift")
-	void OnStartGameSessionPlacementSuccess(const FString& GameSessionId);
+	void OnStartGameSessionPlacementSuccess(const FString& GameSessionId, const FString& PlacementId);
 
 	UFUNCTION(Category = "GameLift")
 	void OnStartGameSessionPlacementFailed(const FString& ErrorMessage);
+
+	UFUNCTION(Category = "GameLift")
+	void DescribeGameSessionPlacement(const FString& PlacementId);
+
+	UFUNCTION(Category = "GameLift")
+	void OnDescribeGameSessionPlacementSuccess(const FString& GameSessionId, const FString& PlacementId, const int& Status);
+
+	UFUNCTION(Category = "GameLift")
+	void OnDescribeGameSessionPlacementFailed(const FString& ErrorMessage);
 
 private:
 	bool AttemptToJoinGameFinished;
