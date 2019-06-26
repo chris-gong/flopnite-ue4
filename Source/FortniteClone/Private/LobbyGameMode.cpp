@@ -5,6 +5,7 @@
 #include "GameLiftServerSDK.h"
 #include "Runtime/Engine/Classes/GameFramework/Actor.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "LobbyHUD.h"
 
 DEFINE_LOG_CATEGORY(LogMyServerLobby);
 
@@ -15,10 +16,10 @@ ALobbyGameMode::ALobbyGameMode()
 	SomeoneJoined = false;
 	TimePassed = 0;
 	static ConstructorHelpers::FClassFinder<APawn> LobbyPawnBPClass(TEXT("/Game/ThirdPersonCPP/Blueprints/BP_LobbyCharacter"));
-	static ConstructorHelpers::FClassFinder<APawn> SpectatorPawnBPClass(TEXT("/Game/ThirdPersonCPP/Blueprints/BP_SpectatorCharacter"));
 	if (LobbyPawnBPClass.Class != NULL)
 	{
 		DefaultPawnClass = LobbyPawnBPClass.Class;
+		HUDClass = ALobbyHUD::StaticClass();
 		//HUDClass = AMainMenuHUD::StaticClass();
 	}
 #if WITH_GAMELIFT
@@ -58,7 +59,7 @@ ALobbyGameMode::ALobbyGameMode()
 	//from a range, such as:
 	//const int32 port = FURL::UrlConfig.DefaultPort;
 	//params->port;
-	params->port = GetWorld()->URL.Port;
+	params->port = FURL::UrlConfig.DefaultPort;
 
 	//Here, the game server tells GameLift what set of files to upload when the game session 
 	//ends. GameLift uploads everything specified here for the developers to fetch later.

@@ -11,6 +11,7 @@ class UUserWidget;
 class UTextReaderComponent;
 class UGameLiftClientObject;
 class UButton;
+class FEvent;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogMyMainMenu, Log, All);
 // This class does not need to be modified.
@@ -77,7 +78,7 @@ public:
 	void StartGameSessionPlacement(const FString& QueueNameInput, const int& MaxPlayerCount, const FString& PlacementId);
 
 	UFUNCTION(Category = "GameLift")
-	void OnStartGameSessionPlacementSuccess(const FString& GameSessionId, const FString& PlacementId);
+	void OnStartGameSessionPlacementSuccess(const FString& GameSessionId, const FString& PlacementId, const int& Status);
 
 	UFUNCTION(Category = "GameLift")
 	void OnStartGameSessionPlacementFailed(const FString& ErrorMessage);
@@ -99,6 +100,16 @@ private:
 	UButton* JoinGameButton;
 
 	FString GenerateRandomId();
+
+	FEvent* DescribeGameSessionQueuesEvent;
+
+	FEvent* SearchGameSessionsEvent;
+
+	FEvent* CreatePlayerSessionEvent;
+
+	FEvent* StartGameSessionPlacementEvent;
+
+	FEvent* DescribeGameSessionPlacementEvent;
 
 	virtual void NativeConstruct() override;
 

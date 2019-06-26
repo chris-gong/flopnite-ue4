@@ -21,6 +21,12 @@ UMainMenuWidget::UMainMenuWidget(const FObjectInitializer& ObjectInitializer) :S
 
 	AttemptToJoinGameFinished = false;
 	GameSessionsLeft = 4;
+
+	DescribeGameSessionQueuesEvent = FGenericPlatformProcess::GetSynchEventFromPool(false);
+	SearchGameSessionsEvent = FGenericPlatformProcess::GetSynchEventFromPool(false);
+	CreatePlayerSessionEvent = FGenericPlatformProcess::GetSynchEventFromPool(false);
+	StartGameSessionPlacementEvent = FGenericPlatformProcess::GetSynchEventFromPool(false);
+	DescribeGameSessionPlacementEvent = FGenericPlatformProcess::GetSynchEventFromPool(false);
 }
 
 void UMainMenuWidget::NativeConstruct() {
@@ -35,6 +41,18 @@ void UMainMenuWidget::JoinGame() {
 	AttemptToJoinGameFinished = false;
 	JoinGameButton->SetIsEnabled(false);
 	DescribeGameSessionQueues(QueueName);
+	DescribeGameSessionQueuesEvent->Wait();
+
+	if (AttemptToJoinGameFinished) {
+		return;
+	}
+
+	const FString& PlacementId = GenerateRandomId();
+	StartGameSessionPlacement(QueueName, 100, PlacementId);
+	StartGameSessionPlacementEvent->Wait();
+
+	AttemptToJoinGameFinished = true;
+	JoinGameButton->SetIsEnabled(true);
 }
 
 void UMainMenuWidget::DescribeGameSessionQueues(const FString& QueueNameInput) {
@@ -57,13 +75,18 @@ void UMainMenuWidget::OnDescribeGameSessionQueuesSuccess(const TArray<FString>& 
 
 		const FString& FleetId = FleetArnParsedAgain[1];
 		SearchGameSessions(FleetId);
+		SearchGameSessionsEvent->Wait();
+
+		if (AttemptToJoinGameFinished) {
+			break;
+		}
 	}
+	DescribeGameSessionQueuesEvent->Trigger();
 }
 
 void UMainMenuWidget::OnDescribeGameSessionQueuesFailed(const FString& ErrorMessage) {
 	UE_LOG(LogMyMainMenu, Log, TEXT("on describe game session queues failed %s"), *ErrorMessage);
-	AttemptToJoinGameFinished = true;
-	JoinGameButton->SetIsEnabled(true);
+	DescribeGameSessionQueuesEvent->Trigger();
 }
 
 void UMainMenuWidget::SearchGameSessions(const FString& FleetId) {
@@ -75,28 +98,35 @@ void UMainMenuWidget::SearchGameSessions(const FString& FleetId) {
 void UMainMenuWidget::OnSearchGameSessionsSuccess(const TArray<FString>& GameSessionIds) {
 	//SearchGameSessionsFinished = true;
 	UE_LOG(LogMyMainMenu, Log, TEXT("on search game session success"));
-	GameSessionsLeft = GameSessionIds.Num();
+	//GameSessionsLeft = GameSessionIds.Num();
 
-	if (GameSessionsLeft <= 0) {
+	/*if (GameSessionsLeft <= 0) {
 		AttemptToJoinGameFinished = true;
 
 		const FString& PlacementId = GenerateRandomId();
 		StartGameSessionPlacement(QueueName, 100, PlacementId);
-	}
-	else {
-		for (int i = 0; i < GameSessionIds.Num(); i++) {
-			const FString& GameSessionId = GameSessionIds[i];
-			const FString& PlayerSessionId = GenerateRandomId();
-			UE_LOG(LogMyMainMenu, Log, TEXT("on search game session success Game session id %s"), *GameSessionId);
-			CreatePlayerSession(GameSessionId, PlayerSessionId);
+	}*/
+	//else {
+	for (int i = 0; i < GameSessionIds.Num(); i++) {
+		const FString& GameSessionId = GameSessionIds[i];
+		const FString& PlayerSessionId = GenerateRandomId();
+		UE_LOG(LogMyMainMenu, Log, TEXT("on search game session success Game session id %s"), *GameSessionId);
+		CreatePlayerSession(GameSessionId, PlayerSessionId);
+		CreatePlayerSessionEvent->Wait();
+
+		if (AttemptToJoinGameFinished) {
+			break;
 		}
 	}
+	//}
+	SearchGameSessionsEvent->Trigger();
 }
 
 void UMainMenuWidget::OnSearchGameSessionsFailed(const FString& ErrorMessage) {
-	UE_LOG(LogMyMainMenu, Log, TEXT("on search game sessions failed %s"), *ErrorMessage);
+	/*UE_LOG(LogMyMainMenu, Log, TEXT("on search game sessions failed %s"), *ErrorMessage);
 	AttemptToJoinGameFinished = true;
-	JoinGameButton->SetIsEnabled(true);
+	JoinGameButton->SetIsEnabled(true);*/
+	SearchGameSessionsEvent->Trigger();
 }
 
 void UMainMenuWidget::CreatePlayerSession(const FString& GameSessionId, const FString& PlayerSessionId) {
@@ -114,26 +144,19 @@ void UMainMenuWidget::OnCreatePlayerSessionSuccess(const FString& IPAddress, con
 		const FString& Options = FString("?") + FString("PlayerSessionId=") + PlayerSessionID;
 
 		UGameplayStatics::OpenLevel(GetWorld(), FName(*LevelName), false, Options);
+
+		AttemptToJoinGameFinished = true;
+		JoinGameButton->SetIsEnabled(true);
 	}
 	else if (PlayerSessionStatus == 2) {
 		// already activated?
 	}
-
-	JoinGameButton->SetIsEnabled(true);
+	CreatePlayerSessionEvent->Trigger();
 }
 
 void UMainMenuWidget::OnCreatePlayerSessionFailed(const FString& ErrorMessage) {
 	UE_LOG(LogMyMainMenu, Log, TEXT("on create player session failed %s"), *ErrorMessage);
-	GameSessionsLeft -= 1;
-	if (!AttemptToJoinGameFinished && GameSessionsLeft <= 0) {
-		AttemptToJoinGameFinished = true;
-
-		const FString& PlacementId = GenerateRandomId();
-		StartGameSessionPlacement(QueueName, 100, PlacementId);
-	}
-	if (AttemptToJoinGameFinished) {
-		JoinGameButton->SetIsEnabled(true);
-	}
+	CreatePlayerSessionEvent->Trigger();
 }
 
 void UMainMenuWidget::StartGameSessionPlacement(const FString& QueueNameInput, const int& MaxPlayerCount, const FString& PlacementId) {
@@ -144,26 +167,31 @@ void UMainMenuWidget::StartGameSessionPlacement(const FString& QueueNameInput, c
 	StartGameSessionPlacementObject->Activate();
 }
 
-void UMainMenuWidget::OnStartGameSessionPlacementSuccess(const FString& GameSessionId, const FString& PlacementId) {
-	if (GameSessionId.Len() <= 0) {
-		if (PlacementId.Len() > 0) {
+void UMainMenuWidget::OnStartGameSessionPlacementSuccess(const FString& GameSessionId, const FString& PlacementId, const int& Status) {
+	if (Status == 0 && GameSessionId.Len() <= 0) {
+		DescribeGameSessionPlacement(PlacementId);
+		for (int i = 0; i < 10; i++) {
+			// check on game session placement 10 times, or until it's state is fulfilled and id is made
 			DescribeGameSessionPlacement(PlacementId);
-		}
-		else {
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString("Either a new game session was just made and you have to click join game again, or there are no available game sessions currently"));
-			JoinGameButton->SetIsEnabled(true);
+			DescribeGameSessionPlacementEvent->Wait();
+			if (AttemptToJoinGameFinished) {
+				break;
+			}
 		}
 	}
-	else {
+	else if(Status == 1 && GameSessionId.Len() > 0) {
+		// very rare that a game session is made right after a call to startgamesessionplacement, will take some time
 		const FString& PlayerSessionId = GenerateRandomId();
 		UE_LOG(LogMyMainMenu, Log, TEXT("on start game session placement success Game session id %s"), *GameSessionId);
 		CreatePlayerSession(GameSessionId, PlayerSessionId);
+		CreatePlayerSessionEvent->Wait();
 	}
+	StartGameSessionPlacementEvent->Trigger();
 }
 
 void UMainMenuWidget::OnStartGameSessionPlacementFailed(const FString& ErrorMessage) {
 	UE_LOG(LogMyMainMenu, Log, TEXT("on start game session placement failed %s"), *ErrorMessage);
-	JoinGameButton->SetIsEnabled(true);
+	StartGameSessionPlacementEvent->Trigger();
 }
 
 void UMainMenuWidget::DescribeGameSessionPlacement(const FString& PlacementId) {
@@ -177,20 +205,26 @@ void UMainMenuWidget::OnDescribeGameSessionPlacementSuccess(const FString& GameS
 	UE_LOG(LogMyMainMenu, Log, TEXT("on describe game session placement success Game session id %s"), *GameSessionId);
 	UE_LOG(LogMyMainMenu, Log, TEXT("on describe game session placement success Game session placement id %s"), *PlacementId);
 	UE_LOG(LogMyMainMenu, Log, TEXT("on describe game session placement success Game session placement status %s"), *FString::FromInt(Status));
-	if (Status < 0 || GameSessionId.Len() <= 0) {
-		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString("Either a new game session was just made and you have to click join game again, or there are no available game sessions currently"));
+	if (Status < 1 || GameSessionId.Len() <= 0) {
+		/*GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString("Either a new game session was just made and you have to click join game again, or there are no available game sessions currently"));
+		JoinGameButton->SetIsEnabled(true);*/
+	}
+	else if (Status < 0) {
+		AttemptToJoinGameFinished = true;
 		JoinGameButton->SetIsEnabled(true);
 	}
 	else {
 		const FString& PlayerSessionId = GenerateRandomId();
 		UE_LOG(LogMyMainMenu, Log, TEXT("on describe game session placement success Game session id %s"), *GameSessionId);
 		CreatePlayerSession(GameSessionId, PlayerSessionId);
+		CreatePlayerSessionEvent->Wait();
 	}
+	DescribeGameSessionPlacementEvent->Trigger();
 }
 
 void UMainMenuWidget::OnDescribeGameSessionPlacementFailed(const FString& ErrorMessage) {
 	UE_LOG(LogMyMainMenu, Log, TEXT("on describe game session placement failed %s"), *ErrorMessage);
-	JoinGameButton->SetIsEnabled(true);
+	DescribeGameSessionPlacementEvent->Trigger();
 }
 
 FString UMainMenuWidget::GenerateRandomId() {

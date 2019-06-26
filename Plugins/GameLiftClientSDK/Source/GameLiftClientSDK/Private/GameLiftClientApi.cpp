@@ -501,8 +501,20 @@ void UGameLiftStartGameSessionPlacement::OnStartGameSessionPlacement(const Aws::
 		LOG_NORMAL("Received OnStartGameSessionPlacement with Success outcome.");
 		const FString GameSessionId = Outcome.GetResult().GetGameSessionPlacement().GetGameSessionId().c_str();
 		const FString GameSessionPlacementId = Outcome.GetResult().GetGameSessionPlacement().GetPlacementId().c_str();
+		Aws::GameLift::Model::GameSessionPlacementState Status = Outcome.GetResult().GetGameSessionPlacement().GetStatus();
+		int GameSessionPlacementStatus = 0;
+		if (Status == Aws::GameLift::Model::GameSessionPlacementState::FULFILLED) {
+			GameSessionPlacementStatus = 1;
+		}
+		else if (Status == Aws::GameLift::Model::GameSessionPlacementState::PENDING) {
+			GameSessionPlacementStatus = 0;
+		}
+		else {
+			GameSessionPlacementStatus = -1;
+		}
 
-		OnStartGameSessionPlacementSuccess.Broadcast(GameSessionId, GameSessionPlacementId);
+		const int GameSessionPlacementStatusCopy = GameSessionPlacementStatus;
+		OnStartGameSessionPlacementSuccess.Broadcast(GameSessionId, GameSessionPlacementId, GameSessionPlacementStatusCopy);
 	}
 	else
 	{

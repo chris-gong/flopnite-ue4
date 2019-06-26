@@ -192,7 +192,7 @@ private:
 
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnStartGameSessionPlacementSuccess, const FString&, GameSessionId, const FString&, PlacementId);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnStartGameSessionPlacementSuccess, const FString&, GameSessionId, const FString&, PlacementId, const int&, Status);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStartGameSessionPlacementFailed, const FString&, ErrorMessage);
 UCLASS()
 class GAMELIFTCLIENTSDK_API UGameLiftStartGameSessionPlacement : public UObject
