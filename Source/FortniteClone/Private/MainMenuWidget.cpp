@@ -172,6 +172,9 @@ void UMainMenuWidget::OnCreatePlayerSessionSuccess(const FString& IPAddress, con
 	else if (PlayerSessionStatus == 2) {
 		// already activated?
 	}
+	else {
+		// pending or timed out?
+	}
 	CreatePlayerSessionEvent->Trigger();
 }
 
@@ -192,12 +195,17 @@ void UMainMenuWidget::OnStartGameSessionPlacementSuccess(const FString& GameSess
 	if (Status == 0 && GameSessionId.Len() <= 0) {
 		for (int i = 0; i < 10; i++) {
 			// check on game session placement 10 times, or until it's state is fulfilled and id is made
-			StartGameSessionPlacementEvent->Wait(200); // wait 200 milliseconds because the game session placement request may take some time to finish
+			StartGameSessionPlacementEvent->Wait(500); // wait 500 milliseconds because the game session placement request may take some time to finish
 			DescribeGameSessionPlacement(PlacementId);
 			DescribeGameSessionPlacementEvent->Wait();
 			if (AttemptToJoinGameFinished) {
 				break;
 			}
+		}
+		// went through 10 describe game session placement requests and did not join a game yet
+		if (!AttemptToJoinGameFinished) {
+			FailedToJoinGame = true;
+			SucceededToJoinGame = false;
 		}
 	}
 	else if(Status == 1 && GameSessionId.Len() > 0) {
@@ -212,6 +220,8 @@ void UMainMenuWidget::OnStartGameSessionPlacementSuccess(const FString& GameSess
 
 void UMainMenuWidget::OnStartGameSessionPlacementFailed(const FString& ErrorMessage) {
 	UE_LOG(LogMyMainMenu, Log, TEXT("on start game session placement failed %s"), *ErrorMessage);
+	FailedToJoinGame = true;
+	SucceededToJoinGame = false;
 	StartGameSessionPlacementEvent->Trigger();
 }
 
