@@ -14,6 +14,7 @@ ALobbyGameMode::ALobbyGameMode()
 	bUseSeamlessTravel = true;
 	GameReady = false;
 	SomeoneJoined = false;
+	GameEndedDueToInactivity = false;
 	TimePassed = 0;
 	static ConstructorHelpers::FClassFinder<APawn> LobbyPawnBPClass(TEXT("/Game/ThirdPersonCPP/Blueprints/BP_LobbyCharacter"));
 	if (LobbyPawnBPClass.Class != NULL)
@@ -168,9 +169,10 @@ void ALobbyGameMode::ServerStartGame_Implementation() {
 		UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::UpdatePlayerSessionCreationPolicy: Error: %s"), *ErrorMessage);
 	}
 	#endif
-	FString contentDir = FPaths::ProjectContentDir();
-	FString mapPath = contentDir + "/Maps/Level_BattleRoyale_2.umap";
-	GetWorld()->ServerTravel(mapPath);
+	FString mapPath = "Game/Maps/Level_BattleRoyale_2";
+	FString gameModePath = "Game/GameModes/FortniteCloneGameMode.FortniteCloneGameMode_C";
+	const FString& travelUrl = mapPath + "game?=" + gameModePath;
+	GetWorld()->ServerTravel(travelUrl, true, true);
 }
 
 bool ALobbyGameMode::ServerStartGame_Validate() {
@@ -179,23 +181,23 @@ bool ALobbyGameMode::ServerStartGame_Validate() {
 
 void ALobbyGameMode::ServerCheckInactivity_Implementation() {
 	// make the game unjoinable
-	if (SomeoneJoined && GetNumPlayers() < 1) {
+	if (!GameEndedDueToInactivity && SomeoneJoined && GetNumPlayers() < 1) {
 		TimePassed += 1;
-		if (TimePassed == 10) {
+		if (TimePassed >= 10) {
 #if WITH_GAMELIFT
-			/*FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
+			FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
 			FGameLiftGenericOutcome outcome = gameLiftSdkModule->TerminateGameSession();
 			UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::EndGame"));
 			if (!outcome.IsSuccess())
 			{
 				const FString ErrorMessage = outcome.GetError().m_errorMessage;
 				UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::EndGame: Error: %s"), *ErrorMessage);
-			}*/
+			}
 #endif
-			TimePassed = 0;
+			GameEndedDueToInactivity = true;
 		}
 	}
-	else {
+	else if(!GameEndedDueToInactivity && GetNumPlayers() >= 1){
 		TimePassed = 0;
 	}
 }

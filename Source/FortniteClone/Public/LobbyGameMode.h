@@ -20,6 +20,8 @@ public:
 
 	bool GameReady;
 
+	bool GameEndedDueToInactivity;
+
 	virtual void BeginPlay() override;
 
 	virtual void StartPlay() override;
