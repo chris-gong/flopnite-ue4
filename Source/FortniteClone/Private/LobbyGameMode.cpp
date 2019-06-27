@@ -172,7 +172,7 @@ void ALobbyGameMode::ServerStartGame_Implementation() {
 	FString mapPath = "Game/Maps/Level_BattleRoyale_2";
 	FString gameModePath = "Game/GameModes/FortniteCloneGameMode.FortniteCloneGameMode_C";
 	const FString& travelUrl = mapPath + "game?=" + gameModePath;
-	GetWorld()->ServerTravel(travelUrl, true, true);
+	GetWorld()->ServerTravel(travelUrl, true, false);
 }
 
 bool ALobbyGameMode::ServerStartGame_Validate() {
