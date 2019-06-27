@@ -19,7 +19,9 @@ UMainMenuWidget::UMainMenuWidget(const FObjectInitializer& ObjectInitializer) :S
 	SecretKey = TextReader->ReadFile("Credentials/AWS_SecretKey.txt");
 	QueueName = TextReader->ReadFile("Credentials/AWS_QueueName.txt");
 
-	AttemptToJoinGameFinished = false;
+	AttemptToJoinGameFinished = true; // default value true so that we can prevent double clicks
+	FailedToJoinGame = false;
+	SucceededToJoinGame = false;
 	GameSessionsLeft = 4;
 
 	DescribeGameSessionQueuesEvent = FGenericPlatformProcess::GetSynchEventFromPool(false);
@@ -40,10 +42,22 @@ void UMainMenuWidget::NativeConstruct() {
 void UMainMenuWidget::JoinGame() {
 	AttemptToJoinGameFinished = false;
 	JoinGameButton->SetIsEnabled(false);
+	DisableMouseEvents();
+
+	FailedToJoinGame = false;
+	SucceededToJoinGame = false;
+
 	DescribeGameSessionQueues(QueueName);
 	DescribeGameSessionQueuesEvent->Wait();
 
 	if (AttemptToJoinGameFinished) {
+		if (SucceededToJoinGame) {
+			// don't reenable anything since game was successfully joined
+		}
+		else if (FailedToJoinGame) {
+			JoinGameButton->SetIsEnabled(true);
+			EnableMouseEvents();
+		}
 		return;
 	}
 
@@ -52,7 +66,13 @@ void UMainMenuWidget::JoinGame() {
 	StartGameSessionPlacementEvent->Wait();
 
 	AttemptToJoinGameFinished = true;
-	JoinGameButton->SetIsEnabled(true);
+	if (SucceededToJoinGame) {
+		// don't reenable anything since game was successfully joined
+	}
+	else if (FailedToJoinGame) {
+		JoinGameButton->SetIsEnabled(true);
+		EnableMouseEvents();
+	}
 }
 
 void UMainMenuWidget::DescribeGameSessionQueues(const FString& QueueNameInput) {
@@ -146,7 +166,8 @@ void UMainMenuWidget::OnCreatePlayerSessionSuccess(const FString& IPAddress, con
 		UGameplayStatics::OpenLevel(GetWorld(), FName(*LevelName), false, Options);
 
 		AttemptToJoinGameFinished = true;
-		JoinGameButton->SetIsEnabled(true);
+		SucceededToJoinGame = true;
+		FailedToJoinGame = false;
 	}
 	else if (PlayerSessionStatus == 2) {
 		// already activated?
@@ -169,9 +190,9 @@ void UMainMenuWidget::StartGameSessionPlacement(const FString& QueueNameInput, c
 
 void UMainMenuWidget::OnStartGameSessionPlacementSuccess(const FString& GameSessionId, const FString& PlacementId, const int& Status) {
 	if (Status == 0 && GameSessionId.Len() <= 0) {
-		DescribeGameSessionPlacement(PlacementId);
 		for (int i = 0; i < 10; i++) {
 			// check on game session placement 10 times, or until it's state is fulfilled and id is made
+			StartGameSessionPlacementEvent->Wait(200); // wait 200 milliseconds because the game session placement request may take some time to finish
 			DescribeGameSessionPlacement(PlacementId);
 			DescribeGameSessionPlacementEvent->Wait();
 			if (AttemptToJoinGameFinished) {
@@ -205,13 +226,13 @@ void UMainMenuWidget::OnDescribeGameSessionPlacementSuccess(const FString& GameS
 	UE_LOG(LogMyMainMenu, Log, TEXT("on describe game session placement success Game session id %s"), *GameSessionId);
 	UE_LOG(LogMyMainMenu, Log, TEXT("on describe game session placement success Game session placement id %s"), *PlacementId);
 	UE_LOG(LogMyMainMenu, Log, TEXT("on describe game session placement success Game session placement status %s"), *FString::FromInt(Status));
-	if (Status < 1 || GameSessionId.Len() <= 0) {
-		/*GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString("Either a new game session was just made and you have to click join game again, or there are no available game sessions currently"));
-		JoinGameButton->SetIsEnabled(true);*/
+	if (Status < 0) {
+		AttemptToJoinGameFinished = true; // game session placement failed
+		SucceededToJoinGame = false;
+		FailedToJoinGame = true;
 	}
-	else if (Status < 0) {
-		AttemptToJoinGameFinished = true;
-		JoinGameButton->SetIsEnabled(true);
+	else if (Status < 1 || GameSessionId.Len() <= 0) {
+		// game session placement still in pending status
 	}
 	else {
 		const FString& PlayerSessionId = GenerateRandomId();
@@ -247,4 +268,24 @@ FString UMainMenuWidget::GenerateRandomId() {
 	FString Id = FString::FromInt(RandOne) + FString("-") + FString::FromInt(RandTwo) + FString("-") + FString::FromInt(RandThree);
 
 	return Id;
+}
+
+void UMainMenuWidget::DisableMouseEvents() {
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	if (PlayerController) {
+		PlayerController->bShowMouseCursor = false;
+		PlayerController->bEnableClickEvents = false;
+		PlayerController->bEnableMouseOverEvents = false;
+		PlayerController->SetInputMode(FInputModeGameOnly());
+	}
+}
+
+void UMainMenuWidget::EnableMouseEvents() {
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	if (PlayerController) {
+		PlayerController->bShowMouseCursor = true;
+		PlayerController->bEnableClickEvents = true;
+		PlayerController->bEnableMouseOverEvents = true;
+		PlayerController->SetInputMode(FInputModeGameAndUI());
+	}
 }

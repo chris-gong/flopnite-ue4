@@ -95,11 +95,19 @@ public:
 private:
 	bool AttemptToJoinGameFinished;
 
+	bool FailedToJoinGame;
+
+	bool SucceededToJoinGame;
+
 	int GameSessionsLeft;
 
 	UButton* JoinGameButton;
 
 	FString GenerateRandomId();
+
+	void DisableMouseEvents();
+
+	void EnableMouseEvents();
 
 	FEvent* DescribeGameSessionQueuesEvent;
 
