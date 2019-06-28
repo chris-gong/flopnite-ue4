@@ -20,6 +20,7 @@ AFortniteClonePlayerController::AFortniteClonePlayerController() {
 	 PlayerCount = 0;
 	 SpectatorCount = 1;
 	 Initialized = false;
+	 PlayerSessionId = FString("");
 }
 
 void AFortniteClonePlayerController::BeginPlay() {

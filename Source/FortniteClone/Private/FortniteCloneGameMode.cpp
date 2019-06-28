@@ -116,24 +116,6 @@ void AFortniteCloneGameMode::PostLogin(APlayerController *NewPlayer) {
 		State->HoldingWeapon = true;
 		State->CurrentWeapon = 0;
 	}*/
-	AFortniteClonePlayerController* FortniteClonePlayerController = Cast<AFortniteClonePlayerController>(NewPlayer);
-	if (!GameStarted && GetNumPlayers() >= 1) {
-		GameStarted = true;
-		TArray<AActor*> StormActors;
-		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AStormActor::StaticClass(), StormActors);
-		if (StormActors.Num() > 0) {
-			if (StormActors[0] != nullptr) {
-				CurrentStorm = Cast<AStormActor>(StormActors[0]);
-			}
-		}
-		FTimerHandle StormSetupTimerHandle;
-		GetWorldTimerManager().SetTimer(StormSetupTimerHandle, this, &AFortniteCloneGameMode::GameModeStartStorm, 30.0f, false);
-		FTimerHandle InactivityCheckTimerHandle;
-		GetWorldTimerManager().SetTimer(InactivityCheckTimerHandle, this, &AFortniteCloneGameMode::CheckRemainingPlayers, 1.0f, true);
-	}
-	if (FortniteClonePlayerController) {
-		FortniteClonePlayerController->SpawnAsSpectator = false; // since we have switched to server travel, everyone joining the game should be a player
-	}
 }
 
 void AFortniteCloneGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) {
@@ -155,6 +137,58 @@ void AFortniteCloneGameMode::PreLogin(const FString& Options, const FString& Add
 		UE_LOG(LogMyServerGame, Log, TEXT("Options does not exist"));
 	}
 #endif*/
+}
+
+void AFortniteCloneGameMode::Logout(AController* Exiting) {
+	Super::Logout(Exiting);
+	if (Exiting != nullptr) {
+		AFortniteClonePlayerController* FortniteClonePlayerController = Cast<AFortniteClonePlayerController>(Exiting);
+		const FString& PlayerSessionId = FortniteClonePlayerController->PlayerSessionId;
+#if WITH_GAMELIFT
+		FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
+		FGameLiftGenericOutcome outcome = gameLiftSdkModule->RemovePlayerSession(PlayerSessionId);
+		UE_LOG(LogMyServerGame, Log, TEXT("FortniteGameMode::Logout: Removing Client with GameLift PlayerSessionId: %s"), *PlayerSessionId);
+		if (!outcome.IsSuccess())
+		{
+			const FString ErrorMessage = outcome.GetError().m_errorMessage;
+			UE_LOG(LogMyServerGame, Log, TEXT("FortniteGameMode::Logout:  Removing Client invalid GameLift PlayerSessionId: %s, Error: %s"), *PlayerSessionId, **ErrorMessage);
+		}
+#endif
+	}
+}
+
+FString AFortniteCloneGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal) {
+	FString InitializedString = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
+
+	const FString& PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
+	if (NewPlayerController != nullptr) {
+		AFortniteClonePlayerController* FortniteClonePlayerController = Cast<AFortniteClonePlayerController>(NewPlayerController);
+		FortniteClonePlayerController->PlayerSessionId = PlayerSessionId;
+	}
+
+	return InitializedString;
+}
+
+void AFortniteCloneGameMode::GenericPlayerInitialization(AController* NewPlayer) {
+	Super::GenericPlayerInitialization(NewPlayer);
+	AFortniteClonePlayerController* FortniteClonePlayerController = Cast<AFortniteClonePlayerController>(NewPlayer);
+	if (!GameStarted && GetNumPlayers() >= 1) {
+		GameStarted = true;
+		TArray<AActor*> StormActors;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AStormActor::StaticClass(), StormActors);
+		if (StormActors.Num() > 0) {
+			if (StormActors[0] != nullptr) {
+				CurrentStorm = Cast<AStormActor>(StormActors[0]);
+			}
+		}
+		FTimerHandle StormSetupTimerHandle;
+		GetWorldTimerManager().SetTimer(StormSetupTimerHandle, this, &AFortniteCloneGameMode::GameModeStartStorm, 30.0f, false);
+		FTimerHandle InactivityCheckTimerHandle;
+		GetWorldTimerManager().SetTimer(InactivityCheckTimerHandle, this, &AFortniteCloneGameMode::CheckRemainingPlayers, 1.0f, true);
+	}
+	if (FortniteClonePlayerController) {
+		FortniteClonePlayerController->SpawnAsSpectator = false; // since we have switched to server travel, everyone joining the game should be a player
+	}
 }
 
 void AFortniteCloneGameMode::NetMulticastSpawnStorm_Implementation() {

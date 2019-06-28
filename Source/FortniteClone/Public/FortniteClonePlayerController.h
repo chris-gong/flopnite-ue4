@@ -28,6 +28,8 @@ public:
 
 	bool Initialized;
 
+	FString PlayerSessionId;
+
 	AStormActor* CurrentStorm;
 
 	TSubclassOf<AFortniteCloneSpectator> PlayerSpectatorClass;
@@ -66,4 +68,5 @@ public:
 
 private:
 	virtual void BeginPlay() override;
+
 };

@@ -2,6 +2,7 @@
 
 
 #include "LobbyGameMode.h"
+#include "LobbyPlayerController.h"
 #include "GameLiftServerSDK.h"
 #include "Runtime/Engine/Classes/GameFramework/Actor.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
@@ -21,6 +22,7 @@ ALobbyGameMode::ALobbyGameMode()
 	{
 		DefaultPawnClass = LobbyPawnBPClass.Class;
 		HUDClass = ALobbyHUD::StaticClass();
+		PlayerControllerClass = ALobbyPlayerController::StaticClass();
 		//HUDClass = AMainMenuHUD::StaticClass();
 	}
 #if WITH_GAMELIFT
@@ -104,7 +106,7 @@ void ALobbyGameMode::PreLogin(const FString& Options, const FString& Address, co
 	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
 	#if WITH_GAMELIFT
 		if (*Options && Options.Len() > 0) {
-			const FString PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
+			const FString& PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
 			if (PlayerSessionId.Len() > 0) {
 				FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
 				FGameLiftGenericOutcome outcome = gameLiftSdkModule->AcceptPlayerSession(PlayerSessionId);
@@ -123,30 +125,33 @@ void ALobbyGameMode::PreLogin(const FString& Options, const FString& Address, co
 }
 
 FString ALobbyGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal) {
-	return Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
-/*#if WITH_GAMELIFT
-	if (*Options && Options.Len() > 0) {
-		const FString PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
-		if (PlayerSessionId.Len() > 0) {
-			FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
-			FGameLiftGenericOutcome outcome = gameLiftSdkModule->AcceptPlayerSession(PlayerSessionId);
-			UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::PreLogin: Client connecting with attempting to connect with GameLift PlayerSessionId: %s"), *PlayerSessionId);
-			if (!outcome.IsSuccess())
-			{
-				ErrorMessage = outcome.GetError().m_errorMessage;
-				UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::PreLogin: Client connecting with invalid GameLift PlayerSessionId: %s, Error: %s"), *PlayerSessionId, **ErrorMessage);
-			}
-		}
-	}
-	else {
-		UE_LOG(LogMyServerLobby, Log, TEXT("Options does not exist"));
-	}
-#endif*/
+	FString InitializedString = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
 
+	const FString& PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
+	if (NewPlayerController != nullptr) {
+		ALobbyPlayerController* LobbyPlayerController = Cast<ALobbyPlayerController>(NewPlayerController);
+		LobbyPlayerController->PlayerSessionId = PlayerSessionId;
+	}
+
+	return InitializedString;
 }
 
 void ALobbyGameMode::Logout(AController* Exiting) {
 	Super::Logout(Exiting);
+	if (Exiting != nullptr) {
+		ALobbyPlayerController* LobbyPlayerController = Cast<ALobbyPlayerController>(Exiting);
+		const FString& PlayerSessionId = LobbyPlayerController->PlayerSessionId;
+#if WITH_GAMELIFT
+		FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
+		FGameLiftGenericOutcome outcome = gameLiftSdkModule->RemovePlayerSession(PlayerSessionId);
+		UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::Logout: Removing Client with GameLift PlayerSessionId: %s"), *PlayerSessionId);
+		if (!outcome.IsSuccess())
+		{
+			const FString ErrorMessage = outcome.GetError().m_errorMessage;
+			UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::Logout:  Removing Client invalid GameLift PlayerSessionId: %s, Error: %s"), *PlayerSessionId, **ErrorMessage);
+		}
+#endif
+	}
 }
 
 void ALobbyGameMode::ServerStartGame_Implementation() {
