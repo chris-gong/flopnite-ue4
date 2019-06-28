@@ -21,6 +21,7 @@ AFortniteCloneGameMode::AFortniteCloneGameMode()
 	GameStarted = false;
 	GameEnded = false;
 	TimePassed = 0;
+	bUseSeamlessTravel = true;
 	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/ThirdPersonCPP/Blueprints/BP_ThirdPersonCharacter"));
 	static ConstructorHelpers::FClassFinder<APawn> SpectatorPawnBPClass(TEXT("/Game/ThirdPersonCPP/Blueprints/BP_SpectatorCharacter"));
 	if (PlayerPawnBPClass.Class != NULL && SpectatorPawnBPClass.Class != NULL)
