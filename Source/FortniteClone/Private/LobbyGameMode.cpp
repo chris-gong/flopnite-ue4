@@ -60,7 +60,7 @@ ALobbyGameMode::ALobbyGameMode()
 	//from a range, such as:
 	//const int32 port = FURL::UrlConfig.DefaultPort;
 	//params->port;
-	params->port = FURL::UrlConfig.DefaultPort;
+	params->port = FURL::UrlConfig.DefaultPort; // no difference between urlconfig.defaultport and hardcoded 7777
 
 	//Here, the game server tells GameLift what set of files to upload when the game session 
 	//ends. GameLift uploads everything specified here for the developers to fetch later.
@@ -76,8 +76,8 @@ ALobbyGameMode::ALobbyGameMode()
 
 void ALobbyGameMode::BeginPlay() {
 	Super::BeginPlay();
-	FTimerHandle InactivityTimerHandle;
-	GetWorldTimerManager().SetTimer(InactivityTimerHandle, this, &ALobbyGameMode::ServerCheckInactivity, 1.0f, true);
+	/*FTimerHandle InactivityTimerHandle;
+	GetWorldTimerManager().SetTimer(InactivityTimerHandle, this, &ALobbyGameMode::ServerCheckInactivity, 1.0f, true);*/
 }
 
 void ALobbyGameMode::StartPlay() {
@@ -87,7 +87,11 @@ void ALobbyGameMode::StartPlay() {
 
 void ALobbyGameMode::PostLogin(APlayerController* NewPlayer) {
 	Super::PostLogin(NewPlayer);
-	SomeoneJoined = true;
+	if (!SomeoneJoined && GetNumPlayers() >= 1) {
+		SomeoneJoined = true;
+		FTimerHandle InactivityCheckTimerHandle;
+		GetWorldTimerManager().SetTimer(InactivityCheckTimerHandle, this, &ALobbyGameMode::ServerCheckInactivity, 1.0f, true);
+	}
 	if (!GameReady && GetNumPlayers() >= 4) {
 		GameReady = true;
 		// start the game (server travel) in 60 seconds once there's at least 4 players in the lobby
@@ -143,36 +147,30 @@ FString ALobbyGameMode::InitNewPlayer(APlayerController* NewPlayerController, co
 
 void ALobbyGameMode::Logout(AController* Exiting) {
 	Super::Logout(Exiting);
-	/*if (GetNumPlayers() < 1) {
-#if WITH_GAMELIFT
-		FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
-		FGameLiftGenericOutcome outcome = gameLiftSdkModule->TerminateGameSession();
-		UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::EndGame"));
-		if (!outcome.IsSuccess())
-		{
-			const FString ErrorMessage = outcome.GetError().m_errorMessage;
-			UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::EndGame: Error: %s"), *ErrorMessage);
-		}
-#endif
-	}*/
 }
 
 void ALobbyGameMode::ServerStartGame_Implementation() {
 	// make the game unjoinable
-	#if WITH_GAMELIFT
-	FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
-	FGameLiftGenericOutcome outcome = gameLiftSdkModule->UpdatePlayerSessionCreationPolicy(EPlayerSessionCreationPolicy::DENY_ALL);
-	UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::UpdatePlayerSessionCreationPolicy: deny all new player sessions"));
-	if (!outcome.IsSuccess())
-	{
-		const FString ErrorMessage = outcome.GetError().m_errorMessage;
-		UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::UpdatePlayerSessionCreationPolicy: Error: %s"), *ErrorMessage);
+	// if enough people left resulting in less than 4 players in the lobby then don't start the game yet
+	if (GetNumPlayers() >= 4) {
+#if WITH_GAMELIFT
+		FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
+		FGameLiftGenericOutcome outcome = gameLiftSdkModule->UpdatePlayerSessionCreationPolicy(EPlayerSessionCreationPolicy::DENY_ALL);
+		UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::UpdatePlayerSessionCreationPolicy: deny all new player sessions"));
+		if (!outcome.IsSuccess())
+		{
+			const FString ErrorMessage = outcome.GetError().m_errorMessage;
+			UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::UpdatePlayerSessionCreationPolicy: Error: %s"), *ErrorMessage);
+		}
+#endif
+		FString mapPath = "/Game/Maps/Level_BattleRoyale_2";
+		FString gameModePath = "/Game/GameModes/FortniteCloneGameMode.FortniteCloneGameMode_C";
+		const FString& travelUrl = mapPath + "?game=" + gameModePath;
+		GetWorld()->ServerTravel(travelUrl, true, true);
 	}
-	#endif
-	FString mapPath = "Game/Maps/Level_BattleRoyale_2";
-	FString gameModePath = "Game/GameModes/FortniteCloneGameMode.FortniteCloneGameMode_C";
-	const FString& travelUrl = mapPath + "game?=" + gameModePath;
-	GetWorld()->ServerTravel(travelUrl, true, false);
+	else {
+		GameReady = false;
+	}
 }
 
 bool ALobbyGameMode::ServerStartGame_Validate() {
@@ -186,7 +184,7 @@ void ALobbyGameMode::ServerCheckInactivity_Implementation() {
 		if (TimePassed >= 10) {
 #if WITH_GAMELIFT
 			FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
-			FGameLiftGenericOutcome outcome = gameLiftSdkModule->TerminateGameSession();
+			FGameLiftGenericOutcome outcome = gameLiftSdkModule->ProcessEnding();
 			UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::EndGame"));
 			if (!outcome.IsSuccess())
 			{

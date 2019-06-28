@@ -18,7 +18,11 @@ class AFortniteCloneGameMode : public AGameModeBase
 public:
 	AFortniteCloneGameMode();
 
-	bool Initialized; 
+	bool GameStarted; 
+
+	bool GameEnded;
+
+	int TimePassed;
 
 	AStormActor* CurrentStorm;
 
