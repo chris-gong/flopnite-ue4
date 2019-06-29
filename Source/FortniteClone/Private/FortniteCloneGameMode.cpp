@@ -144,23 +144,26 @@ void AFortniteCloneGameMode::Logout(AController* Exiting) {
 	if (Exiting != nullptr) {
 		AFortniteClonePlayerController* FortniteClonePlayerController = Cast<AFortniteClonePlayerController>(Exiting);
 		const FString& PlayerSessionId = FortniteClonePlayerController->PlayerSessionId;
+		if (PlayerSessionId.Len() > 0) {
 #if WITH_GAMELIFT
-		FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
-		FGameLiftGenericOutcome outcome = gameLiftSdkModule->RemovePlayerSession(PlayerSessionId);
-		UE_LOG(LogMyServerGame, Log, TEXT("FortniteGameMode::Logout: Removing Client with GameLift PlayerSessionId: %s"), *PlayerSessionId);
-		if (!outcome.IsSuccess())
-		{
-			const FString ErrorMessage = outcome.GetError().m_errorMessage;
-			UE_LOG(LogMyServerGame, Log, TEXT("FortniteGameMode::Logout:  Removing Client invalid GameLift PlayerSessionId: %s, Error: %s"), *PlayerSessionId, **ErrorMessage);
-		}
+			FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
+			FGameLiftGenericOutcome outcome = gameLiftSdkModule->RemovePlayerSession(PlayerSessionId);
+			UE_LOG(LogMyServerGame, Log, TEXT("FortniteGameMode::Logout: Removing Client with GameLift PlayerSessionId: %s"), *PlayerSessionId);
+			if (!outcome.IsSuccess())
+			{
+				const FString ErrorMessage = outcome.GetError().m_errorMessage;
+				UE_LOG(LogMyServerGame, Log, TEXT("FortniteGameMode::Logout:  Removing Client invalid GameLift PlayerSessionId: %s, Error: %s"), *PlayerSessionId, **ErrorMessage);
+			}
 #endif
+		}
 	}
 }
 
 FString AFortniteCloneGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal) {
 	FString InitializedString = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
-
+	
 	const FString& PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
+	UE_LOG(LogMyServerGame, Log, TEXT("InitNewPlayer playersessionid: %s"), *PlayerSessionId); // made need to turn absolute travel off
 	if (NewPlayerController != nullptr) {
 		AFortniteClonePlayerController* FortniteClonePlayerController = Cast<AFortniteClonePlayerController>(NewPlayerController);
 		FortniteClonePlayerController->PlayerSessionId = PlayerSessionId;

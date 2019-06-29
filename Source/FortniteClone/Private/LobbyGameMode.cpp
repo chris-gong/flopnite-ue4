@@ -141,16 +141,18 @@ void ALobbyGameMode::Logout(AController* Exiting) {
 	if (Exiting != nullptr) {
 		ALobbyPlayerController* LobbyPlayerController = Cast<ALobbyPlayerController>(Exiting);
 		const FString& PlayerSessionId = LobbyPlayerController->PlayerSessionId;
+		if (PlayerSessionId.Len() > 0) {
 #if WITH_GAMELIFT
-		FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
-		FGameLiftGenericOutcome outcome = gameLiftSdkModule->RemovePlayerSession(PlayerSessionId);
-		UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::Logout: Removing Client with GameLift PlayerSessionId: %s"), *PlayerSessionId);
-		if (!outcome.IsSuccess())
-		{
-			const FString ErrorMessage = outcome.GetError().m_errorMessage;
-			UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::Logout:  Removing Client invalid GameLift PlayerSessionId: %s, Error: %s"), *PlayerSessionId, **ErrorMessage);
-		}
+			FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
+			FGameLiftGenericOutcome outcome = gameLiftSdkModule->RemovePlayerSession(PlayerSessionId);
+			UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::Logout: Removing Client with GameLift PlayerSessionId: %s"), *PlayerSessionId);
+			if (!outcome.IsSuccess())
+			{
+				const FString ErrorMessage = outcome.GetError().m_errorMessage;
+				UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::Logout:  Removing Client invalid GameLift PlayerSessionId: %s, Error: %s"), *PlayerSessionId, **ErrorMessage);
+			}
 #endif
+		}
 	}
 }
 
@@ -172,7 +174,7 @@ void ALobbyGameMode::ServerStartGame_Implementation() {
 		FString gameModePath = "/Game/GameModes/FortniteCloneGameMode.FortniteCloneGameMode_C";
 		//const FString& travelUrl = mapPath + "?game=" + gameModePath;
 		const FString& travelUrl = mapPath;
-		GetWorld()->ServerTravel(travelUrl, true, false);
+		GetWorld()->ServerTravel(travelUrl, false, false); // url to travel to, relative (keep options from here aka the player session id, yes notify player clients to travel with the server
 	}
 	else {
 		GameReady = false;

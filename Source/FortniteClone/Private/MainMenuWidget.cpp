@@ -70,6 +70,7 @@ void UMainMenuWidget::JoinGame() {
 		// don't reenable anything since game was successfully joined
 	}
 	else if (FailedToJoinGame) {
+		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString("No game sessions available currently"));
 		JoinGameButton->SetIsEnabled(true);
 		EnableMouseEvents();
 	}
