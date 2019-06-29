@@ -31,6 +31,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Health")
 	float Health;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Health")
+	int HealingType; // 0 for bandage, 1 for potion
+
 	virtual bool IsSupportedForNetworking() const override
 	{
 		return true;

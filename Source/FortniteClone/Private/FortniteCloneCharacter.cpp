@@ -2148,7 +2148,7 @@ void AFortniteCloneCharacter::ServerSpawnAndAttachBandage_Implementation(FTransf
 			FName BandageSocketName = TEXT("hand_left_socket");
 			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::SnapToTarget, true);
 
-			auto HealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, BandageClass, SpawnTransform));
+			auto HealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, HealingItemClasses[0], SpawnTransform));
 			if (HealingItem != nullptr)
 			{
 				CurrentHealingItem = HealingItem;

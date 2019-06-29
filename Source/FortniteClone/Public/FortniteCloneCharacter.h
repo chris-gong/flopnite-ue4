@@ -81,8 +81,8 @@ public:
 	TSubclassOf<AFortniteClonePlayerState> PlayerStateClass;
 
 	/* Class for healing actor */
-	UPROPERTY(EditDefaultsOnly, Category = "Bandage")
-	TSubclassOf<AHealingActor> BandageClass;
+	UPROPERTY(EditDefaultsOnly, Category = "Healing")
+	TArray<TSubclassOf<AHealingActor>> HealingItemClasses;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Skin")
 	TArray<UMaterial*> SkinMaterials;
