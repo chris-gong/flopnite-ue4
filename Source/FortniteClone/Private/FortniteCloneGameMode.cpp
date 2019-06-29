@@ -174,7 +174,6 @@ FString AFortniteCloneGameMode::InitNewPlayer(APlayerController* NewPlayerContro
 
 void AFortniteCloneGameMode::GenericPlayerInitialization(AController* NewPlayer) {
 	Super::GenericPlayerInitialization(NewPlayer);
-	AFortniteClonePlayerController* FortniteClonePlayerController = Cast<AFortniteClonePlayerController>(NewPlayer);
 	if (!GameStarted && GetNumPlayers() >= 1) {
 		GameStarted = true;
 		TArray<AActor*> StormActors;
@@ -189,7 +188,8 @@ void AFortniteCloneGameMode::GenericPlayerInitialization(AController* NewPlayer)
 		FTimerHandle InactivityCheckTimerHandle;
 		GetWorldTimerManager().SetTimer(InactivityCheckTimerHandle, this, &AFortniteCloneGameMode::CheckRemainingPlayers, 1.0f, true);
 	}
-	if (FortniteClonePlayerController) {
+	if (NewPlayer != nullptr) {
+		AFortniteClonePlayerController* FortniteClonePlayerController = Cast<AFortniteClonePlayerController>(NewPlayer);
 		FortniteClonePlayerController->SpawnAsSpectator = false; // since we have switched to server travel, everyone joining the game should be a player
 	}
 }

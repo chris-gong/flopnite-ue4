@@ -84,6 +84,12 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Bandage")
 	TSubclassOf<AHealingActor> BandageClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Skin")
+	TArray<UMaterial*> SkinMaterials;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Skin")
+	TArray<UMaterialInstance*> SkinMaterialInstances;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Shooting")
 	UAnimMontage* RifleHipShootingAnimation;
 
@@ -190,6 +196,15 @@ public:
 
 	UPROPERTY(Replicated)
 	float InterpSpeed;
+
+	UPROPERTY(ReplicatedUsing=OnRepSetSkin)
+	bool SkinInitialized;
+
+	UPROPERTY(Replicated)
+	int MaterialOrMaterialInstance;
+
+	UPROPERTY(Replicated)
+	int CurrentSkin;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category="Storm")
 	bool InStorm;
@@ -480,6 +495,9 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSetMaterialCount(int Count, int MaterialType);
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSetSkin(USkeletalMeshComponent* CharacterMesh, int MatOrMatInstance, int SkinChoice);
+
 	UFUNCTION(Client, Reliable)
 	void ClientCameraAimIn();
 
@@ -516,6 +534,9 @@ public:
 	UFUNCTION(NetMulticast, Unreliable)
 	void NetMulticastPlayReloadShotgunIronsightsAnimation();
 
+	UFUNCTION(NetMulticast, Unreliable)
+	void NetMulticastSetSkin(USkeletalMeshComponent* CharacterMesh, int MatOrMatInstance, int SkinChoice);
+
 	UFUNCTION(Client, Reliable)
 	void ClientDrawHitMarker();
 
@@ -533,6 +554,9 @@ public:
 
 	UFUNCTION(Client, Reliable)
 	void ClientDestroyStructure(int StructureId);
+
+	UFUNCTION()
+	void OnRepSetSkin();
 
 private:
 	// Object creation can only happen after the character has finished being constructed

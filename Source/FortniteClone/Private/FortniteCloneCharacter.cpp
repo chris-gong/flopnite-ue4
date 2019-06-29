@@ -22,6 +22,7 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "Runtime/Engine/Classes/Materials/Material.h"
 
 DEFINE_LOG_CATEGORY(LogMyGame);
 //////////////////////////////////////////////////////////////////////////
@@ -85,7 +86,8 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	RunningX = 0;
 	RunningY = 0;
 	InStorm = true;
-	CurrentStructureId = 0;
+	CurrentStructureId = 0;	
+
 	// Playerstate properties
 	/*InBuildMode = false;
 	BuildMode = FString("None");
@@ -187,7 +189,7 @@ void AFortniteCloneCharacter::BeginPlay() {
 			AimedIn = false;
 			HoldingWeaponType = 1;
 		}
-		//find the storm and keep a reference to it for damage purposes
+		// find the storm and keep a reference to it for damage purposes
 		TArray<AActor*> StormActors;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AStormActor::StaticClass(), StormActors);
 		if (StormActors.Num() > 0) {
@@ -195,6 +197,23 @@ void AFortniteCloneCharacter::BeginPlay() {
 				CurrentStorm = Cast<AStormActor>(StormActors[0]);
 			}
 		}
+		// set skin
+		if (GetMesh()) {
+			MaterialOrMaterialInstance = FMath::RandRange(0, 1);
+			CurrentSkin = FMath::RandRange(0, 1);
+
+			USkeletalMeshComponent* CharacterMesh = GetMesh();
+			if (MaterialOrMaterialInstance == 0) {
+				// assign UMaterial
+				CharacterMesh->SetMaterial(0, SkinMaterials[CurrentSkin]);
+			}
+			else {
+				// assign UMaterialInstance
+				CharacterMesh->SetMaterial(0, SkinMaterialInstances[CurrentSkin]);
+			}
+			SkinInitialized = true;
+		}
+		
 		FTimerHandle StormDamageTimerHandle;
 		GetWorldTimerManager().SetTimer(StormDamageTimerHandle, this, &AFortniteCloneCharacter::ServerApplyStormDamage, 1.0f, true);
 
@@ -258,6 +277,9 @@ void AFortniteCloneCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProper
 	DOREPLIFETIME(AFortniteCloneCharacter, AimYaw);
 	DOREPLIFETIME(AFortniteCloneCharacter, InterpSpeed);
 	DOREPLIFETIME(AFortniteCloneCharacter, InStorm);
+	DOREPLIFETIME(AFortniteCloneCharacter, SkinInitialized);
+	DOREPLIFETIME(AFortniteCloneCharacter, MaterialOrMaterialInstance);
+	DOREPLIFETIME(AFortniteCloneCharacter, CurrentSkin);
 }
 
 void AFortniteCloneCharacter::Tick(float DeltaTime) {
@@ -2154,6 +2176,14 @@ bool AFortniteCloneCharacter::ServerSpawnAndAttachBandage_Validate(FTransform Sp
 	return true;
 }
 
+void AFortniteCloneCharacter::ServerSetSkin_Implementation(USkeletalMeshComponent* CharacterMesh, int MatOrMatInstance, int SkinChoice) {
+	NetMulticastSetSkin(CharacterMesh, MatOrMatInstance, SkinChoice);
+}
+
+bool AFortniteCloneCharacter::ServerSetSkin_Validate(USkeletalMeshComponent* CharacterMesh, int MatOrMatInstance, int SkinChoice) {
+	return true;
+}
+
 void AFortniteCloneCharacter::ClientCameraAimIn_Implementation() {
 	FollowCamera->FieldOfView = 45;
 }
@@ -2246,6 +2276,18 @@ void AFortniteCloneCharacter::NetMulticastPlayReloadShotgunIronsightsAnimation_I
 	PlayAnimMontage(ShotgunIronsightsReloadAnimation);
 }
 
+void AFortniteCloneCharacter::NetMulticastSetSkin_Implementation(USkeletalMeshComponent* CharacterMesh, int MatOrMatInstance, int SkinChoice) {
+	if (MatOrMatInstance == 0) {
+		// assign UMaterial
+		CharacterMesh->SetMaterial(0, SkinMaterials[SkinChoice]);
+	}
+	else {
+		// assign UMaterialInstance
+		CharacterMesh->SetMaterial(0, SkinMaterialInstances[SkinChoice]);
+	}
+
+}
+
 void AFortniteCloneCharacter::ClientDrawHitMarker_Implementation() {
 	if (GetController()) {
 		APlayerController* PlayerController = Cast<APlayerController>(GetController());
@@ -2288,4 +2330,8 @@ void AFortniteCloneCharacter::ClientGetWeaponTransform_Implementation(int Weapon
 void AFortniteCloneCharacter::ClientGetBandageTransform_Implementation() {
 	FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 	ServerSpawnAndAttachBandage(SpawnTransform);
+}
+
+void AFortniteCloneCharacter::OnRepSetSkin() {
+	ServerSetSkin(GetMesh(), MaterialOrMaterialInstance, CurrentSkin);
 }
