@@ -495,9 +495,6 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSetMaterialCount(int Count, int MaterialType);
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerSetSkin(USkeletalMeshComponent* CharacterMesh, int MatOrMatInstance, int SkinChoice);
-
 	UFUNCTION(Client, Reliable)
 	void ClientCameraAimIn();
 
@@ -533,9 +530,6 @@ public:
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void NetMulticastPlayReloadShotgunIronsightsAnimation();
-
-	UFUNCTION(NetMulticast, Unreliable)
-	void NetMulticastSetSkin(USkeletalMeshComponent* CharacterMesh, int MatOrMatInstance, int SkinChoice);
 
 	UFUNCTION(Client, Reliable)
 	void ClientDrawHitMarker();

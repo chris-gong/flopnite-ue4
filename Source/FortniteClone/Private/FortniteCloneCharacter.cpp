@@ -2176,14 +2176,6 @@ bool AFortniteCloneCharacter::ServerSpawnAndAttachBandage_Validate(FTransform Sp
 	return true;
 }
 
-void AFortniteCloneCharacter::ServerSetSkin_Implementation(USkeletalMeshComponent* CharacterMesh, int MatOrMatInstance, int SkinChoice) {
-	NetMulticastSetSkin(CharacterMesh, MatOrMatInstance, SkinChoice);
-}
-
-bool AFortniteCloneCharacter::ServerSetSkin_Validate(USkeletalMeshComponent* CharacterMesh, int MatOrMatInstance, int SkinChoice) {
-	return true;
-}
-
 void AFortniteCloneCharacter::ClientCameraAimIn_Implementation() {
 	FollowCamera->FieldOfView = 45;
 }
@@ -2276,18 +2268,6 @@ void AFortniteCloneCharacter::NetMulticastPlayReloadShotgunIronsightsAnimation_I
 	PlayAnimMontage(ShotgunIronsightsReloadAnimation);
 }
 
-void AFortniteCloneCharacter::NetMulticastSetSkin_Implementation(USkeletalMeshComponent* CharacterMesh, int MatOrMatInstance, int SkinChoice) {
-	if (MatOrMatInstance == 0) {
-		// assign UMaterial
-		CharacterMesh->SetMaterial(0, SkinMaterials[SkinChoice]);
-	}
-	else {
-		// assign UMaterialInstance
-		CharacterMesh->SetMaterial(0, SkinMaterialInstances[SkinChoice]);
-	}
-
-}
-
 void AFortniteCloneCharacter::ClientDrawHitMarker_Implementation() {
 	if (GetController()) {
 		APlayerController* PlayerController = Cast<APlayerController>(GetController());
@@ -2333,5 +2313,13 @@ void AFortniteCloneCharacter::ClientGetBandageTransform_Implementation() {
 }
 
 void AFortniteCloneCharacter::OnRepSetSkin() {
-	ServerSetSkin(GetMesh(), MaterialOrMaterialInstance, CurrentSkin);
+	USkeletalMeshComponent* CharacterMesh = GetMesh();
+	if (MaterialOrMaterialInstance == 0) {
+		// assign UMaterial
+		CharacterMesh->SetMaterial(0, SkinMaterials[CurrentSkin]);
+	}
+	else {
+		// assign UMaterialInstance
+		CharacterMesh->SetMaterial(0, SkinMaterialInstances[CurrentSkin]);
+	}
 }
