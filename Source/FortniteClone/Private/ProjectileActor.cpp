@@ -77,7 +77,19 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 							AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(WeaponActor->Holder);
 							if (FortniteCloneCharacter) {
 								FortniteCloneCharacter->ClientDrawBloodEffect();
-								FortniteCloneCharacter->Health -= Damage;
+								if (FortniteCloneCharacter->Shield > 0) {
+									if (FortniteCloneCharacter->Shield - Damage < 0) {
+										int LeftoverDamage = Damage - FortniteCloneCharacter->Shield;
+										FortniteCloneCharacter->Shield = 0;
+										FortniteCloneCharacter->Health -= LeftoverDamage;
+									}
+									else {
+										FortniteCloneCharacter->Shield -= Damage;
+									}
+								}
+								else {
+									FortniteCloneCharacter->Health -= Damage;
+								}
 								if (WeaponHolder) {
 									// draw hitmarker
 									WeaponHolder->ClientDrawHitMarker();
@@ -125,7 +137,19 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 							AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(HealingActor->Holder);
 							if (FortniteCloneCharacter) {
 								FortniteCloneCharacter->ClientDrawBloodEffect();
-								FortniteCloneCharacter->Health -= Damage;
+								if (FortniteCloneCharacter->Shield > 0) {
+									if (FortniteCloneCharacter->Shield - Damage < 0) {
+										int LeftoverDamage = Damage - FortniteCloneCharacter->Shield;
+										FortniteCloneCharacter->Shield = 0;
+										FortniteCloneCharacter->Health -= LeftoverDamage;
+									}
+									else {
+										FortniteCloneCharacter->Shield -= Damage;
+									}
+								}
+								else {
+									FortniteCloneCharacter->Health -= Damage;
+								}
 								if (WeaponHolder) {
 									// draw hitmarker
 									WeaponHolder->ClientDrawHitMarker();
@@ -182,7 +206,19 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 					AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(OtherActor);
 					if (FortniteCloneCharacter) {
 						FortniteCloneCharacter->ClientDrawBloodEffect();
-						FortniteCloneCharacter->Health -= Damage;
+						if (FortniteCloneCharacter->Shield > 0) {
+							if (FortniteCloneCharacter->Shield - Damage < 0) {
+								int LeftoverDamage = Damage - FortniteCloneCharacter->Shield;
+								FortniteCloneCharacter->Shield = 0;
+								FortniteCloneCharacter->Health -= LeftoverDamage;
+							}
+							else {
+								FortniteCloneCharacter->Shield -= Damage;
+							}
+						}
+						else {
+							FortniteCloneCharacter->Health -= Damage;
+						}
 						if (WeaponHolder) {
 							// draw hitmarker
 							WeaponHolder->ClientDrawHitMarker();

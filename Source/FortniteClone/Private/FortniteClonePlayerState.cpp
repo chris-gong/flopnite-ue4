@@ -8,7 +8,7 @@ AFortniteClonePlayerState::AFortniteClonePlayerState() {
 	InBuildMode = false;
 	BuildMode = FString("None");
 	HoldingWeapon = true; //when spawned, player is holding pickaxe
-	HoldingBandage = false;
+	HoldingHealingItem = false;
 	AimedIn = false;
 	EquippedWeapons.Add(0); //pickaxe
 	EquippedWeaponsAmmunition.Add(0); // pickaxe
@@ -21,11 +21,13 @@ AFortniteClonePlayerState::AFortniteClonePlayerState() {
 	MaterialCounts.Add(0); // stone
 	MaterialCounts.Add(0); // steel
 	CurrentWeapon = 0;
-	BandageCount = 0;
+	CurrentHealingItem = -1;
+	HealingItemCounts.Add(0);
+	HealingItemCounts.Add(0);
 	JustShotRifle = false;
 	JustShotShotgun = false;
 	JustSwungPickaxe = false;
-	JustUsedBandage = false;
+	JustUsedHealingItem = false;
 	JustReloadedRifle = false;
 	JustReloadedShotgun = false;
 	KillCount = 0;
@@ -38,17 +40,18 @@ void AFortniteClonePlayerState::GetLifetimeReplicatedProps(TArray< FLifetimeProp
 	DOREPLIFETIME(AFortniteClonePlayerState, InBuildMode);
 	DOREPLIFETIME(AFortniteClonePlayerState, BuildMode);
 	DOREPLIFETIME(AFortniteClonePlayerState, HoldingWeapon);
-	DOREPLIFETIME(AFortniteClonePlayerState, HoldingBandage);
+	DOREPLIFETIME(AFortniteClonePlayerState, HoldingHealingItem);
 	DOREPLIFETIME(AFortniteClonePlayerState, EquippedWeapons);
 	DOREPLIFETIME(AFortniteClonePlayerState, EquippedWeaponsAmmunition);
 	DOREPLIFETIME(AFortniteClonePlayerState, EquippedWeaponsClips);
 	DOREPLIFETIME(AFortniteClonePlayerState, MaterialCounts);
 	DOREPLIFETIME(AFortniteClonePlayerState, CurrentWeapon);
-	DOREPLIFETIME(AFortniteClonePlayerState, BandageCount);
+	DOREPLIFETIME(AFortniteClonePlayerState, CurrentHealingItem);
+	DOREPLIFETIME(AFortniteClonePlayerState, HealingItemCounts);
 	DOREPLIFETIME(AFortniteClonePlayerState, JustShotRifle);
 	DOREPLIFETIME(AFortniteClonePlayerState, JustShotShotgun);
 	DOREPLIFETIME(AFortniteClonePlayerState, JustSwungPickaxe);
-	DOREPLIFETIME(AFortniteClonePlayerState, JustUsedBandage);
+	DOREPLIFETIME(AFortniteClonePlayerState, JustUsedHealingItem);
 	DOREPLIFETIME(AFortniteClonePlayerState, JustReloadedRifle);
 	DOREPLIFETIME(AFortniteClonePlayerState, JustReloadedShotgun);
 	DOREPLIFETIME(AFortniteClonePlayerState, KillCount);

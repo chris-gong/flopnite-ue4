@@ -29,7 +29,7 @@ public:
 	bool HoldingWeapon;
 
 	UPROPERTY(Replicated)
-	bool HoldingBandage;
+	bool HoldingHealingItem;
 
 	UPROPERTY(Replicated)
 	bool AimedIn;
@@ -48,10 +48,13 @@ public:
 	TArray<int> MaterialCounts; //index 0 holds count for wood, index 1 holds count for stone, index 2 holds count for steel
 
 	UPROPERTY(Replicated)
+	TArray<int> HealingItemCounts; //index 0 holds count for bandages, index 1 holds count for potions
+
+	UPROPERTY(Replicated)
 	int CurrentWeapon; //0 for pickaxe, 1 for assault rifle, 2 for shotgun, -1 for non weapons like bandages
 
 	UPROPERTY(Replicated)
-	int BandageCount;
+	int CurrentHealingItem; //0 for bandage, 1 for potion, -1 for non healing type items
 
 	UPROPERTY(Replicated)
 	int KillCount;
@@ -66,7 +69,7 @@ public:
 	bool JustSwungPickaxe; //used to prevent player from spamming pickaxe
 
 	UPROPERTY(Replicated)
-	bool JustUsedBandage; //used to prevent player from spamming bandage and doing other things while reloading
+	bool JustUsedHealingItem; //used to prevent player from spamming healing items and doing other things while reloading 
 
 	UPROPERTY(Replicated)
 	bool JustReloadedRifle; //used to prevent player from doing other things while reloading

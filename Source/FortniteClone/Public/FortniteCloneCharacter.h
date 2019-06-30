@@ -123,8 +123,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Health")
 	float Health;
 
+	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Health")
+	float Shield;
+
 	UFUNCTION(BlueprintPure, Category = "Health")
 	float GetHealth();
+
+	UFUNCTION(BlueprintPure, Category = "Health")
+	float GetShield();
 
 	UFUNCTION(BlueprintPure, Category = "Material")
 	int GetWoodMaterialCount();
@@ -142,7 +148,7 @@ public:
 	int GetShotgunAmmoCount();
 
 	UFUNCTION(BlueprintPure, Category = "Items")
-	int GetBandageCount();
+	int GetHealingItemCount(int HealingItemType);
 
 	/* The current weapon being held */
 	UPROPERTY(Replicated)
@@ -266,7 +272,7 @@ protected:
 
 	/* Set the animation variable as well as shoot a very small projectile from the gun*/
 	UFUNCTION()
-	void UseBandage();
+	void UseHealingItem();
 
 	UFUNCTION()
 	void AimGunIn();
@@ -276,9 +282,6 @@ protected:
 
 	UFUNCTION()
 	void Reload();
-
-	UFUNCTION()
-	void BandageTimeOut();
 
 	UFUNCTION()
 	void PickaxeTimeOut();
@@ -308,6 +311,9 @@ protected:
 	void HoldBandage();
 
 	UFUNCTION()
+	void HoldPotion();
+
+	UFUNCTION()
 	void OpenSettingsMenu();
 
 
@@ -317,6 +323,9 @@ protected:
 	/* Index of the class in array to spawn the weapon */
 	UPROPERTY(Replicated)
 	int CurrentWeaponType; // 0 for pickaxe, 1 for assault rifle, 2 for shotgun, -1 for non weapon items
+
+	UPROPERTY(Replicated)
+	int CurrentHealingItemType; // 0 for bandage, 1 for potion, -1 for non healing type items
 
 	/* Index of the class in array to spawn structure */
 	UPROPERTY(Replicated)
@@ -433,7 +442,7 @@ public:
 	void ServerFireWeapon();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerHealWithBandage();
+	void ServerUseHealingItem(int HealingItemType);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerReloadWeapons();
@@ -448,7 +457,7 @@ public:
 	void ServerSwitchToShotgun();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerSwitchToBandage();
+	void ServerSwitchToHealingItem(int HealingItemType);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerChangeBuildingMaterial();
@@ -469,7 +478,7 @@ public:
 	void ServerRifleTimeOut();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerBandageTimeOut();
+	void ServerHealingItemTimeOut(int HealingItemType);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerShotgunReloadTimeOut();
@@ -487,7 +496,7 @@ public:
 	void ServerSpawnAndAttachWeapon(int WeaponType, FTransform SpawnTransform);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerSpawnAndAttachBandage(FTransform SpawnTransform);
+	void ServerSpawnAndAttachHealingItem(int HealingItemType, FTransform SpawnTransform);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerBuildStructure(TSubclassOf<ABuildingActor> StructureClass, FVector SpawnLocationFRotator, FRotator SpawnRotation, int StructureId);
@@ -517,7 +526,7 @@ public:
 	void NetMulticastPlayShootShotgunIronsightsAnimation();
 
 	UFUNCTION(NetMulticast, Unreliable)
-	void NetMulticastPlayUseBandageAnimation();
+	void NetMulticastPlayUseHealingItemAnimation();
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void NetMulticastPlayReloadRifleAnimation();
@@ -544,7 +553,7 @@ public:
 	void ClientGetWeaponTransform(int WeaponType);
 
 	UFUNCTION(Client, Reliable)
-	void ClientGetBandageTransform();
+	void ClientGetHealingItemTransform(int HealingItemType);
 
 	UFUNCTION(Client, Reliable)
 	void ClientDestroyStructure(int StructureId);

@@ -69,6 +69,7 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	CurrentWeaponType = 0;
+	CurrentHealingItemType = -1;
 	CurrentBuildingMaterial = 0;
 	BuildingPreview = nullptr;
 
@@ -92,7 +93,7 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	/*InBuildMode = false;
 	BuildMode = FString("None");
 	HoldingWeapon = false;
-	HoldingBandage = false;
+	HoldingHealingItem = false;
 	AimedIn = false;
 	EquippedWeapons.Add(0); //pickaxe
 	EquippedWeaponsAmmunition.Add(0); // pickaxe
@@ -105,11 +106,10 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	MaterialCounts.Add(0); // stone
 	MaterialCounts.Add(0); // steel
 	CurrentWeapon = 0;
-	BandageCount = 0;
 	JustShotRifle = false;
 	JustShotShotgun = false;
 	JustSwungPickaxe = false;
-	JustUsedBandage = false;
+	JustUsedHealingItem = false;
 	JustReloadedRifle = false;
 	JustReloadedShotgun = false;
 	KillCount = 0;*/
@@ -140,12 +140,13 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAction("PreviewFloor", IE_Pressed, this, &AFortniteCloneCharacter::PreviewFloor);
 	PlayerInputComponent->BindAction("SwitchBuildingMaterial", IE_Pressed, this, &AFortniteCloneCharacter::SwitchBuildingMaterial);
 	PlayerInputComponent->BindAction("ShootGun", IE_Pressed, this, &AFortniteCloneCharacter::ShootGun);
-	PlayerInputComponent->BindAction("UseBandage", IE_Pressed, this, &AFortniteCloneCharacter::UseBandage);
+	PlayerInputComponent->BindAction("UseHealingItem", IE_Pressed, this, &AFortniteCloneCharacter::UseHealingItem);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AFortniteCloneCharacter::Reload);
 	PlayerInputComponent->BindAction("HoldPickaxe", IE_Pressed, this, &AFortniteCloneCharacter::HoldPickaxe);
 	PlayerInputComponent->BindAction("HoldAssaultRifle", IE_Pressed, this, &AFortniteCloneCharacter::HoldAssaultRifle);
 	PlayerInputComponent->BindAction("HoldShotgun", IE_Pressed, this, &AFortniteCloneCharacter::HoldShotgun);
 	PlayerInputComponent->BindAction("HoldBandage", IE_Pressed, this, &AFortniteCloneCharacter::HoldBandage);
+	PlayerInputComponent->BindAction("HoldPotion", IE_Pressed, this, &AFortniteCloneCharacter::HoldPotion);
 	PlayerInputComponent->BindAction("Ironsights", IE_Pressed, this, &AFortniteCloneCharacter::AimGunIn);
 	PlayerInputComponent->BindAction("Ironsights", IE_Released, this, &AFortniteCloneCharacter::AimGunOut);
 	PlayerInputComponent->BindAction("OpenSettings", IE_Pressed, this, &AFortniteCloneCharacter::OpenSettingsMenu);
@@ -259,10 +260,12 @@ void AFortniteCloneCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProper
 	DOREPLIFETIME(AFortniteCloneCharacter, BuildingPreview);
 	DOREPLIFETIME(AFortniteCloneCharacter, CurrentBuildingMaterial);
 	DOREPLIFETIME(AFortniteCloneCharacter, CurrentHealingItem);
+	DOREPLIFETIME(AFortniteCloneCharacter, CurrentHealingItemType);
 	DOREPLIFETIME(AFortniteCloneCharacter, CurrentWeapon);
 	DOREPLIFETIME(AFortniteCloneCharacter, CurrentStorm);
 	DOREPLIFETIME(AFortniteCloneCharacter, CurrentWeaponType);
 	DOREPLIFETIME(AFortniteCloneCharacter, Health);
+	DOREPLIFETIME(AFortniteCloneCharacter, Shield);
 
 	DOREPLIFETIME(AFortniteCloneCharacter, IsWalking);
 	DOREPLIFETIME(AFortniteCloneCharacter, IsRunning);
@@ -467,8 +470,8 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 					// pick up the item if the two conditions above are false
 					AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 					if (State) {
-						if (State->InBuildMode || State->JustShotRifle || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
-							return; // can't pick up items while in build mode or if just shot rifle, shot shotgun, swung pickaxe, used bandage, or reloaded
+						if (State->InBuildMode || State->JustShotRifle || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedHealingItem || State->JustReloadedRifle || State->JustReloadedShotgun) {
+							return; // can't pick up items while in build mode or if just shot rifle, shot shotgun, swung pickaxe, used healing item, or reloaded
 						}
 						// if the player already has a weapon of this type, do not equip it
 						if (State->EquippedWeapons.Contains(WeaponActor->WeaponType)) {
@@ -508,12 +511,12 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 				}
 				if (State) {
 					//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
-					if (State->InBuildMode || State->JustShotRifle || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
-						return; // can't pick up items while in build mode or if just shot rifle, shot shotgun, swung pickaxe, used bandage, or reloaded
+					if (State->InBuildMode || State->JustShotRifle || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedHealingItem || State->JustReloadedRifle || State->JustReloadedShotgun) {
+						return; // can't pick up items while in build mode or if just shot rifle, shot shotgun, swung pickaxe, used healing item, or reloaded
 					}
 					//CurrentHealingItem = Cast<AHealingActor>(OtherActor);
 					if (HealingActor->Holder != nullptr) {
-						return; // do nothing if someone is holding the bandage
+						return; // do nothing if someone is holding the healing item
 					}
 					//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("didn't end early"));
 					// Destroy old weapon
@@ -524,9 +527,9 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 						CurrentWeapon->Destroy();
 						CurrentWeapon = nullptr;
 					}
-					// PICK UP BANDAGE 
-					State->BandageCount += 3;
-					ClientGetBandageTransform();
+					// pick up healing item
+					State->HealingItemCounts[HealingActor->HealingType] += HealingActor->Count;
+					ClientGetHealingItemTransform(HealingActor->HealingType);
 					HealingActor->Destroy();
 				}
 			}
@@ -614,7 +617,7 @@ void AFortniteCloneCharacter::MoveForward(float Value)
 	{
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(Controller->PlayerState);
 		if (State) {
-			if (State->JustUsedBandage) {
+			if (State->JustUsedHealingItem) {
 				return;
 			}
 			// find out which way is forward
@@ -659,7 +662,7 @@ void AFortniteCloneCharacter::MoveRight(float Value)
 	{
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(Controller->PlayerState);
 		if (State) {
-			if (State->JustUsedBandage) {
+			if (State->JustUsedHealingItem) {
 				return;
 			}
 		}
@@ -998,8 +1001,8 @@ void AFortniteCloneCharacter::ShootGun() {
 	ServerFireWeapon();
 }
 
-void AFortniteCloneCharacter::UseBandage() {
-	ServerHealWithBandage();
+void AFortniteCloneCharacter::UseHealingItem() {
+	ServerUseHealingItem(CurrentHealingItemType);
 }
 
 void AFortniteCloneCharacter::Reload() {
@@ -1036,20 +1039,6 @@ void AFortniteCloneCharacter::ShotgunReloadTimeOut() {
 	State->JustReloadedShotgun = false;
 }
 
-
-void AFortniteCloneCharacter::BandageTimeOut() {
-	if (Health < 100) {
-		if (Health + 15 > 100) {
-			Health = 100;
-		}
-		else {
-			Health += 15;
-		}
-	}
-	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-	State->JustUsedBandage = false;
-}
-
 void AFortniteCloneCharacter::HoldPickaxe() {
 	ServerSwitchToPickaxe();
 }
@@ -1063,11 +1052,19 @@ void AFortniteCloneCharacter::HoldShotgun() {
 }
 
 void AFortniteCloneCharacter::HoldBandage() {
-	ServerSwitchToBandage();
+	ServerSwitchToHealingItem(0);
+}
+
+void AFortniteCloneCharacter::HoldPotion() {
+	ServerSwitchToHealingItem(1);
 }
 
 float AFortniteCloneCharacter::GetHealth() {
 	return Health;
+}
+
+float AFortniteCloneCharacter::GetShield() {
+	return Shield;
 }
 
 int AFortniteCloneCharacter::GetWoodMaterialCount() {
@@ -1145,11 +1142,11 @@ int AFortniteCloneCharacter::GetShotgunAmmoCount() {
 	}
 }
 
-int AFortniteCloneCharacter::GetBandageCount() {
+int AFortniteCloneCharacter::GetHealingItemCount(int HealingItemType) {
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		if (State) {
-			return State->BandageCount;
+			return State->HealingItemCounts[HealingItemType];
 		}
 		else {
 			return 0;
@@ -1324,7 +1321,7 @@ void AFortniteCloneCharacter::ServerSetBuildModeWall_Implementation() {
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		if (State) {
-			if (State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
+			if (State->JustUsedHealingItem || State->JustReloadedRifle || State->JustReloadedShotgun) {
 				return; //currently healing or reloading
 			}
 			if (State->HoldingWeapon && State->AimedIn) {
@@ -1341,9 +1338,9 @@ void AFortniteCloneCharacter::ServerSetBuildModeWall_Implementation() {
 				if (CurrentWeaponType > -1 && CurrentWeaponType < 3) {
 					ClientGetWeaponTransform(CurrentWeaponType);
 				}
-				else {
-					//equip bandage since current weapon was null
-					ClientGetBandageTransform();
+				else if (CurrentHealingItemType > -1 && CurrentHealingItemType < 2) {
+					//equip healing item since current weapon was null
+					ClientGetHealingItemTransform(CurrentHealingItemType);
 				}
 			}
 			else if (State->InBuildMode) {
@@ -1355,7 +1352,7 @@ void AFortniteCloneCharacter::ServerSetBuildModeWall_Implementation() {
 				State->InBuildMode = true;
 				State->BuildMode = FString("Wall");
 				State->HoldingWeapon = false;
-				State->HoldingBandage = false;
+				State->HoldingHealingItem = false;
 				State->AimedIn = false; 
 				//animinstance properties
 				HoldingWeapon = false;
@@ -1387,7 +1384,7 @@ void AFortniteCloneCharacter::ServerSetBuildModeRamp_Implementation() {
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		if (State) {
-			if (State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun) {
+			if (State->JustUsedHealingItem || State->JustReloadedRifle || State->JustReloadedShotgun) {
 				return; //currently healing or reloading
 			}
 			if (State->HoldingWeapon && State->AimedIn) {
@@ -1404,9 +1401,9 @@ void AFortniteCloneCharacter::ServerSetBuildModeRamp_Implementation() {
 				if (CurrentWeaponType > -1 && CurrentWeaponType < 3) {
 					ClientGetWeaponTransform(CurrentWeaponType);
 				}
-				else {
-					//equip bandage since current weapon was null
-					ClientGetBandageTransform();
+				else if(CurrentHealingItemType > -1 && CurrentHealingItemType < 2){
+					//equip healing item since current weapon was null
+					ClientGetHealingItemTransform(CurrentHealingItemType);
 				}
 			}
 			else if (State->InBuildMode) {
@@ -1418,7 +1415,7 @@ void AFortniteCloneCharacter::ServerSetBuildModeRamp_Implementation() {
 				State->InBuildMode = true;
 				State->BuildMode = FString("Ramp");
 				State->HoldingWeapon = false;
-				State->HoldingBandage = false;
+				State->HoldingHealingItem = false;
 				State->AimedIn = false;
 				//animinstance properties
 				HoldingWeapon = false;
@@ -1449,7 +1446,7 @@ void AFortniteCloneCharacter::ServerSetBuildModeFloor_Implementation() {
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		if (State) {
-			if (State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun || State->JustSwungPickaxe) {
+			if (State->JustUsedHealingItem || State->JustReloadedRifle || State->JustReloadedShotgun || State->JustSwungPickaxe) {
 				return; //currently healing or reloading or swinging pickaxe
 			}
 			if (State->HoldingWeapon && State->AimedIn) {
@@ -1466,9 +1463,9 @@ void AFortniteCloneCharacter::ServerSetBuildModeFloor_Implementation() {
 				if (CurrentWeaponType > -1 && CurrentWeaponType < 3) {
 					ClientGetWeaponTransform(CurrentWeaponType);
 				}
-				else {
-					//equip bandage since current weapon was null
-					ClientGetBandageTransform();
+				else if (CurrentHealingItemType > -1 && CurrentHealingItemType < 2) {
+					//equip healing item since current weapon was null
+					ClientGetHealingItemTransform(CurrentHealingItemType);
 				}
 			}
 			else if (State->InBuildMode) {
@@ -1480,7 +1477,7 @@ void AFortniteCloneCharacter::ServerSetBuildModeFloor_Implementation() {
 				State->InBuildMode = true;
 				State->BuildMode = FString("Floor");
 				State->HoldingWeapon = false;
-				State->HoldingBandage = false;
+				State->HoldingHealingItem = false;
 				State->AimedIn = false;
 				//animinstance properties
 				HoldingWeapon = false;
@@ -1592,30 +1589,39 @@ bool AFortniteCloneCharacter::ServerFireWeapon_Validate() {
 	return true;
 }
 
-void AFortniteCloneCharacter::ServerHealWithBandage_Implementation() {
-	if (Health >= 100) {
-		return; // player has full health
+void AFortniteCloneCharacter::ServerUseHealingItem_Implementation(int HealingItemType) {
+	if (HealingItemType == 0) {
+		if (Health >= 100) {
+			return; // player has full health
+		}
+	}
+	else if (HealingItemType == 1) {
+		if (Shield >= 100) {
+			return; // player has full shield
+		}
 	}
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-		if (State && State->HoldingBandage) {
-			if (State->BandageCount < 1) {
-				return; // player has no bandages to use
+		if (State && State->HoldingHealingItem) {
+			if (State->HealingItemCounts[HealingItemType] < 1) {
+				return; // player has no healing items to use
 			}
 
-			if (State->JustUsedBandage) {
+			if (State->JustUsedHealingItem) {
 				return;
 			}
-			NetMulticastPlayUseBandageAnimation();
-			State->JustUsedBandage = true;
-			State->BandageCount--;
-			FTimerHandle BandageTimerHandle;
-			GetWorldTimerManager().SetTimer(BandageTimerHandle, this, &AFortniteCloneCharacter::ServerBandageTimeOut, 3.321f, false);
+			NetMulticastPlayUseHealingItemAnimation();
+			State->JustUsedHealingItem = true;
+			State->HealingItemCounts[HealingItemType]--;
+			FTimerHandle HealingItemTimerHandle;
+			FTimerDelegate HealingItemTimerDelegate;
+			HealingItemTimerDelegate.BindUFunction(this, FName("ServerHealingItemTimeOut"), HealingItemType);
+			GetWorldTimerManager().SetTimer(HealingItemTimerHandle, HealingItemTimerDelegate, 3.321f, false);
 		}
 	}
 }
 
-bool AFortniteCloneCharacter::ServerHealWithBandage_Validate() {
+bool AFortniteCloneCharacter::ServerUseHealingItem_Validate(int HealingItemType) {
 	return true;
 }
 
@@ -1760,7 +1766,7 @@ void AFortniteCloneCharacter::ServerSwitchToPickaxe_Implementation() {
 			if (State->HoldingWeapon && State->AimedIn) {
 				return; // currently aimed down sight
 			}
-			if (State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun || State->JustShotRifle || State->JustShotShotgun) {
+			if (State->JustUsedHealingItem || State->JustReloadedRifle || State->JustReloadedShotgun || State->JustShotRifle || State->JustShotShotgun) {
 				return; // currently healing or currently reloading or just shot a weapon
 			}
 			else {
@@ -1800,7 +1806,7 @@ void AFortniteCloneCharacter::ServerSwitchToRifle_Implementation() {
 			if (State->HoldingWeapon && State->AimedIn) {
 				return; // currently aimed down sight
 			}
-			if (!State->EquippedWeapons.Contains(1) || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun || State->JustSwungPickaxe || State->JustShotShotgun) {
+			if (!State->EquippedWeapons.Contains(1) || State->JustUsedHealingItem || State->JustReloadedRifle || State->JustReloadedShotgun || State->JustSwungPickaxe || State->JustShotShotgun) {
 				return; // already holding the assault rifle or doesn't have one or is currently healing or currently reloading or swinging pickaxe or shooting shotgun
 			}
 			else {
@@ -1842,7 +1848,7 @@ void AFortniteCloneCharacter::ServerSwitchToShotgun_Implementation() {
 			if (State->HoldingWeapon && State->AimedIn) {
 				return; // currently aimed down sight
 			}
-			if (!State->EquippedWeapons.Contains(2) || State->JustUsedBandage || State->JustReloadedRifle || State->JustReloadedShotgun || State->JustSwungPickaxe || State->JustShotRifle) {
+			if (!State->EquippedWeapons.Contains(2) || State->JustUsedHealingItem || State->JustReloadedRifle || State->JustReloadedShotgun || State->JustSwungPickaxe || State->JustShotRifle) {
 				return; // already holding the pickaxe or doesn't have one or is currently healing or currently reloading or swinging pickaxe or just shot rifle
 			}
 			else {
@@ -1874,18 +1880,20 @@ bool AFortniteCloneCharacter::ServerSwitchToShotgun_Validate() {
 	return true;
 }
 
-void AFortniteCloneCharacter::ServerSwitchToBandage_Implementation() {
+void AFortniteCloneCharacter::ServerSwitchToHealingItem_Implementation(int HealingItemType) {
+	FString LogMsg = FString("server switch to healing item Current healing item type ") + FString::FromInt(HealingItemType);
+	UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		if (State) {
 			if (State->JustReloadedRifle || State->JustReloadedShotgun || State->JustSwungPickaxe || State->JustShotRifle || State->JustShotShotgun) {
-				return; //currently reloading weapons or s winging pickaxe
+				return; //currently reloading weapons or swinging pickaxe
 			}
 			if (State->HoldingWeapon && State->AimedIn) {
 				return; // currently aimed down sight
 			}
-			if (CurrentWeaponType == -1 && !State->InBuildMode) {
-				return; // already holding the bandages while not in build mode
+			if (State->CurrentHealingItem == HealingItemType && !State->InBuildMode) {
+				return; // already holding healing items while not in build mode
 			}
 			else {
 				if (State->InBuildMode) {
@@ -1903,13 +1911,17 @@ void AFortniteCloneCharacter::ServerSwitchToBandage_Implementation() {
 					CurrentWeapon->Destroy();
 					CurrentWeapon = nullptr;
 				}
-				ClientGetBandageTransform();
+				if (CurrentHealingItem) {
+					CurrentHealingItem->Destroy();
+					CurrentHealingItem = nullptr;
+				}
+				ClientGetHealingItemTransform(HealingItemType);
 			}
 		}
 	}
 }
 
-bool AFortniteCloneCharacter::ServerSwitchToBandage_Validate() {
+bool AFortniteCloneCharacter::ServerSwitchToHealingItem_Validate(int HealingItemType) {
 	return true;
 }
 
@@ -2006,24 +2018,36 @@ bool AFortniteCloneCharacter::ServerShotgunTimeOut_Validate() {
 }
 
 
-void AFortniteCloneCharacter::ServerBandageTimeOut_Implementation() {
-	if (Health < 100) {
-		if (Health + 15 > 100) {
-			Health = 100;
+void AFortniteCloneCharacter::ServerHealingItemTimeOut_Implementation(int HealingItemType) {
+	if (HealingItemType == 0) {
+		if (Health < 100) {
+			if (Health + 15 > 100) {
+				Health = 100;
+			}
+			else {
+				Health += 15;
+			}
 		}
-		else {
-			Health += 15;
+	}
+	else if (HealingItemType == 1) {
+		if (Shield < 100) {
+			if (Shield + 20 > 100) {
+				Shield = 100;
+			}
+			else {
+				Shield += 20;
+			}
 		}
 	}
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		if (State) {
-			State->JustUsedBandage = false;
+			State->JustUsedHealingItem = false;
 		}
 	}
 }
 
-bool AFortniteCloneCharacter::ServerBandageTimeOut_Validate() {
+bool AFortniteCloneCharacter::ServerHealingItemTimeOut_Validate(int HealingItemType) {
 	return true;
 }
 
@@ -2105,6 +2129,7 @@ void AFortniteCloneCharacter::ServerSpawnAndAttachWeapon_Implementation(int Weap
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		if (State) {
 			CurrentWeaponType = WeaponType;
+			CurrentHealingItemType = -1;
 			FName WeaponSocketName = TEXT("hand_right_socket_pickaxe");
 			if (CurrentWeaponType == 1) {
 				WeaponSocketName = TEXT("hand_right_socket_rifle");
@@ -2130,8 +2155,9 @@ void AFortniteCloneCharacter::ServerSpawnAndAttachWeapon_Implementation(int Weap
 			AimedIn = false;
 			HoldingWeaponType = 1;
 			State->HoldingWeapon = true;
-			State->HoldingBandage = false;
+			State->HoldingHealingItem = false;
 			State->CurrentWeapon = WeaponType;
+			State->CurrentHealingItem = -1;
 		}
 	}
 }
@@ -2140,15 +2166,23 @@ bool AFortniteCloneCharacter::ServerSpawnAndAttachWeapon_Validate(int WeaponType
 	return true;
 }
 
-void AFortniteCloneCharacter::ServerSpawnAndAttachBandage_Implementation(FTransform SpawnTransform) {
+void AFortniteCloneCharacter::ServerSpawnAndAttachHealingItem_Implementation(int HealingItemType, FTransform SpawnTransform) {
+	FString LogMsg = FString("server spawn and attach Current healing item type ") + FString::FromInt(HealingItemType);
+	UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		if (State) {
 			CurrentWeaponType = -1;
-			FName BandageSocketName = TEXT("hand_left_socket");
+			CurrentHealingItemType = HealingItemType;
+			FName HealingItemSocketName = TEXT("hand_left_socket_bandage");
+
+			if (CurrentHealingItemType == 1) {
+				HealingItemSocketName = TEXT("hand_left_socket_potion");
+			}
+
 			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::SnapToTarget, true);
 
-			auto HealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, HealingItemClasses[0], SpawnTransform));
+			auto HealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, HealingItemClasses[CurrentHealingItemType], SpawnTransform));
 			if (HealingItem != nullptr)
 			{
 				CurrentHealingItem = HealingItem;
@@ -2159,20 +2193,21 @@ void AFortniteCloneCharacter::ServerSpawnAndAttachBandage_Implementation(FTransf
 			}
 
 			UStaticMeshComponent* HealingItemStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentHealingItem->GetComponentByClass(UStaticMeshComponent::StaticClass()));
-			HealingItemStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, BandageSocketName);
+			HealingItemStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, HealingItemSocketName);
 
 			//animinstance properties
 			HoldingWeapon = false;
 			AimedIn = false;
 			HoldingWeaponType = 0;
 			State->HoldingWeapon = false;
-			State->HoldingBandage = true;
+			State->HoldingHealingItem = true;
 			State->CurrentWeapon = -1;
+			State->CurrentHealingItem = HealingItemType;
 		}
 	}
 }
 
-bool AFortniteCloneCharacter::ServerSpawnAndAttachBandage_Validate(FTransform SpawnTransform) {
+bool AFortniteCloneCharacter::ServerSpawnAndAttachHealingItem_Validate(int HealingItemType, FTransform SpawnTransform) {
 	return true;
 }
 
@@ -2248,7 +2283,7 @@ void AFortniteCloneCharacter::NetMulticastPlayShootShotgunIronsightsAnimation_Im
 	PlayAnimMontage(ShotgunIronsightsShootingAnimation);
 }
 
-void AFortniteCloneCharacter::NetMulticastPlayUseBandageAnimation_Implementation() {
+void AFortniteCloneCharacter::NetMulticastPlayUseHealingItemAnimation_Implementation() {
 	PlayAnimMontage(HealingAnimation);
 }
 
@@ -2307,9 +2342,11 @@ void AFortniteCloneCharacter::ClientGetWeaponTransform_Implementation(int Weapon
 	ServerSpawnAndAttachWeapon(WeaponType, SpawnTransform);
 }
 
-void AFortniteCloneCharacter::ClientGetBandageTransform_Implementation() {
+void AFortniteCloneCharacter::ClientGetHealingItemTransform_Implementation(int HealingItemType) {
+	FString LogMsg = FString("client get healing item transform Current healing item type ") + FString::FromInt(HealingItemType);
+	UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
 	FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
-	ServerSpawnAndAttachBandage(SpawnTransform);
+	ServerSpawnAndAttachHealingItem(HealingItemType, SpawnTransform);
 }
 
 void AFortniteCloneCharacter::OnRepSetSkin() {
