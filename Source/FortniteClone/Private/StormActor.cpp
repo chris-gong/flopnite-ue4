@@ -45,7 +45,7 @@ void AStormActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if (HasAuthority()) {
 		if (IsShrinking) {
-			FVector NewScale = FVector(SizeScale.X * 0.99965, SizeScale.Y * 0.99965, SizeScale.Z);
+			FVector NewScale = FVector(SizeScale.X * 0.999485, SizeScale.Y * 0.999485, SizeScale.Z);
 			SizeScale = NewScale;
 			SetActorScale3D(SizeScale);
 		}
