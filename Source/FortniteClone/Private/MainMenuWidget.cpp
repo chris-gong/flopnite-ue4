@@ -38,6 +38,10 @@ void UMainMenuWidget::NativeConstruct() {
 	Client = UGameLiftClientObject::CreateGameLiftObject(AccessKey, SecretKey, "us-east-1");
 	JoinGameButton = (UButton*) GetWidgetFromName(TEXT("Button_JoinGame"));
 	JoinGameButton->OnClicked.AddDynamic(this, &UMainMenuWidget::JoinGame);
+	ExitGameButton = (UButton*)GetWidgetFromName(TEXT("Button_ExitGame"));
+	ExitGameButton->OnClicked.AddDynamic(this, &UMainMenuWidget::ExitGame);
+	LaunchDiscordButton = (UButton*)GetWidgetFromName(TEXT("Button_LaunchDiscord"));
+	LaunchDiscordButton->OnClicked.AddDynamic(this, &UMainMenuWidget::LaunchDiscord);
 }
 void UMainMenuWidget::JoinGame() {
 	AttemptToJoinGameFinished = false;
@@ -299,4 +303,16 @@ void UMainMenuWidget::EnableMouseEvents() {
 		PlayerController->bEnableMouseOverEvents = true;
 		PlayerController->SetInputMode(FInputModeGameAndUI());
 	}
+}
+
+void UMainMenuWidget::ExitGame() {
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (PlayerController != nullptr) {
+		UKismetSystemLibrary::QuitGame(GetWorld(), PlayerController, EQuitPreference::Quit, false);
+	}
+}
+
+void UMainMenuWidget::LaunchDiscord() {
+	const FString& DiscordUrl = "https://discord.gg/2xbR5qT";
+	UKismetSystemLibrary::LaunchURL(DiscordUrl);
 }

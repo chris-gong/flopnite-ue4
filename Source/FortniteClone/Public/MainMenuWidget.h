@@ -92,6 +92,12 @@ public:
 	UFUNCTION(Category = "GameLift")
 	void OnDescribeGameSessionPlacementFailed(const FString& ErrorMessage);
 
+	UFUNCTION()
+	void ExitGame();
+
+	UFUNCTION()
+	void LaunchDiscord();
+
 private:
 	bool AttemptToJoinGameFinished;
 
@@ -102,6 +108,10 @@ private:
 	int GameSessionsLeft;
 
 	UButton* JoinGameButton;
+
+	UButton* ExitGameButton;
+
+	UButton* LaunchDiscordButton;
 
 	FString GenerateRandomId();
 
