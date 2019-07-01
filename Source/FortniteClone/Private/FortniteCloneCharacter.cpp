@@ -1600,6 +1600,9 @@ void AFortniteCloneCharacter::ServerUseHealingItem_Implementation(int HealingIte
 			return; // player has full shield
 		}
 	}
+	else {
+		return;
+	}
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		if (State && State->HoldingHealingItem) {
