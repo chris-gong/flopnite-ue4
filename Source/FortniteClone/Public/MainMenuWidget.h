@@ -98,6 +98,21 @@ public:
 	UFUNCTION()
 	void LaunchDiscord();
 
+	UFUNCTION()
+	void LaunchYoutube();
+
+	UFUNCTION()
+	void LaunchTwitter();
+
+	UFUNCTION()
+	void LaunchPatreon();
+
+	UFUNCTION()
+	void LaunchInstagram();
+
+	UFUNCTION()
+	void LaunchFacebook();
+
 private:
 	bool AttemptToJoinGameFinished;
 
@@ -112,6 +127,16 @@ private:
 	UButton* ExitGameButton;
 
 	UButton* LaunchDiscordButton;
+
+	UButton* LaunchYoutubeButton;
+
+	UButton* LaunchTwitterButton;
+
+	UButton* LaunchPatreonButton;
+
+	UButton* LaunchInstagramButton;
+
+	UButton* LaunchFacebookButton;
 
 	FString GenerateRandomId();
 

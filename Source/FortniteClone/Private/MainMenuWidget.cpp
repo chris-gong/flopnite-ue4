@@ -34,14 +34,24 @@ UMainMenuWidget::UMainMenuWidget(const FObjectInitializer& ObjectInitializer) :S
 void UMainMenuWidget::NativeConstruct() {
 	Super::NativeConstruct();
 	// line below is for testing local gamelift
-	//Client = UGameLiftClientObject::CreateGameLiftObject(AccessKey, SecretKey, "us-east-1", true, 9080);
-	Client = UGameLiftClientObject::CreateGameLiftObject(AccessKey, SecretKey, "us-east-1");
+	//Client = UGameLiftClientObject::CreateGameLiftObject(AccessKey, SecretKey, "us-east-2", true, 9080);
+	Client = UGameLiftClientObject::CreateGameLiftObject(AccessKey, SecretKey, "us-east-2");
 	JoinGameButton = (UButton*) GetWidgetFromName(TEXT("Button_JoinGame"));
 	JoinGameButton->OnClicked.AddDynamic(this, &UMainMenuWidget::JoinGame);
 	ExitGameButton = (UButton*)GetWidgetFromName(TEXT("Button_ExitGame"));
 	ExitGameButton->OnClicked.AddDynamic(this, &UMainMenuWidget::ExitGame);
 	LaunchDiscordButton = (UButton*)GetWidgetFromName(TEXT("Button_LaunchDiscord"));
 	LaunchDiscordButton->OnClicked.AddDynamic(this, &UMainMenuWidget::LaunchDiscord);
+	LaunchYoutubeButton = (UButton*)GetWidgetFromName(TEXT("Button_LaunchYoutube"));
+	LaunchYoutubeButton->OnClicked.AddDynamic(this, &UMainMenuWidget::LaunchYoutube);
+	LaunchTwitterButton = (UButton*)GetWidgetFromName(TEXT("Button_LaunchTwitter"));
+	LaunchTwitterButton->OnClicked.AddDynamic(this, &UMainMenuWidget::LaunchTwitter);
+	LaunchPatreonButton = (UButton*)GetWidgetFromName(TEXT("Button_LaunchPatreon"));
+	LaunchPatreonButton->OnClicked.AddDynamic(this, &UMainMenuWidget::LaunchPatreon);
+	LaunchInstagramButton = (UButton*)GetWidgetFromName(TEXT("Button_LaunchInstagram"));
+	LaunchInstagramButton->OnClicked.AddDynamic(this, &UMainMenuWidget::LaunchInstagram);
+	LaunchFacebookButton = (UButton*)GetWidgetFromName(TEXT("Button_LaunchFacebook"));
+	LaunchFacebookButton->OnClicked.AddDynamic(this, &UMainMenuWidget::LaunchFacebook);
 }
 void UMainMenuWidget::JoinGame() {
 	AttemptToJoinGameFinished = false;
@@ -85,14 +95,14 @@ void UMainMenuWidget::DescribeGameSessionQueues(const FString& QueueNameInput) {
 	DescribeGameSessionQueuesObject->OnDescribeGameSessionQueuesSuccess.AddDynamic(this, &UMainMenuWidget::OnDescribeGameSessionQueuesSuccess);
 	DescribeGameSessionQueuesObject->OnDescribeGameSessionQueuesFailed.AddDynamic(this, &UMainMenuWidget::OnDescribeGameSessionQueuesFailed);
 	DescribeGameSessionQueuesObject->Activate();
-	UE_LOG(LogMyMainMenu, Log, TEXT("describe game session queues activated"));
+	//UE_LOG(LogMyMainMenu, Log, TEXT("describe game session queues activated"));
 }
 
 void UMainMenuWidget::OnDescribeGameSessionQueuesSuccess(const TArray<FString>& FleetARNs) {
-	UE_LOG(LogMyMainMenu, Log, TEXT("describe game session queues success"));
+	//UE_LOG(LogMyMainMenu, Log, TEXT("describe game session queues success"));
 	for (int i = 0; i < FleetARNs.Num(); i++) {
 		FString FleetArn = FleetARNs[i];
-		UE_LOG(LogMyMainMenu, Log, TEXT("%s"), *FleetArn);
+		//UE_LOG(LogMyMainMenu, Log, TEXT("%s"), *FleetArn);
 		TArray<FString> FleetArnParsedOnce;
 		FleetArn.ParseIntoArray(FleetArnParsedOnce, TEXT("arn:aws:gamelift:"), true);
 		TArray<FString> FleetArnParsedAgain;
@@ -122,7 +132,7 @@ void UMainMenuWidget::SearchGameSessions(const FString& FleetId) {
 }
 void UMainMenuWidget::OnSearchGameSessionsSuccess(const TArray<FString>& GameSessionIds) {
 	//SearchGameSessionsFinished = true;
-	UE_LOG(LogMyMainMenu, Log, TEXT("on search game session success"));
+	//UE_LOG(LogMyMainMenu, Log, TEXT("on search game session success"));
 	//GameSessionsLeft = GameSessionIds.Num();
 
 	/*if (GameSessionsLeft <= 0) {
@@ -135,7 +145,7 @@ void UMainMenuWidget::OnSearchGameSessionsSuccess(const TArray<FString>& GameSes
 	for (int i = 0; i < GameSessionIds.Num(); i++) {
 		const FString& GameSessionId = GameSessionIds[i];
 		const FString& PlayerSessionId = GenerateRandomId();
-		UE_LOG(LogMyMainMenu, Log, TEXT("on search game session success Game session id %s"), *GameSessionId);
+		//UE_LOG(LogMyMainMenu, Log, TEXT("on search game session success Game session id %s"), *GameSessionId);
 		CreatePlayerSession(GameSessionId, PlayerSessionId);
 		CreatePlayerSessionEvent->Wait();
 
@@ -148,8 +158,8 @@ void UMainMenuWidget::OnSearchGameSessionsSuccess(const TArray<FString>& GameSes
 }
 
 void UMainMenuWidget::OnSearchGameSessionsFailed(const FString& ErrorMessage) {
-	/*UE_LOG(LogMyMainMenu, Log, TEXT("on search game sessions failed %s"), *ErrorMessage);
-	AttemptToJoinGameFinished = true;
+	UE_LOG(LogMyMainMenu, Log, TEXT("on search game sessions failed %s"), *ErrorMessage);
+	/*AttemptToJoinGameFinished = true;
 	JoinGameButton->SetIsEnabled(true);*/
 	SearchGameSessionsEvent->Trigger();
 }
@@ -163,7 +173,7 @@ void UMainMenuWidget::CreatePlayerSession(const FString& GameSessionId, const FS
 
 void UMainMenuWidget::OnCreatePlayerSessionSuccess(const FString& IPAddress, const FString& Port, const FString& PlayerSessionID, const int& PlayerSessionStatus) {
 	FString PlayerSessionStatusString = FString::FromInt(PlayerSessionStatus);
-	UE_LOG(LogMyMainMenu, Log, TEXT("player session status %s"), *PlayerSessionStatusString);
+	//UE_LOG(LogMyMainMenu, Log, TEXT("player session status %s"), *PlayerSessionStatusString);
 	if (PlayerSessionStatus == 1) {
 		FString LevelName = IPAddress + FString(":") + Port;
 		const FString& Options = FString("?") + FString("PlayerSessionId=") + PlayerSessionID;
@@ -216,7 +226,7 @@ void UMainMenuWidget::OnStartGameSessionPlacementSuccess(const FString& GameSess
 	else if(Status == 1 && GameSessionId.Len() > 0) {
 		// very rare that a game session is made right after a call to startgamesessionplacement, will take some time
 		const FString& PlayerSessionId = GenerateRandomId();
-		UE_LOG(LogMyMainMenu, Log, TEXT("on start game session placement success Game session id %s"), *GameSessionId);
+		//UE_LOG(LogMyMainMenu, Log, TEXT("on start game session placement success Game session id %s"), *GameSessionId);
 		CreatePlayerSession(GameSessionId, PlayerSessionId);
 		CreatePlayerSessionEvent->Wait();
 	}
@@ -238,9 +248,9 @@ void UMainMenuWidget::DescribeGameSessionPlacement(const FString& PlacementId) {
 }
 
 void UMainMenuWidget::OnDescribeGameSessionPlacementSuccess(const FString& GameSessionId, const FString& PlacementId, const int& Status) {
-	UE_LOG(LogMyMainMenu, Log, TEXT("on describe game session placement success Game session id %s"), *GameSessionId);
+	/*UE_LOG(LogMyMainMenu, Log, TEXT("on describe game session placement success Game session id %s"), *GameSessionId);
 	UE_LOG(LogMyMainMenu, Log, TEXT("on describe game session placement success Game session placement id %s"), *PlacementId);
-	UE_LOG(LogMyMainMenu, Log, TEXT("on describe game session placement success Game session placement status %s"), *FString::FromInt(Status));
+	UE_LOG(LogMyMainMenu, Log, TEXT("on describe game session placement success Game session placement status %s"), *FString::FromInt(Status));*/
 	if (Status < 0) {
 		AttemptToJoinGameFinished = true; // game session placement failed
 		SucceededToJoinGame = false;
@@ -251,7 +261,7 @@ void UMainMenuWidget::OnDescribeGameSessionPlacementSuccess(const FString& GameS
 	}
 	else {
 		const FString& PlayerSessionId = GenerateRandomId();
-		UE_LOG(LogMyMainMenu, Log, TEXT("on describe game session placement success Game session id %s"), *GameSessionId);
+		//UE_LOG(LogMyMainMenu, Log, TEXT("on describe game session placement success Game session id %s"), *GameSessionId);
 		CreatePlayerSession(GameSessionId, PlayerSessionId);
 		CreatePlayerSessionEvent->Wait();
 	}
@@ -275,7 +285,7 @@ FString UMainMenuWidget::GenerateRandomId() {
 	FString RandTwoString = FString::FromInt(RandTwo);
 	FString RandThreeString = FString::FromInt(RandThree);
 	FString MilliSecondsString = FString::SanitizeFloat(MilliSeconds);
-	UE_LOG(LogMyMainMenu, Log, TEXT("RandOne %s RandTwo %s RandTree %s Current milliseconds %s"),*RandOneString, *RandTwoString, *RandThreeString, *MilliSecondsString);
+	//UE_LOG(LogMyMainMenu, Log, TEXT("RandOne %s RandTwo %s RandTree %s Current milliseconds %s"),*RandOneString, *RandTwoString, *RandThreeString, *MilliSecondsString);
 
 	RandOne = MilliSeconds - RandOne;
 	RandTwo = MilliSeconds - RandTwo;
@@ -315,4 +325,29 @@ void UMainMenuWidget::ExitGame() {
 void UMainMenuWidget::LaunchDiscord() {
 	const FString& DiscordUrl = "https://discord.gg/2xbR5qT";
 	UKismetSystemLibrary::LaunchURL(DiscordUrl);
+}
+
+void UMainMenuWidget::LaunchYoutube() {
+	const FString& YoutubeUrl = "https://www.youtube.com/channel/UCO77KLKwplncMHLo6gLpIHw";
+	UKismetSystemLibrary::LaunchURL(YoutubeUrl);
+}
+
+void UMainMenuWidget::LaunchTwitter() {
+	const FString& TwitterUrl = "https://twitter.com/flopperam";
+	UKismetSystemLibrary::LaunchURL(TwitterUrl);
+}
+
+void UMainMenuWidget::LaunchPatreon() {
+	const FString& PatreonUrl = "https://www.patreon.com/flopperam";
+	UKismetSystemLibrary::LaunchURL(PatreonUrl);
+}
+
+void UMainMenuWidget::LaunchInstagram() {
+	const FString& InstagramUrl = "https://www.instagram.com/flopperam/";
+	UKismetSystemLibrary::LaunchURL(InstagramUrl);
+}
+
+void UMainMenuWidget::LaunchFacebook() {
+	const FString& FacebookUrl = "https://www.facebook.com/flopperam/";
+	UKismetSystemLibrary::LaunchURL(FacebookUrl);
 }

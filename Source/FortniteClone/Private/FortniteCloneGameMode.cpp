@@ -10,6 +10,7 @@
 #include "GameLiftServerSDK.h"
 #include "FortniteCloneHUD.h"
 #include "StormActor.h"
+#include "Runtime/Engine/Classes/GameFramework/GameState.h"
 //#include "GameLiftClientSDK/Public/GameLiftClientObject.h"
 //#include "GameLiftClientSDK/Public/GameLiftClientApi.h"
 
@@ -144,6 +145,7 @@ void AFortniteCloneGameMode::Logout(AController* Exiting) {
 	if (Exiting != nullptr) {
 		AFortniteClonePlayerController* FortniteClonePlayerController = Cast<AFortniteClonePlayerController>(Exiting);
 		const FString& PlayerSessionId = FortniteClonePlayerController->PlayerSessionId;
+		UE_LOG(LogMyServerGame, Log, TEXT("Logout playersessionid: %s"), *PlayerSessionId);
 		if (PlayerSessionId.Len() > 0) {
 #if WITH_GAMELIFT
 			FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
@@ -162,19 +164,19 @@ void AFortniteCloneGameMode::Logout(AController* Exiting) {
 FString AFortniteCloneGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal) {
 	FString InitializedString = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
 	
-	const FString& PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
-	UE_LOG(LogMyServerGame, Log, TEXT("InitNewPlayer playersessionid: %s"), *PlayerSessionId); // made need to turn absolute travel off
+	/*const FString& PlayerSessionId = UGameplayStatics::ParseOption(Options, "PlayerSessionId");
+	UE_LOG(LogMyServerGame, Log, TEXT("InitNewPlayer playersessionid: %s"), *PlayerSessionId);
 	if (NewPlayerController != nullptr) {
 		AFortniteClonePlayerController* FortniteClonePlayerController = Cast<AFortniteClonePlayerController>(NewPlayerController);
 		FortniteClonePlayerController->PlayerSessionId = PlayerSessionId;
-	}
+	}*/
 
 	return InitializedString;
 }
 
 void AFortniteCloneGameMode::GenericPlayerInitialization(AController* NewPlayer) {
 	Super::GenericPlayerInitialization(NewPlayer);
-	if (!GameStarted && GetNumPlayers() >= 1) {
+	if (!GameStarted && GetNumPlayers() >= 2) {
 		GameStarted = true;
 		TArray<AActor*> StormActors;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AStormActor::StaticClass(), StormActors);
@@ -207,25 +209,43 @@ bool AFortniteCloneGameMode::GameModeStartStorm_Validate() {
 }
 
 void AFortniteCloneGameMode::CheckRemainingPlayers_Implementation() {
-	if (!GameEnded && GameStarted && GetNumPlayers() < 2) {
-		// the game is over, terminate the game session
-		TimePassed += 1;
-		if (TimePassed >= 15) {
-#if WITH_GAMELIFT
-			FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
-			FGameLiftGenericOutcome outcome = gameLiftSdkModule->ProcessEnding();
-			UE_LOG(LogMyServerGame, Log, TEXT("FortniteCloneGameMode::EndGame"));
-			if (!outcome.IsSuccess())
-			{
-				const FString ErrorMessage = outcome.GetError().m_errorMessage;
-				UE_LOG(LogMyServerGame, Log, TEXT("FortniteCloneGameMode::EndGame: Error: %s"), *ErrorMessage);
+	AGameStateBase* FortniteCloneGameState = Cast<AGameStateBase>(GetWorld()->GetGameState<AGameStateBase>());
+	if (FortniteCloneGameState) {
+		//UE_LOG(LogMyServerGame, Log, TEXT("Game state exists"));
+		int NumPlayers = 0;
+		TArray<APlayerState*> States = FortniteCloneGameState->PlayerArray;
+		for (int i = 0; i < States.Num(); i++) {
+			if (States[i]->bIsSpectator == false) {
+				NumPlayers++;
 			}
+		}
+		if (!GameEnded && GameStarted && NumPlayers < 2) {
+			// the game is over, terminate the game session
+			TimePassed += 1;
+			if (TimePassed >= 15) {
+				//UE_LOG(LogMyServerGame, Log, TEXT("Game ended"));
+#if WITH_GAMELIFT
+				FGameLiftServerSDKModule* gameLiftSdkModule = &FModuleManager::LoadModuleChecked<FGameLiftServerSDKModule>(FName("GameLiftServerSDK"));
+				FGameLiftGenericOutcome outcome = gameLiftSdkModule->ProcessEnding();
+				UE_LOG(LogMyServerGame, Log, TEXT("FortniteCloneGameMode::EndGame"));
+				if (!outcome.IsSuccess())
+				{
+					const FString ErrorMessage = outcome.GetError().m_errorMessage;
+					UE_LOG(LogMyServerGame, Log, TEXT("FortniteCloneGameMode::EndGame: Error: %s"), *ErrorMessage);
+				}
+				else {
+					FGenericPlatformMisc::RequestExit(false);
+				}
 #endif
-			GameEnded = true;
+				GameEnded = true;
+			}
+		}
+		else if (!GameEnded && NumPlayers >= 2) {
+			TimePassed = 0;
 		}
 	}
-	else if(!GameEnded && GetNumPlayers() >= 2){
-		TimePassed = 0;
+	else {
+		//UE_LOG(LogMyServerGame, Log, TEXT("Game state does not exist"));
 	}
 }
 

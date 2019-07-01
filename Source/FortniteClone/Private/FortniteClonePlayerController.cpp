@@ -68,17 +68,17 @@ void AFortniteClonePlayerController::ServerSwitchToSpectatorMode_Implementation(
 		//SetSpectatorPawn(Pawn);
 		Possess(PlayerPawn);
 		Cast<AFortniteClonePlayerState>(PlayerState)->bIsSpectator = true; // ORDER MATTERS HERE, HAS TO BE SET AFTER POSSESSING A PAWN
-		FString LogMsg = FString("switch to spectator mode ") + FString::FromInt(GetNetMode());
+		/*FString LogMsg = FString("switch to spectator mode ") + FString::FromInt(GetNetMode());
 		UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
 		LogMsg = FString("test ") + FString::FromInt(GetNetMode());
-		UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+		UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
 		if (Cast<AFortniteClonePlayerState>(PlayerState)->bIsSpectator) {
-			LogMsg = FString("What a spectator");
-			UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+			/*LogMsg = FString("What a spectator");
+			UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
 		}
 		else {
-			LogMsg = FString("What not a spectator");
-			UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+			/*LogMsg = FString("What not a spectator");
+			UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
 		}
 	}
 }

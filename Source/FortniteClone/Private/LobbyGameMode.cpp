@@ -174,7 +174,7 @@ void ALobbyGameMode::ServerStartGame_Implementation() {
 		FString gameModePath = "/Game/GameModes/FortniteCloneGameMode.FortniteCloneGameMode_C";
 		//const FString& travelUrl = mapPath + "?game=" + gameModePath;
 		const FString& travelUrl = mapPath;
-		GetWorld()->ServerTravel(travelUrl, false, false); // url to travel to, relative (keep options from here aka the player session id, yes notify player clients to travel with the server
+		GetWorld()->ServerTravel(travelUrl, true, false); // url to travel to, absolute (flush url), yes notify player clients to travel with the server
 	}
 	else {
 		GameReady = false;
@@ -198,6 +198,9 @@ void ALobbyGameMode::ServerCheckInactivity_Implementation() {
 			{
 				const FString ErrorMessage = outcome.GetError().m_errorMessage;
 				UE_LOG(LogMyServerLobby, Log, TEXT("LobbyGameMode::EndGame: Error: %s"), *ErrorMessage);
+			}
+			else {
+				FGenericPlatformMisc::RequestExit(false);
 			}
 #endif
 			GameEndedDueToInactivity = true;

@@ -26,16 +26,16 @@ void AStormActor::BeginPlay()
 		int32 X = FMath::RandRange(-7000 + 10000, 60000 - 10000);
 		int32 Y = FMath::RandRange(-60000 + 10000, 17000 - 10000);
 		SetActorLocation(FVector(X, Y, GetActorLocation().Z));
-		FString LogMsg = FString("storm actor constructor ") + FString::FromInt(X) + FString(" ") + FString::FromInt(Y);
-		UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+		/*FString LogMsg = FString("storm actor constructor ") + FString::FromInt(X) + FString(" ") + FString::FromInt(Y);
+		UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
 		//after 30 seconds, start shrinking the circle at the last 30 seconds of every 2 and a half minute interval
 		//FTimerHandle StormSetupTimerHandle;
 		//GetWorldTimerManager().SetTimer(StormSetupTimerHandle, this, &AStormActor::ServerStartStorm, 30.0f, false);
-		LogMsg = FString("begin play circle ") + FString::FromInt(GetNetMode());
-		UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+		/*LogMsg = FString("begin play circle ") + FString::FromInt(GetNetMode());
+		UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
 	}
-	FString LogMsg = FString("begin play circle ") + FString::FromInt(GetNetMode());
-	UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+	/*FString LogMsg = FString("begin play circle ") + FString::FromInt(GetNetMode());
+	UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Storm Begin Play ") + FString::FromInt(GetNetMode()));
 }
 

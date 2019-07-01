@@ -417,8 +417,8 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 						}
 					}
 
-					FString LogMsg = FString("Current building material ") + FString::FromInt(CurrentBuildingMaterial);
-					UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+					/*FString LogMsg = FString("Current building material ") + FString::FromInt(CurrentBuildingMaterial);
+					UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
 					if (CurrentBuildingMaterial >= 0 && CurrentBuildingMaterial <= 2) {
 						if (FloorPreviewClasses.IsValidIndex(CurrentBuildingMaterial)) {
 							if (FloorPreviewClasses[CurrentBuildingMaterial] != nullptr) {
@@ -545,9 +545,9 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 				}
 			}
 			else if (OtherActor->IsA(AStormActor::StaticClass())) {
-				FString LogMsg = FString("storm overlap begin ") + FString::FromInt(GetNetMode());
-				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, LogMsg);
-				UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+				/*FString LogMsg = FString("storm overlap begin ") + FString::FromInt(GetNetMode());
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, LogMsg);
+				UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
 				InStorm = false;
 			}
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
@@ -557,9 +557,9 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 
 void AFortniteCloneCharacter::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) {
 	if (HasAuthority()) {
-		FString LogMsg = FString("storm overlap end ") + FString::FromInt(GetNetMode());
-		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, LogMsg);
-		UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+		/*FString LogMsg = FString("storm overlap end ") + FString::FromInt(GetNetMode());
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, LogMsg);
+		UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
 		if (OtherActor != nullptr) {
 			if (OtherActor == this) {
 				return;
@@ -1881,8 +1881,8 @@ bool AFortniteCloneCharacter::ServerSwitchToShotgun_Validate() {
 }
 
 void AFortniteCloneCharacter::ServerSwitchToHealingItem_Implementation(int HealingItemType) {
-	FString LogMsg = FString("server switch to healing item Current healing item type ") + FString::FromInt(HealingItemType);
-	UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+	/*FString LogMsg = FString("server switch to healing item Current healing item type ") + FString::FromInt(HealingItemType);
+	UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		if (State) {
@@ -2167,8 +2167,8 @@ bool AFortniteCloneCharacter::ServerSpawnAndAttachWeapon_Validate(int WeaponType
 }
 
 void AFortniteCloneCharacter::ServerSpawnAndAttachHealingItem_Implementation(int HealingItemType, FTransform SpawnTransform) {
-	FString LogMsg = FString("server spawn and attach Current healing item type ") + FString::FromInt(HealingItemType);
-	UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+	/*FString LogMsg = FString("server spawn and attach Current healing item type ") + FString::FromInt(HealingItemType);
+	UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		if (State) {
@@ -2343,8 +2343,8 @@ void AFortniteCloneCharacter::ClientGetWeaponTransform_Implementation(int Weapon
 }
 
 void AFortniteCloneCharacter::ClientGetHealingItemTransform_Implementation(int HealingItemType) {
-	FString LogMsg = FString("client get healing item transform Current healing item type ") + FString::FromInt(HealingItemType);
-	UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+	/*FString LogMsg = FString("client get healing item transform Current healing item type ") + FString::FromInt(HealingItemType);
+	UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
 	FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 	ServerSpawnAndAttachHealingItem(HealingItemType, SpawnTransform);
 }
