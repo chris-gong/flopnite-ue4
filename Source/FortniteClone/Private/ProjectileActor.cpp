@@ -189,17 +189,17 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 				else if (OtherActor->IsA(ABuildingActor::StaticClass())) {
 					//make sure the buildingactor is not a preview, if it is a preview then let the bullet keep going
 					ABuildingActor* BuildingActor = Cast<ABuildingActor>(OtherActor);
-					if (BuildingActor->IsPreview) {
-						return;
-					}
-					else {
-						BuildingActor->Health -= Damage;
-						if (BuildingActor->Health <= 0) {
-							if (BuildingActor) {
+					if (BuildingActor) {
+						if (BuildingActor->IsPreview) {
+							return;
+						}
+						else {
+							BuildingActor->Health -= Damage;
+							if (BuildingActor->Health <= 0) {
 								BuildingActor->Destroy();
 							}
+							Destroy();
 						}
-						Destroy();
 					}
 				}
 				else if (OtherActor->IsA(AFortniteCloneCharacter::StaticClass())) {
