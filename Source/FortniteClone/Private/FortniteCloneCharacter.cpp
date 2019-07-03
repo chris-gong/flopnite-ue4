@@ -2196,12 +2196,12 @@ void AFortniteCloneCharacter::ServerSpawnAndAttachHealingItem_Implementation(int
 			CurrentWeaponType = -1;
 			CurrentHealingItemType = HealingItemType;
 			FName HealingItemSocketName = TEXT("hand_left_socket_bandage");
+			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::SnapToTarget, true);
 
 			if (CurrentHealingItemType == 1) {
 				HealingItemSocketName = TEXT("hand_left_socket_potion");
+				AttachmentRules = FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
 			}
-
-			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::SnapToTarget, true);
 
 			auto HealingItem = Cast<AHealingActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, HealingItemClasses[CurrentHealingItemType], SpawnTransform));
 			if (HealingItem != nullptr)
@@ -2211,6 +2211,9 @@ void AFortniteCloneCharacter::ServerSpawnAndAttachHealingItem_Implementation(int
 				CurrentHealingItem->Holder = this;
 
 				UGameplayStatics::FinishSpawningActor(CurrentHealingItem, SpawnTransform);
+				
+				FVector OldScale = CurrentHealingItem->GetActorScale3D();
+				CurrentHealingItem->SetActorScale3D(FVector(OldScale.X * 0.5, OldScale.Y * 0.5, OldScale.Z * 0.5)); // make the potion specifically smaller to fit hand
 
 				UStaticMeshComponent* HealingItemStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentHealingItem->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 				HealingItemStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, HealingItemSocketName);
