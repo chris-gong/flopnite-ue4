@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "4.22",
+	"EngineAssociation": "4.23",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -21,6 +21,17 @@
 		{
 			"Name": "GameLiftClientSDK",
 			"Enabled": true
+		},
+		{
+			"Name": "LogViewer",
+			"Enabled": false,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/4853cdc0a6a54d7b9c0712cbe72f6b68"
 		}
+	],
+	"TargetPlatforms": [
+		"LinuxNoEditor",
+		"MacNoEditor",
+		"WindowsNoEditor",
+		"AllDesktop"
 	]
 }
