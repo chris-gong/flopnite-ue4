@@ -4,6 +4,7 @@ Relatively new to game development, my friends and I wanted to challenge ourselv
 
 ## How to build and run Fortnite Clone
 ### Note that we developed this game in Windows 10 using Visual Studio 2019, so these two will be required. Current Unreal version: 4.23 Preview
+#### You can, however, compile this project using at least Visual Studio 2017.
 
 ### Step 1: Download the project
 Simply clone or download the project from here, and make sure everything is extracted (no zip files!)
