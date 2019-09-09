@@ -9,7 +9,7 @@
 
 AFortniteCloneHUD::AFortniteCloneHUD()
 {
-	static ConstructorHelpers::FObjectFinder<UTexture2D> CrosshairObj(TEXT("/Game/UI/Textures/T_Crosshair"));
+	static ConstructorHelpers::FObjectFinder<UTexture2D> CrosshairObj(TEXT("/Game/UI/Foundation/Textures/Player/T_Crosshair"));
 	CrosshairTexture = CrosshairObj.Object;
 	static ConstructorHelpers::FClassFinder<UUserWidget> HealthBarObj(TEXT("/Game/UI/Widgets/UI_Health"));
 	HealthWidgetClass = HealthBarObj.Class;

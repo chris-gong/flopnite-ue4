@@ -36,10 +36,12 @@ void UMainMenuWidget::NativeConstruct() {
 	// line below is for testing local gamelift
 	//Client = UGameLiftClientObject::CreateGameLiftObject(AccessKey, SecretKey, "us-east-2", true, 9080);
 	Client = UGameLiftClientObject::CreateGameLiftObject(AccessKey, SecretKey, "us-east-2");
+	
 	JoinGameButton = (UButton*) GetWidgetFromName(TEXT("Button_JoinGame"));
 	JoinGameButton->OnClicked.AddDynamic(this, &UMainMenuWidget::JoinGame);
 	ExitGameButton = (UButton*)GetWidgetFromName(TEXT("Button_ExitGame"));
 	ExitGameButton->OnClicked.AddDynamic(this, &UMainMenuWidget::ExitGame);
+	/*
 	LaunchDiscordButton = (UButton*)GetWidgetFromName(TEXT("Button_LaunchDiscord"));
 	LaunchDiscordButton->OnClicked.AddDynamic(this, &UMainMenuWidget::LaunchDiscord);
 	LaunchYoutubeButton = (UButton*)GetWidgetFromName(TEXT("Button_LaunchYoutube"));
@@ -52,6 +54,7 @@ void UMainMenuWidget::NativeConstruct() {
 	LaunchInstagramButton->OnClicked.AddDynamic(this, &UMainMenuWidget::LaunchInstagram);
 	LaunchFacebookButton = (UButton*)GetWidgetFromName(TEXT("Button_LaunchFacebook"));
 	LaunchFacebookButton->OnClicked.AddDynamic(this, &UMainMenuWidget::LaunchFacebook);
+	*/
 }
 void UMainMenuWidget::JoinGame() {
 	AttemptToJoinGameFinished = false;
