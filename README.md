@@ -1,5 +1,5 @@
 <img src="https://raw.githubusercontent.com/pivotman319-new/fortnite-clone-ue4/master/readme_images/T_Frontend_UI_Wordmark-512_black.png" width="512" height="256"></img>
-## What is Weekly (note that the name is subject to change) 
+## What is Weekly (note that the name is subject to change)
 Relatively new to game development, my friends and I wanted to challenge ourselves by recreating the popular triple A game *Fortnite* in a limited time frame while having fun doing so. We also documented the process and posted this documentary to our [YouTube channel](https://www.youtube.com/watch?v=UCyIgPcXKLQ). This recreation was recreated using Unreal Engine 4 and Amazon GameLift.
 
 ## How to build and run Weekly
