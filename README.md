@@ -7,7 +7,7 @@ Relatively new to game development, my friends and I wanted to challenge ourselv
 #### You can, however, compile this project using at least Visual Studio 2017.
 
 ### Step 1: Download the project
-Simply clone or download the project from here, and make sure everything is extracted (no zip files!)
+Simply clone or download the project from here, and make sure everything is extracted (no zip files!) If you don't have Visual Studio 2017 (or above) installed, use the provided VS 2017/2019 installer executables that's provided within the _Redist_ folder of your repository.
 
 ### Step 2: Download the necessary dll and lib files
 This project relied on the amazon gamelift client sdk, which can be found [here](https://github.com/YetiTech-Studios/UE4GameLiftClientSDK). You can either download the whole sdk or preferably download just the dll and lib from the ThirdParty folder found [here](https://github.com/YetiTech-Studios/UE4GameLiftClientSDK/tree/master/GameLiftClientSDK/ThirdParty/GameLiftClientSDK/Win64). Now go to the `FortniteClone` project in File Explorer, and navigate to the folders Plugins -> GameLiftClientSDK, and create a new folder here. Title this folder, "ThirdParty". Open this folder, and create a new folder here. Title this folder "GameLiftClientSDK". Open this folder, and a create another new folder. Title this folder *Win64*. Open this folder, and copy and paste the dll and lib files downloaded from earlier into this folder.
