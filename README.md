@@ -1,13 +1,15 @@
 <img src="https://raw.githubusercontent.com/pivotman319-new/fortnite-clone-ue4/master/readme_images/T_Frontend_UI_Wordmark-512_black.png" width="512" height="256"></img>
-## What is Weekly (note that the name is subject to change) 
+## What is Weekly (note that the name is subject to change)
 Relatively new to game development, my friends and I wanted to challenge ourselves by recreating the popular triple A game *Fortnite* in a limited time frame while having fun doing so. We also documented the process and posted this documentary to our [YouTube channel](https://www.youtube.com/watch?v=UCyIgPcXKLQ). This recreation was recreated using Unreal Engine 4 and Amazon GameLift.
+
+Disclaimer: due to the [15/10/19 v11.00 release](https://www.epicgames.com/fortnite/en-US/home), this remake will be mainly recreating the pre-Chapter 2 variant of the game. Until we get some time on recreating the new `Apollo` map that's referenced in the game files, Chapter 1's variant will be our main focus.
 
 ## How to build and run Weekly
 ### Note that we developed this game in Windows 10 using Visual Studio 2019, so these two will be required. Current Unreal version: 4.23.0
 #### You can, however, compile this project using at least Visual Studio 2017.
 
 ### Step 1: Download the project
-Simply clone or download the project from here, and make sure everything is extracted (no zip files!)
+Simply clone or download the project from here, and make sure everything is extracted (no zip files!) If you don't have Visual Studio 2017 (or above) installed, use the provided VS 2017/2019 installer executables that's provided within the _Redist_ folder of your repository.
 
 ### Step 2: Download the necessary dll and lib files
 This project relied on the amazon gamelift client sdk, which can be found [here](https://github.com/YetiTech-Studios/UE4GameLiftClientSDK). You can either download the whole sdk or preferably download just the dll and lib from the ThirdParty folder found [here](https://github.com/YetiTech-Studios/UE4GameLiftClientSDK/tree/master/GameLiftClientSDK/ThirdParty/GameLiftClientSDK/Win64). Now go to the `FortniteClone` project in File Explorer, and navigate to the folders Plugins -> GameLiftClientSDK, and create a new folder here. Title this folder, "ThirdParty". Open this folder, and create a new folder here. Title this folder "GameLiftClientSDK". Open this folder, and a create another new folder. Title this folder *Win64*. Open this folder, and copy and paste the dll and lib files downloaded from earlier into this folder.
