@@ -1,6 +1,6 @@
 <img src="https://raw.githubusercontent.com/pivotman319-new/fortnite-clone-ue4/master/readme_images/T_Frontend_UI_Wordmark-512_black.png" width="512" height="256"></img>
 ## What is Weekly (note that the name is subject to change)
-Relatively new to game development, my friends and I wanted to challenge ourselves by recreating the popular triple A game *Fortnite* in a limited time frame while having fun doing so. We also documented the process and posted this documentary to our [YouTube channel](https://www.youtube.com/watch?v=UCyIgPcXKLQ). This recreation was recreated using Unreal Engine 4 and Amazon GameLift.
+Relatively new to game development, my friends and I wanted to challenge ourselves by recreating the popular triple A game *Fortnite* in a limited time frame while having fun doing so. We also documented the process and posted this documentary to our [YouTube channel](https://www.youtube.com/watch?v=UCyIgPcXKLQ). This recreation was made using Unreal Engine 4 and Amazon GameLift.
 
 Disclaimer: due to the [15/10/19 v11.00 release](https://www.epicgames.com/fortnite/en-US/home), this remake will be mainly recreating the pre-Chapter 2 variant of the game. Until we get some time on recreating the new `Apollo` map that's referenced in the game files, Chapter 1's variant will be our main focus.
 
