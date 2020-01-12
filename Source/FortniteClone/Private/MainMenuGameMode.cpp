@@ -7,7 +7,7 @@
 AMainMenuGameMode::AMainMenuGameMode()
 {
 	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/ThirdPersonCPP/Blueprints/BP_ThirdPersonCharacter"));
-	static ConstructorHelpers::FClassFinder<APawn> SpectatorPawnBPClass(TEXT("/Game/ThirdPersonCPP/Blueprints/BP_SpectatorCharacter"));
+	static ConstructorHelpers::FClassFinder<APawn> SpectatorPawnBPClass(TEXT("/Game/ThirdPersonCPP/Blueprints/BP_MenuCharacter"));
 	if (SpectatorPawnBPClass.Class != NULL)
 	{
 		DefaultPawnClass = SpectatorPawnBPClass.Class;

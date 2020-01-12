@@ -2,6 +2,7 @@
 
 
 #include "LobbyCharacter.h"
+#include "ThirdPersonAnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
@@ -31,6 +32,21 @@ void ALobbyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+void ALobbyCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	if (HasAuthority())
+	{
+		// Objects only replicate from server to client. If we didn't guard this
+		// the client would create the object just fine but it would get replaced
+		// by the server version (more accurately the property would be replaced to
+		// point to the version from the server. The one the client allocated would
+		// eventually be garbage collected.
+		//AnimInstance = NewObject<UThirdPersonAnimInstance>(this); // NOTE: Very important, objects Outer must be our Actor!
+	}
 }
 
 // Called every frame

@@ -24,7 +24,7 @@
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/Materials/Material.h"
 
-DEFINE_LOG_CATEGORY(LogMyGame);
+DEFINE_LOG_CATEGORY(LogFortniteCloneCharacter);
 //////////////////////////////////////////////////////////////////////////
 // AFortniteCloneCharacter
 
@@ -338,7 +338,7 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 						}
 
 						//LogMsg = FString("Current building material ") + FString::FromInt(CurrentBuildingMaterial) + FString(" ") + FString::SanitizeFloat(GridRotationYaw) + FString(" ") + FString::SanitizeFloat(ProjectedRotation.Yaw);
-						//UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
+						//UE_LOG(LogFortniteCloneCharacter, Warning, TEXT("%s"), *LogMsg);
 						if (CurrentBuildingMaterial >= 0 && CurrentBuildingMaterial <= 2) {
 							if (WallPreviewClasses.IsValidIndex(CurrentBuildingMaterial)) {
 								if (WallPreviewClasses[CurrentBuildingMaterial] != nullptr) {
@@ -381,7 +381,7 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 						}
 
 						/*LogMsg = FString("Current building material ") + FString::FromInt(CurrentBuildingMaterial) + FString(" ") + FString::SanitizeFloat(GridRotationYaw) + FString(" ") + FString::SanitizeFloat(ProjectedRotation.Yaw);
-						UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
+						UE_LOG(LogFortniteCloneCharacter, Warning, TEXT("%s"), *LogMsg);*/
 						if (CurrentBuildingMaterial >= 0 && CurrentBuildingMaterial <= 2) {
 							if (RampPreviewClasses.IsValidIndex(CurrentBuildingMaterial)) {
 								if (RampPreviewClasses[CurrentBuildingMaterial] != nullptr) {
@@ -421,7 +421,7 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 						}
 
 						/*FString LogMsg = FString("Current building material ") + FString::FromInt(CurrentBuildingMaterial);
-						UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
+						UE_LOG(LogFortniteCloneCharacter, Warning, TEXT("%s"), *LogMsg);*/
 						if (CurrentBuildingMaterial >= 0 && CurrentBuildingMaterial <= 2) {
 							if (FloorPreviewClasses.IsValidIndex(CurrentBuildingMaterial)) {
 								if (FloorPreviewClasses[CurrentBuildingMaterial] != nullptr) {
@@ -552,7 +552,7 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 			else if (OtherActor->IsA(AStormActor::StaticClass())) {
 				/*FString LogMsg = FString("storm overlap begin ") + FString::FromInt(GetNetMode());
 				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, LogMsg);
-				UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
+				UE_LOG(LogFortniteCloneCharacter, Warning, TEXT("%s"), *LogMsg);*/
 				InStorm = false;
 			}
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
@@ -564,7 +564,7 @@ void AFortniteCloneCharacter::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, 
 	if (HasAuthority()) {
 		/*FString LogMsg = FString("storm overlap end ") + FString::FromInt(GetNetMode());
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, LogMsg);
-		UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
+		UE_LOG(LogFortniteCloneCharacter, Warning, TEXT("%s"), *LogMsg);*/
 		if (OtherActor != nullptr) {
 			if (OtherActor == this) {
 				return;
@@ -814,7 +814,7 @@ void AFortniteCloneCharacter::BuildStructure(float Value) {
 
 					FRotator GridRotation = FRotator(0, GridRotationYaw, 0);
 					/*FString LogMsg = FString("GridLocation X ") + FString::SanitizeFloat(GridLocation.X) + FString(" ProjectedLocation X") + FString::SanitizeFloat(ProjectedLocation.X);
-					UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
+					UE_LOG(LogFortniteCloneCharacter, Warning, TEXT("%s"), *LogMsg);*/
 					// to make the structures connect with each other, have to add an offset when in a different rotation
 					if (FMath::Abs(GridRotationYaw) == 0) {
 						GridLocation.Y -= 240.00001;
@@ -1900,7 +1900,7 @@ bool AFortniteCloneCharacter::ServerSwitchToShotgun_Validate() {
 
 void AFortniteCloneCharacter::ServerSwitchToHealingItem_Implementation(int HealingItemType) {
 	/*FString LogMsg = FString("server switch to healing item Current healing item type ") + FString::FromInt(HealingItemType);
-	UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
+	UE_LOG(LogFortniteCloneCharacter, Warning, TEXT("%s"), *LogMsg);*/
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		if (State) {
@@ -2189,7 +2189,7 @@ bool AFortniteCloneCharacter::ServerSpawnAndAttachWeapon_Validate(int WeaponType
 
 void AFortniteCloneCharacter::ServerSpawnAndAttachHealingItem_Implementation(int HealingItemType, FTransform SpawnTransform) {
 	/*FString LogMsg = FString("server spawn and attach Current healing item type ") + FString::FromInt(HealingItemType);
-	UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
+	UE_LOG(LogFortniteCloneCharacter, Warning, TEXT("%s"), *LogMsg);*/
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 		if (State) {
@@ -2369,7 +2369,7 @@ void AFortniteCloneCharacter::ClientGetWeaponTransform_Implementation(int Weapon
 
 void AFortniteCloneCharacter::ClientGetHealingItemTransform_Implementation(int HealingItemType) {
 	/*FString LogMsg = FString("client get healing item transform Current healing item type ") + FString::FromInt(HealingItemType);
-	UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
+	UE_LOG(LogFortniteCloneCharacter, Warning, TEXT("%s"), *LogMsg);*/
 	FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
 	ServerSpawnAndAttachHealingItem(HealingItemType, SpawnTransform);
 }

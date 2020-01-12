@@ -8,6 +8,7 @@
 
 class USpringArmComponent;
 class UCameraComponent;
+class UThirdPersonAnimInstance;
 
 UCLASS()
 class FORTNITECLONE_API ALobbyCharacter : public ACharacter
@@ -51,6 +52,11 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+	virtual void PostInitializeComponents() override;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	TSubclassOf<UThirdPersonAnimInstance> AnimInstanceClass;
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 

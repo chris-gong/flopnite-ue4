@@ -6,7 +6,7 @@
 #include "GameFramework/Character.h"
 #include "FortniteCloneCharacter.generated.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(LogMyGame, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogFortniteCloneCharacter, Log, All);
 
 class USpringArmComponent;
 class UCameraComponent;

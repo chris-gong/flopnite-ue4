@@ -6,6 +6,10 @@
 #include "GameFramework/HUD.h"
 #include "LobbyHUD.generated.h"
 
+class UUserWidget;
+class UTexture2D;
+class UWidgetAnimation;
+
 /**
  * 
  */
@@ -13,6 +17,7 @@ UCLASS()
 class FORTNITECLONE_API ALobbyHUD : public AHUD
 {
 	GENERATED_BODY()
+
 public:
 	ALobbyHUD();
 
@@ -20,4 +25,18 @@ public:
 	virtual void DrawHUD() override;
 
 	virtual void BeginPlay() override;
+
+	void DrawCrosshair();
+
+	void DrawGameUI();
+private:
+	UTexture2D* CrosshairTexture;
+
+	UPROPERTY(EditAnywhere, Category = "PlayersJoinedCount")
+		TSubclassOf<UUserWidget> PlayersJoinedCountWidgetClass;
+	UPROPERTY(EditAnywhere, Category = "WaitingForPlayers")
+		TSubclassOf<UUserWidget> WaitingForPlayersWidgetClass;
+
+	UPROPERTY(EditAnywhere, Category = "Widget")
+		UUserWidget* CurrentWidget;
 };
