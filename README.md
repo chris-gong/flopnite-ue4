@@ -5,7 +5,7 @@ Relatively new to game development, my friends and I wanted to challenge ourselv
 Disclaimer: due to the [15/10/19 v11.00 release](https://www.epicgames.com/fortnite/en-US/home), this project will be mainly recreating the pre-Chapter 2 variant of the game. Until we get some time on recreating the new `Apollo` map that's referenced in the game files, Chapter 1's variant will be our main focus.
 
 ## How to build and run Weekly
-### Note that we developed this game in Windows 10 using Visual Studio 2019, so these two will be required. Current Unreal version: 4.23.0
+### Note that we developed this game in Windows 10 using Visual Studio 2019, so these two will be required. Current Unreal version: 4.24.1
 #### You can, however, compile this project using at least Visual Studio 2017.
 
 ### Step 1: Download the project
