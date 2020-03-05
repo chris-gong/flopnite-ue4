@@ -5,16 +5,15 @@ public class CognitoIdentity : ModuleRules
 {
 	public CognitoIdentity(ReadOnlyTargetRules Target) : base(Target)
 	{
-        PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "Private"));
-        PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public"));
+		PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "Private"));
+		PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public"));
 
-        PublicDependencyModuleNames.AddRange(new string[] { "Engine", "Core", "CoreUObject", "InputCore", "Projects" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Engine", "Core", "CoreUObject", "InputCore", "Projects" });
+		
+		// This is required to fix a warning for Unreal Engine 4.21 and later
+        	PrivatePCHHeaderFile = "Private/CognitoIdentityPrivatePCH.h";
 
-        // This is required to fix a warning for Unreal Engine 4.21 and later
-        PrivatePCHHeaderFile = "Private/CognitoIdentityPrivatePCH.h";
-        bEnforceIWYU = true;
-
-        string BaseDirectory = System.IO.Path.GetFullPath(System.IO.Path.Combine(ModuleDirectory, "..", ".."));
+		string BaseDirectory = System.IO.Path.GetFullPath(System.IO.Path.Combine(ModuleDirectory, "..", ".."));
         string ThirdPartyPath = System.IO.Path.Combine(BaseDirectory, "ThirdParty", "GameLiftClientSDK", Target.Platform.ToString());
         bool bIsThirdPartyPathValid = System.IO.Directory.Exists(ThirdPartyPath);
 

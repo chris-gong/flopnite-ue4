@@ -4,6 +4,7 @@
 #include "FortniteClonePlayerController.h"
 #include "FortniteClonePlayerState.h"
 #include "ThirdPersonAnimInstance.h"
+#include "Vehicle.h"
 #include "ProjectileActor.h"
 #include "StormActor.h"
 #include "FortniteCloneHUD.h"
@@ -117,6 +118,8 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 
+
+	bIsInAVehicle = false;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -453,36 +456,79 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 
 void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	if (HasAuthority()) {
-		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("NetMode: ") + FString::FromInt(GetNetMode()) + FString(" Player overlapped with: ") + OtherActor->GetName());
-		if (OtherActor != nullptr && OtherActor != this) {
-			if (CurrentWeapon != nullptr && OtherActor == (AActor*)CurrentWeapon) {
-				// if the character is overlapping with its weapon, dont do anything about it
-				return;
-			}
-			if (CurrentHealingItem != nullptr && OtherActor == (AActor*)CurrentHealingItem) {
-				// if the character is overlapping with its healing item, dont do anything about it
-				return;
-			}
-			if (OtherActor->IsA(AWeaponActor::StaticClass())) {
-				AWeaponActor* WeaponActor = Cast<AWeaponActor>(OtherActor);
-				if (WeaponActor->WeaponType == 0) {
-					return; // do nothing if it's a pickaxe
+		if (!bIsInAVehicle) {
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("NetMode: ") + FString::FromInt(GetNetMode()) + FString(" Player overlapped with: ") + OtherActor->GetName());
+			if (OtherActor != nullptr && OtherActor != this) {
+				if (CurrentWeapon != nullptr && OtherActor == (AActor*)CurrentWeapon) {
+					// if the character is overlapping with its weapon, dont do anything about it
+					return;
 				}
-				if (WeaponActor->Holder != nullptr) {
-					return; // do nothing if someone is holding the weapon
+				if (CurrentHealingItem != nullptr && OtherActor == (AActor*)CurrentHealingItem) {
+					// if the character is overlapping with its healing item, dont do anything about it
+					return;
 				}
-				if (GetController()) {
-					// pick up the item if the two conditions above are false
+				if (OtherActor->IsA(AWeaponActor::StaticClass())) {
+					AWeaponActor* WeaponActor = Cast<AWeaponActor>(OtherActor);
+					if (WeaponActor->WeaponType == 0) {
+						return; // do nothing if it's a pickaxe
+					}
+					if (WeaponActor->Holder != nullptr) {
+						return; // do nothing if someone is holding the weapon
+					}
+					if (GetController()) {
+						// pick up the item if the two conditions above are false
+						AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+						if (State) {
+							if (State->InBuildMode || State->JustShotRifle || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedHealingItem || State->JustReloadedRifle || State->JustReloadedShotgun) {
+								return; // can't pick up items while in build mode or if just shot rifle, shot shotgun, swung pickaxe, used healing item, or reloaded
+							}
+							// if the player already has a weapon of this type, do not equip it
+							if (State->EquippedWeapons.Contains(WeaponActor->WeaponType)) {
+								return;
+							}
+							// Destroy old weapon/healing item
+							if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
+								State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
+							}
+							if (CurrentWeapon) {
+								CurrentWeapon->Destroy();
+								CurrentWeapon = nullptr;
+							}
+							if (CurrentHealingItem) {
+								CurrentHealingItem->Destroy();
+								CurrentHealingItem = nullptr;
+							}
+							// PICK UP WEAPON
+							State->EquippedWeapons.Add(WeaponActor->WeaponType);
+							State->EquippedWeaponsClips[WeaponActor->WeaponType] = WeaponActor->MagazineSize; // this has to be done before calling client method below
+							//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("MagSize: ") + FString::FromInt(WeaponActor->MagazineSize));
+							ClientGetWeaponTransform(WeaponActor->WeaponType);
+
+							WeaponActor->Destroy();
+						}
+
+					}
+
+				}
+				else if (OtherActor->IsA(AHealingActor::StaticClass())) {
+					//pick up the item
+					AHealingActor* HealingActor = Cast<AHealingActor>(OtherActor);
 					AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+					if (CurrentHealingItem) {
+						CurrentHealingItem->Destroy();
+						CurrentHealingItem = nullptr;
+					}
 					if (State) {
+						//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
 						if (State->InBuildMode || State->JustShotRifle || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedHealingItem || State->JustReloadedRifle || State->JustReloadedShotgun) {
 							return; // can't pick up items while in build mode or if just shot rifle, shot shotgun, swung pickaxe, used healing item, or reloaded
 						}
-						// if the player already has a weapon of this type, do not equip it
-						if (State->EquippedWeapons.Contains(WeaponActor->WeaponType)) {
-							return;
+						//CurrentHealingItem = Cast<AHealingActor>(OtherActor);
+						if (HealingActor->Holder != nullptr) {
+							return; // do nothing if someone is holding the healing item
 						}
-						// Destroy old weapon/healing item
+						//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("didn't end early"));
+						// Destroy old weapon
 						if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
 							State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
 						}
@@ -490,73 +536,60 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 							CurrentWeapon->Destroy();
 							CurrentWeapon = nullptr;
 						}
-						if (CurrentHealingItem) {
-							CurrentHealingItem->Destroy();
-							CurrentHealingItem = nullptr;
+						// pick up healing item
+						State->HealingItemCounts[HealingActor->HealingType] += HealingActor->Count;
+						ClientGetHealingItemTransform(HealingActor->HealingType);
+						HealingActor->Destroy();
+					}
+				}
+				else if (OtherActor->IsA(AAmmunitionActor::StaticClass())) {
+					if (GetController()) {
+						AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+						AAmmunitionActor* Ammo = Cast<AAmmunitionActor>(OtherActor);
+						if (State) {
+							// increment ammo count
+							State->EquippedWeaponsAmmunition[Ammo->WeaponType] += Ammo->BulletCount;
 						}
-						// PICK UP WEAPON
-						State->EquippedWeapons.Add(WeaponActor->WeaponType);
-						State->EquippedWeaponsClips[WeaponActor->WeaponType] = WeaponActor->MagazineSize; // this has to be done before calling client method below
-						//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("MagSize: ") + FString::FromInt(WeaponActor->MagazineSize));
-						ClientGetWeaponTransform(WeaponActor->WeaponType);
+						Ammo->Destroy();
+					}
+				}
+				else if (OtherActor->IsA(AStormActor::StaticClass())) {
+					/*FString LogMsg = FString("storm overlap begin ") + FString::FromInt(GetNetMode());
+					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, LogMsg);
+					UE_LOG(LogFortniteCloneCharacter, Warning, TEXT("%s"), *LogMsg);*/
+					InStorm = false;
+				}
+				else if (OtherActor->IsA(AWheeledVehicle::StaticClass())) {
 
-						WeaponActor->Destroy();
-					}
+					FString LogMsg = FString("car overlap begin ") + FString::FromInt(GetNetMode());
+					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, LogMsg);
+					UE_LOG(LogFortniteCloneCharacter, Warning, TEXT("%s"), *LogMsg);
+
+					AVehicle * car = Cast<AVehicle>(OtherActor);
+					APlayerController* playercon = Cast<APlayerController>(GetController());
+					//was suck here for 2 days
+
+					bIsInAVehicle = true;
+
+					playercon->Possess(car);
+
+
 
 				}
-
 			}
-			else if (OtherActor->IsA(AHealingActor::StaticClass())) {
-				//pick up the item
-				AHealingActor* HealingActor = Cast<AHealingActor>(OtherActor);
-				AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-				if (CurrentHealingItem) {
-					CurrentHealingItem->Destroy();
-					CurrentHealingItem = nullptr;
-				}
-				if (State) {
-					//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
-					if (State->InBuildMode || State->JustShotRifle || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedHealingItem || State->JustReloadedRifle || State->JustReloadedShotgun) {
-						return; // can't pick up items while in build mode or if just shot rifle, shot shotgun, swung pickaxe, used healing item, or reloaded
-					}
-					//CurrentHealingItem = Cast<AHealingActor>(OtherActor);
-					if (HealingActor->Holder != nullptr) {
-						return; // do nothing if someone is holding the healing item
-					}
-					//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("didn't end early"));
-					// Destroy old weapon
-					if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
-						State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
-					}
-					if (CurrentWeapon) {
-						CurrentWeapon->Destroy();
-						CurrentWeapon = nullptr;
-					}
-					// pick up healing item
-					State->HealingItemCounts[HealingActor->HealingType] += HealingActor->Count;
-					ClientGetHealingItemTransform(HealingActor->HealingType);
-					HealingActor->Destroy();
-				}
-			}
-			else if (OtherActor->IsA(AAmmunitionActor::StaticClass())) {
-				if (GetController()) {
-					AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-					AAmmunitionActor* Ammo = Cast<AAmmunitionActor>(OtherActor);
-					if (State) {
-						// increment ammo count
-						State->EquippedWeaponsAmmunition[Ammo->WeaponType] += Ammo->BulletCount;
-					}
-					Ammo->Destroy();
-				}
-			}
-			else if (OtherActor->IsA(AStormActor::StaticClass())) {
-				/*FString LogMsg = FString("storm overlap begin ") + FString::FromInt(GetNetMode());
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, LogMsg);
-				UE_LOG(LogFortniteCloneCharacter, Warning, TEXT("%s"), *LogMsg);*/
-				InStorm = false;
-			}
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
+		
 		}
+		
+	}
+}
+
+void AFortniteCloneCharacter::UseCar(bool b, APawn* vehicle, APlayerController * con) {
+
+	if (b == true) 
+	{
+		con->UnPossess();
+		con->Possess(vehicle);
+		//con->UnPossessw
 	}
 }
 

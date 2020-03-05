@@ -1,9 +1,9 @@
 // Created by YetiTech Studios.
 
 #include "GameLiftClientObject.h"
-#include "GameLiftClientApi.h"
-#include "GameLiftClientGlobals.h"
 #include "aws/core/client/ClientConfiguration.h"
+
+
 
 void UGameLiftClientObject::Internal_InitGameLiftClientSDK(const FString& AccessKey, const FString& Secret, const FString& Region, bool bUsingGameLiftLocal, int32 LocalPort)
 {
@@ -70,7 +70,6 @@ UGameLiftCreatePlayerSession* UGameLiftClientObject::CreatePlayerSession(FString
 #endif
 	return nullptr;
 }
-
 
 UGameLiftDescribeGameSessionQueues* UGameLiftClientObject::DescribeGameSessionQueues(FString QueueName)
 {

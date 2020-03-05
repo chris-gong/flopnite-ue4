@@ -1,7 +1,7 @@
 {
   "FileVersion": 3,
   "Version": 1,
-  "VersionName": "1.2.14",
+  "VersionName": "1.7.157",
   "FriendlyName": "GameLift Client SDK",
   "Description": "GameLift plugin for creating Game Sessions, Player Sessions etc.",
   "Category": "YetiTech Studios",
