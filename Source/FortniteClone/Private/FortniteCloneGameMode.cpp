@@ -201,7 +201,17 @@ void AFortniteCloneGameMode::NetMulticastSpawnStorm_Implementation() {
 }
 
 void AFortniteCloneGameMode::GameModeStartStorm_Implementation() {
-	CurrentStorm->ServerStartStorm();
+	if (CurrentStorm != nullptr) {
+		CurrentStorm->ServerStartStorm();
+	}
+	else
+	{
+		CurrentStorm = GetWorld()->SpawnActor<AStormActor>(AStormActor::StaticClass(), FVector(-440, -1450, 10000), FRotator::ZeroRotator);
+		CurrentStorm->ServerStartStorm();
+		return;
+
+	}
+	
 }
 
 bool AFortniteCloneGameMode::GameModeStartStorm_Validate() {

@@ -24,6 +24,7 @@
 static const FName NAME_SteerInput("Steer");
 static const FName NAME_ThrottleInput("Throttle");
 
+
 AVehicle::AVehicle()
 {
 	// Create a camera boom (pulls in towards the player if there is a collision)
@@ -60,7 +61,7 @@ AVehicle::AVehicle()
 
 	Vehicle4W->TransmissionSetup.bUseGearAutoBox = true;
 	Vehicle4W->TransmissionSetup.GearSwitchTime = 0.14f;
-
+	
 }
 
 void AVehicle::Tick(float DeltaTime)
@@ -124,8 +125,26 @@ void AVehicle::OnHandbrakeReleesed()
 	GetVehicleMovementComponent()->SetHandbrakeInput(false);
 }
 
-
 void AVehicle::UpdateInAirControl(float DeltaTime)
 {
 
 }
+
+void AVehicle::UseCar(AFortniteCloneCharacter * Driver)
+{
+
+	if(Driver != nullptr) {
+		if (GetController()) {
+			APlayerController * playercon = Cast<APlayerController>(GetController());
+			CurrentDirver = Driver;
+			//AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, "Seat");
+			//Driver->StartDrivring();
+			playercon->Possess(this);
+		}
+	}
+
+}
+
+
+
+

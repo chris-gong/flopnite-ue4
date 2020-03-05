@@ -4,8 +4,8 @@
 #include "FortniteClonePlayerController.h"
 #include "FortniteClonePlayerState.h"
 #include "ThirdPersonAnimInstance.h"
-#include "Vehicle.h"
 #include "ProjectileActor.h"
+#include "Vehicle.h"
 #include "StormActor.h"
 #include "FortniteCloneHUD.h"
 #include "WeaponActor.h"
@@ -231,6 +231,17 @@ void AFortniteCloneCharacter::BeginPlay() {
 
 	}
 }
+
+void AFortniteCloneCharacter::StartDrivring()
+{
+	SetActorEnableCollision(false);
+}
+
+void AFortniteCloneCharacter::StopDrivring()
+{
+	SetActorEnableCollision(true);
+}
+
 
 void AFortniteCloneCharacter::PostInitializeComponents()
 {
@@ -559,23 +570,13 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 					UE_LOG(LogFortniteCloneCharacter, Warning, TEXT("%s"), *LogMsg);*/
 					InStorm = false;
 				}
-				else if (OtherActor->IsA(AWheeledVehicle::StaticClass())) {
-
-					FString LogMsg = FString("car overlap begin ") + FString::FromInt(GetNetMode());
-					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, LogMsg);
-					UE_LOG(LogFortniteCloneCharacter, Warning, TEXT("%s"), *LogMsg);
-
-					AVehicle * car = Cast<AVehicle>(OtherActor);
-					APlayerController* playercon = Cast<APlayerController>(GetController());
-					//was suck here for 2 days
-
-					bIsInAVehicle = true;
-
-					playercon->Possess(car);
-
-
-
-				}
+				//else if (OtherActor->IsA(AVehicle::StaticClass())) {
+				//	if (GetController()) {
+				//		AVehicle* car = Cast<AVehicle>(OtherActor);
+				//		EnterCar(this, car);
+				//	}
+				//	
+				//}
 			}
 		
 		}
@@ -583,14 +584,10 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 	}
 }
 
-void AFortniteCloneCharacter::UseCar(bool b, APawn* vehicle, APlayerController * con) {
+void AFortniteCloneCharacter::EnterCar(AFortniteCloneCharacter * Driver, AVehicle * Car) {
 
-	if (b == true) 
-	{
-		con->UnPossess();
-		con->Possess(vehicle);
-		//con->UnPossessw
-	}
+	Car->UseCar(Driver);
+	
 }
 
 void AFortniteCloneCharacter::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) {

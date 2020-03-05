@@ -6,17 +6,17 @@
 #include "WheeledVehicle.h"
 #include "Vehicle.generated.h"
 
-class USpringArmComponent;
-class UCameraComponent;
-
 /**
  * 
  */
+
+class USpringArmComponent;
+class UCameraComponent;
+
 UCLASS()
 class FORTNITECLONE_API AVehicle : public AWheeledVehicle
 {
 	GENERATED_BODY()
-	
 
 public:
 	AVehicle();
@@ -40,6 +40,12 @@ public:
 
 	void UpdateInAirControl(float DeltaTime);
 
+	UPROPERTY()
+		AFortniteCloneCharacter * CurrentDirver;
+
+	UFUNCTION()
+		void UseCar(AFortniteCloneCharacter * Driver);
+
 
 protected:
 
@@ -51,4 +57,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		UCameraComponent* FollowCamera;
 
+
+	
 };
