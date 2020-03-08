@@ -570,13 +570,6 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 					UE_LOG(LogFortniteCloneCharacter, Warning, TEXT("%s"), *LogMsg);*/
 					InStorm = false;
 				}
-				//else if (OtherActor->IsA(AVehicle::StaticClass())) {
-				//	if (GetController()) {
-				//		AVehicle* car = Cast<AVehicle>(OtherActor);
-				//		EnterCar(this, car);
-				//	}
-				//	
-				//}
 			}
 		
 		}
@@ -1325,6 +1318,11 @@ void AFortniteCloneCharacter::ServerResetMovingRight_Implementation() {
 
 bool AFortniteCloneCharacter::ServerResetMovingRight_Validate() {
 	return true;
+}
+
+bool AFortniteCloneCharacter::GetIsStorm() {
+
+	return InStorm;
 }
 
 void AFortniteCloneCharacter::ServerSetMaterialCount_Implementation(int Count, int MaterialType) {

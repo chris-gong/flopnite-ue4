@@ -31,6 +31,8 @@ AFortniteCloneHUD::AFortniteCloneHUD()
 	SettingsMenuWidgetClass = SettingsMenuObj.Class;
 	static ConstructorHelpers::FClassFinder<UUserWidget> BuildingHotkeysObj(TEXT("/Game/UI/Widgets/UI_BuildingHotkeys"));
 	BuildingHotkeysWidgetClass = BuildingHotkeysObj.Class;
+	static ConstructorHelpers::FClassFinder<UUserWidget> NewEyeObj(TEXT("/Game/UI/Widgets/UI_StormEye"));
+	NewEyeClass = NewEyeObj.Class;
 }
 
 void AFortniteCloneHUD::DrawHUD()
@@ -191,6 +193,18 @@ void AFortniteCloneHUD::DrawSettingsMenu() {
 					SettingsMenuWidget->AddToViewport();
 				}
 			}
+		}
+	}
+}
+
+void AFortniteCloneHUD::DrawNewEye()
+{
+	if (NewEyeClass != nullptr) {
+		CurrentWidget = CreateWidget<UUserWidget>(GetWorld(), NewEyeClass);
+		if (CurrentWidget)
+		{
+			CurrentWidget->AddToViewport();
+			// TODO for later: Implement your own UUserWidget class to retrieve animation from a blueprint and play the animation here
 		}
 	}
 }

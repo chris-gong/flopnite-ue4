@@ -4,6 +4,8 @@
 #include "FortniteCloneCharacter.h"
 #include "UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
+#include "FortniteCloneHUD.h"
+#include "Engine/Engine.h"
 
 // Sets default values
 AStormActor::AStormActor()
@@ -17,7 +19,7 @@ AStormActor::AStormActor()
 	Stage = 0; //Stages 0, 1, 2, 3, the circle is not shrinking, stage 4, 5, 6 the circle is shrinking and sets back to 0 afterwards
 }
 
-// Called when the game starts or when spawned
+
 void AStormActor::BeginPlay()
 {
 	Super::BeginPlay();
@@ -26,20 +28,11 @@ void AStormActor::BeginPlay()
 		int32 X = FMath::RandRange(-7000 + 10000, 60000 - 10000);
 		int32 Y = FMath::RandRange(-60000 + 10000, 17000 - 10000);
 		SetActorLocation(FVector(X, Y, GetActorLocation().Z));
-		/*FString LogMsg = FString("storm actor constructor ") + FString::FromInt(X) + FString(" ") + FString::FromInt(Y);
-		UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
-		//after 30 seconds, start shrinking the circle at the last 30 seconds of every 2 and a half minute interval
-		//FTimerHandle StormSetupTimerHandle;
-		//GetWorldTimerManager().SetTimer(StormSetupTimerHandle, this, &AStormActor::ServerStartStorm, 30.0f, false);
-		/*LogMsg = FString("begin play circle ") + FString::FromInt(GetNetMode());
-		UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
+
 	}
-	/*FString LogMsg = FString("begin play circle ") + FString::FromInt(GetNetMode());
-	UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
-	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Storm Begin Play ") + FString::FromInt(GetNetMode()));
 }
 
-// Called every frame
+
 void AStormActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -48,6 +41,9 @@ void AStormActor::Tick(float DeltaTime)
 			FVector NewScale = FVector(SizeScale.X * 0.999485, SizeScale.Y * 0.999485, SizeScale.Z);
 			SizeScale = NewScale;
 			SetActorScale3D(SizeScale);
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "current widget is not null");
+			//AFortniteCloneHUD* HUD = Cast<AFortniteCloneHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
+			//HUD->DrawNewEye();
 		}
 	}
 }
@@ -56,7 +52,7 @@ void AStormActor::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLi
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AStormActor, Damage);
-	DOREPLIFETIME(AStormActor, IsShrinking);
+	DOREPLIFETIME(AStormActor, IsShrinking);//3000
 	DOREPLIFETIME(AStormActor, SizeScale);
 }
 

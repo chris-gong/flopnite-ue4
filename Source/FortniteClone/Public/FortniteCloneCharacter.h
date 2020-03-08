@@ -582,5 +582,8 @@ public:
 	UFUNCTION()
 		void StopDrivring();
 
+	UFUNCTION(BlueprintPure, Category = "SafeZone")
+	bool GetIsStorm();
+
 };
 
