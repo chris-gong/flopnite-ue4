@@ -18,15 +18,20 @@ class AFortniteCloneGameMode : public AGameModeBase
 public:
 	AFortniteCloneGameMode();
 
+	virtual void Tick(float DeltaSeconds) override;
+
 	bool GameStarted; 
 
 	bool GameEnded;
 
 	int TimePassed;
 
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Storm | DO NOT CHANGE ")
 	AStormActor* CurrentStorm;
 
 	virtual void BeginPlay() override;
+
+	void DrawNewEye();
 
 	virtual void StartPlay() override;
 
@@ -48,6 +53,13 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void CheckRemainingPlayers();
+
+	UPROPERTY(EditAnywhere, Category = "Storm | NewEye")
+		TSubclassOf<UUserWidget> NewEyeClass;
+
+	UPROPERTY()
+		class UUserWidget* CurrentWidget;
+
 };
 
 

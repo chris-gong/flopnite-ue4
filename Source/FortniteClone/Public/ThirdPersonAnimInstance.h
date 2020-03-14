@@ -3,11 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Cpt_IK_Foot.h"
 #include "UObject/Interface.h"
 #include "Runtime/Engine/Classes/Animation/AnimInstance.h"
 #include "ThirdPersonAnimInstance.generated.h"
 
 class AFortniteCloneCharacter;
+class UCpt_IK_Foot;
+
 // This class does not need to be modified.
 UCLASS(transient, Blueprintable, hideCategories = AnimInstance, BlueprintType)
 class UThirdPersonAnimInstance : public UAnimInstance
@@ -28,6 +31,19 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Generic")
 	bool AimedIn;
+
+
+	void Init_IKFootRef();
+
+
+	void Tick_IKFoot();
+
+
+	UPROPERTY()
+		UCpt_IK_Foot* m_pIK_Foot_Ref;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "IKFoot Value", meta = (AllowPrivateAccess = "true"))
+		FST_IK_AnimValue m_stIKAnimValue;
 
 	/* Value for blend poses by int in blueprint */
 	/* 0 for not holding anything, 1 for holding weapon on hip, 2 for holding weapon aimed into ironsights */
@@ -64,4 +80,5 @@ public:
 	}
 
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+	virtual void NativeInitializeAnimation() override;
 };

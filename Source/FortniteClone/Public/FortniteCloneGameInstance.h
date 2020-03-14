@@ -13,4 +13,6 @@ public:
 
 	virtual void Init() override;
 
+	void StormStarted();
+
 };

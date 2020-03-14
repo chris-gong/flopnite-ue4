@@ -4,6 +4,7 @@
 #include "FortniteClonePlayerState.h"
 #include "FortniteCloneCharacter.h"
 #include "FortniteCloneSpectator.h"
+#include "FortniteCloneGameInstance.h"
 #include "Engine/Engine.h"
 #include "UnrealNetwork.h"
 #include "StormActor.h"
@@ -48,6 +49,7 @@ void AFortniteClonePlayerController::Tick(float DeltaTime) {
 			Cast<AFortniteClonePlayerState>(PlayerState)->bIsSpectator = true; // ORDER MATTERS HERE, HAS TO BE SET AFTER POSSESSING A PAWN
 		}
 	}
+
 }
 
 void AFortniteClonePlayerController::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
@@ -163,4 +165,9 @@ int AFortniteClonePlayerController::GetPlayerCount() {
 int AFortniteClonePlayerController::GetSpectatorCount() {
 	ServerGetNumSpectators();
 	return SpectatorCount;
+}
+
+void AFortniteClonePlayerController::StormStarted()
+{
+
 }

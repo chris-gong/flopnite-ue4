@@ -9,30 +9,43 @@
 
 AFortniteCloneHUD::AFortniteCloneHUD()
 {
+	static ConstructorHelpers::FClassFinder<UUserWidget> NewEyeObj(TEXT("/Game/UI/Widgets/UI_Health"));
+	NewEyeClass = NewEyeObj.Class;
+
 	static ConstructorHelpers::FObjectFinder<UTexture2D> CrosshairObj(TEXT("/Game/UI/Foundation/Textures/Player/T_Crosshair"));
 	CrosshairTexture = CrosshairObj.Object;
+
 	static ConstructorHelpers::FClassFinder<UUserWidget> HealthBarObj(TEXT("/Game/UI/Widgets/UI_Health"));
 	HealthWidgetClass = HealthBarObj.Class;
+
 	static ConstructorHelpers::FClassFinder<UUserWidget> MaterialBarObj(TEXT("/Game/UI/Widgets/UI_Materials"));
 	MaterialsWidgetClass = MaterialBarObj.Class;
+
 	static ConstructorHelpers::FClassFinder<UUserWidget> ItemBarObj(TEXT("/Game/UI/Widgets/UI_Items"));
 	ItemsWidgetClass = ItemBarObj.Class;
+
 	static ConstructorHelpers::FClassFinder<UUserWidget> KillBarObj(TEXT("/Game/UI/Widgets/UI_KillCount"));
 	KillsWidgetClass = KillBarObj.Class;
+
 	static ConstructorHelpers::FClassFinder<UUserWidget> HitMarkerObj(TEXT("/Game/UI/Widgets/UI_HitMarker"));
 	HitMarkerWidgetClass = HitMarkerObj.Class;
+
 	static ConstructorHelpers::FClassFinder<UUserWidget> MainMenuObj(TEXT("/Game/UI/Widgets/UI_MainMenu"));
 	MainMenuWidgetClass = MainMenuObj.Class;
+
 	static ConstructorHelpers::FClassFinder<UUserWidget> CountObj(TEXT("/Game/UI/Widgets/UI_RemainingPlayersCount"));
 	CountWidgetClass = CountObj.Class;
+
 	static ConstructorHelpers::FClassFinder<UUserWidget> BloodEffectObj(TEXT("/Game/UI/Widgets/UI_BloodEffect"));
 	BloodEffectWidgetClass = BloodEffectObj.Class;
+
 	static ConstructorHelpers::FClassFinder<UUserWidget> SettingsMenuObj(TEXT("/Game/UI/Widgets/UI_SettingsMenu"));
 	SettingsMenuWidgetClass = SettingsMenuObj.Class;
+
 	static ConstructorHelpers::FClassFinder<UUserWidget> BuildingHotkeysObj(TEXT("/Game/UI/Widgets/UI_BuildingHotkeys"));
 	BuildingHotkeysWidgetClass = BuildingHotkeysObj.Class;
-	static ConstructorHelpers::FClassFinder<UUserWidget> NewEyeObj(TEXT("/Game/UI/Widgets/UI_StormEye"));
-	NewEyeClass = NewEyeObj.Class;
+
+	
 }
 
 void AFortniteCloneHUD::DrawHUD()
@@ -43,6 +56,7 @@ void AFortniteCloneHUD::DrawHUD()
 
 void AFortniteCloneHUD::BeginPlay()
 {
+
 	Super::BeginPlay();
 	/*if (MainMenuWidgetClass != nullptr) {
 		CurrentWidget = CreateWidget<UUserWidget>(GetWorld(), MainMenuWidgetClass);
@@ -197,14 +211,18 @@ void AFortniteCloneHUD::DrawSettingsMenu() {
 	}
 }
 
-void AFortniteCloneHUD::DrawNewEye()
-{
-	if (NewEyeClass != nullptr) {
+void AFortniteCloneHUD::CreateNewStormEye() {
+
+	if (NewEyeClass != nullptr)
+	{
 		CurrentWidget = CreateWidget<UUserWidget>(GetWorld(), NewEyeClass);
+
 		if (CurrentWidget)
 		{
+			//UE_LOG(LogMyServerGame, Warning, TEXT("Shrinking true"));
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, "Shrinking true");
 			CurrentWidget->AddToViewport();
-			// TODO for later: Implement your own UUserWidget class to retrieve animation from a blueprint and play the animation here
 		}
 	}
 }
+

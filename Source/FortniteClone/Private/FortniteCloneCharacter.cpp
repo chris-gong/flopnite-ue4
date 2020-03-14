@@ -23,6 +23,7 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "Cpt_IK_Foot.h"
 #include "Runtime/Engine/Classes/Materials/Material.h"
 
 DEFINE_LOG_CATEGORY(LogFortniteCloneCharacter);
@@ -68,6 +69,12 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+
+	// Init IK Foot Component
+	m_pIK_Foot = CreateDefaultSubobject<UCpt_IK_Foot>(TEXT("IK_Foot"));
+	// Set Foot bone name to IK Component
+	m_pIK_Foot->Set_IKSocketName(TEXT("foot_l"), TEXT("foot_r"));
+
 
 	CurrentWeaponType = 0;
 	CurrentHealingItemType = -1;
@@ -232,15 +239,11 @@ void AFortniteCloneCharacter::BeginPlay() {
 	}
 }
 
-void AFortniteCloneCharacter::StartDrivring()
+void AFortniteCloneCharacter::IKDebugToggle()
 {
-	SetActorEnableCollision(false);
+	m_pIK_Foot->SetIKDebug(!m_pIK_Foot->GetIKDebugState());
 }
 
-void AFortniteCloneCharacter::StopDrivring()
-{
-	SetActorEnableCollision(true);
-}
 
 
 void AFortniteCloneCharacter::PostInitializeComponents()
@@ -575,12 +578,6 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 		}
 		
 	}
-}
-
-void AFortniteCloneCharacter::EnterCar(AFortniteCloneCharacter * Driver, AVehicle * Car) {
-
-	Car->UseCar(Driver);
-	
 }
 
 void AFortniteCloneCharacter::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) {

@@ -36,8 +36,7 @@ public:
 
 	void DrawSettingsMenu();
 
-
-	void DrawNewEye();
+	void CreateNewStormEye();
 
 private:
 	UTexture2D* CrosshairTexture;

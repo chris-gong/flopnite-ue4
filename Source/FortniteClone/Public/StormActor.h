@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "StormActor.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStormMove);
 
 
 UCLASS()
@@ -25,17 +26,29 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_StormMoving, Transient, BlueprintReadOnly, Category = "Delegats")
+		bool StormMoving;
+
+	UFUNCTION()
+	void OnRep_StormMoving();
+
+	UPROPERTY(BlueprintAssignable, Category = "Delegats")
+		FOnStormMove OnStormMove;
+
+
+	UPROPERTY(Replicated, BlueprintReadOnly)
 	float Damage;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(Replicated, BlueprintReadOnly)
 	bool IsShrinking;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(Replicated, BlueprintReadOnly)
 	FVector SizeScale;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	int Stage;
+
+	FString TimeString;
 
 	virtual bool IsSupportedForNetworking() const override
 	{
@@ -45,10 +58,25 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSetIsShrinking();
 
+	FTimerHandle StormDamageTimerHandle;
+
+	FTimerHandle StormStateTimerHandle;
+
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	float timeElapsed;
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	float timeRemaining;
+
+	UFUNCTION(BlueprintPure)
+		FString GetStormTime();
+
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSetNewDamage();
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerStartStorm();
+
+	UFUNCTION(BlueprintPure)
+		bool GetStormStats();
 
 };

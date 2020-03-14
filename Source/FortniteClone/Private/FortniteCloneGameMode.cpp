@@ -10,6 +10,8 @@
 #include "GameLiftServerSDK.h"
 #include "FortniteCloneHUD.h"
 #include "StormActor.h"
+#include "Blueprint/UserWidget.h"
+#include "Engine/Engine.h"
 #include "Runtime/Engine/Classes/GameFramework/GameState.h"
 //#include "GameLiftClientSDK/Public/GameLiftClientObject.h"
 //#include "GameLiftClientSDK/Public/GameLiftClientApi.h"
@@ -98,7 +100,19 @@ AFortniteCloneGameMode::AFortniteCloneGameMode()
 void AFortniteCloneGameMode::BeginPlay() {
 	Super::BeginPlay();
 	
+	TArray<AActor*> StormActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AStormActor::StaticClass(), StormActors);
+	CurrentStorm = Cast<AStormActor>(StormActors[0]);
+
 	//NetMulticastSpawnStorm();
+}
+
+void AFortniteCloneGameMode::Tick(float DeltaSeconds) {
+	Super::Tick(DeltaSeconds);
+}
+
+void AFortniteCloneGameMode::DrawNewEye() {
+	
 }
 
 void AFortniteCloneGameMode::StartPlay() {

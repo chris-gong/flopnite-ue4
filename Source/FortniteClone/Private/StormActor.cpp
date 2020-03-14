@@ -5,6 +5,8 @@
 #include "UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
 #include "FortniteCloneHUD.h"
+#include "GameFramework/GameModeBase.h"
+#include "FortniteCloneGameMode.h"
 #include "Engine/Engine.h"
 
 // Sets default values
@@ -15,6 +17,7 @@ AStormActor::AStormActor()
 	PrimaryActorTick.bCanEverTick = true;
 	Damage = 1;
 	IsShrinking = false;
+	StormMoving = IsShrinking;
 	SizeScale = GetActorScale3D();
 	Stage = 0; //Stages 0, 1, 2, 3, the circle is not shrinking, stage 4, 5, 6 the circle is shrinking and sets back to 0 afterwards
 }
@@ -36,24 +39,44 @@ void AStormActor::BeginPlay()
 void AStormActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	timeElapsed = GetWorldTimerManager().GetTimerElapsed(StormDamageTimerHandle);
+	timeRemaining = GetWorldTimerManager().GetTimerRemaining(StormDamageTimerHandle);
+
 	if (HasAuthority()) {
 		if (IsShrinking) {
+			StormMoving = true;
 			FVector NewScale = FVector(SizeScale.X * 0.999485, SizeScale.Y * 0.999485, SizeScale.Z);
 			SizeScale = NewScale;
 			SetActorScale3D(SizeScale);
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "current widget is not null");
-			//AFortniteCloneHUD* HUD = Cast<AFortniteCloneHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
-			//HUD->DrawNewEye();
 		}
 	}
+
+}
+
+void AStormActor::OnRep_StormMoving()
+{
+	OnStormMove.Broadcast();
+}
+
+FString AStormActor::GetStormTime()
+{
+	return FString::SanitizeFloat(timeRemaining);
+}
+
+bool AStormActor::GetStormStats()
+{
+	return IsShrinking;
 }
 
 void AStormActor::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AStormActor, Damage);
-	DOREPLIFETIME(AStormActor, IsShrinking);//3000
+	DOREPLIFETIME(AStormActor, IsShrinking);
+	DOREPLIFETIME(AStormActor, StormMoving);
 	DOREPLIFETIME(AStormActor, SizeScale);
+	DOREPLIFETIME(AStormActor, timeElapsed);
+	DOREPLIFETIME(AStormActor, timeRemaining);
 }
 
 void AStormActor::ServerSetIsShrinking_Implementation() {
@@ -62,12 +85,79 @@ void AStormActor::ServerSetIsShrinking_Implementation() {
 		if (Stage == 7) {
 			// storm will now shrink for 3 stages (time of stage * 3)
 			Stage = 0; 
+			StormMoving = true;
 			IsShrinking = !IsShrinking;
 		}
 	}
+	/*
+	if (Stage == 1) {
+		Stage = Stage + 1;
+		if (Stage == 1) {
+			// storm will now shrink for 3 stages (time of stage * 3)
+			Stage = 0;
+			StormMoving = true;
+			IsShrinking = !IsShrinking;
+		}
+	}
+	if (Stage == 2) {
+		Stage = Stage + 1;
+		if (Stage == 2) {
+			// storm will now shrink for 3 stages (time of stage * 3)
+			Stage = 0;
+			StormMoving = true;
+			IsShrinking = !IsShrinking;
+		}
+	}
+	if (Stage == 3) {
+		Stage = Stage + 1;
+		if (Stage == 3) {
+			// storm will now shrink for 3 stages (time of stage * 3)
+			Stage = 0;
+			StormMoving = true;
+			IsShrinking = !IsShrinking;
+		}
+	}
+	if (Stage == 4) {
+		Stage = Stage + 1;
+		if (Stage == 4) {
+			// storm will now shrink for 3 stages (time of stage * 3)
+			Stage = 0;
+			StormMoving = true;
+			IsShrinking = !IsShrinking;
+		}
+	}
+	if (Stage == 5) {
+		Stage = Stage + 1;
+		if (Stage == 5) {
+			// storm will now shrink for 3 stages (time of stage * 3)
+			Stage = 0;
+			StormMoving = true;
+			IsShrinking = !IsShrinking;
+		}
+	}
+	if (Stage == 6) {
+		Stage = Stage + 1;
+		if (Stage == 6) {
+			// storm will now shrink for 3 stages (time of stage * 3)
+			Stage = 0;
+			StormMoving = true;
+			IsShrinking = !IsShrinking;
+		}
+	}
+	if (Stage == 7) {
+		Stage = Stage - 4;
+		if (Stage == 7) {
+			// storm will now shrink for 3 stages (time of stage * 3)
+			Stage = 0;
+			StormMoving = true;
+			IsShrinking = !IsShrinking;
+		}
+	}
+	*/
 	else {
 		Stage = Stage + 1;
 		if (Stage == 4) {
+			StormMoving = true;
 			IsShrinking = !IsShrinking;
 		}
 	}
@@ -85,11 +175,13 @@ bool AStormActor::ServerSetNewDamage_Validate() {
 	return true;
 }
 
-void AStormActor::ServerStartStorm_Implementation() {
-	FTimerHandle StormDamageTimerHandle;
-	GetWorldTimerManager().SetTimer(StormDamageTimerHandle, this, &AStormActor::ServerSetIsShrinking, 30.0f, true);
-	FTimerHandle StormStateTimerHandle;
-	GetWorldTimerManager().SetTimer(StormStateTimerHandle, this, &AStormActor::ServerSetNewDamage, 240.0f, true);
+void AStormActor::ServerStartStorm_Implementation(){
+
+	GetWorldTimerManager().SetTimer(StormDamageTimerHandle, this, &AStormActor::ServerSetIsShrinking, 10.0f, true);
+	GetWorldTimerManager().SetTimer(StormStateTimerHandle, this, &AStormActor::ServerSetNewDamage, 10.0f, true);
+
+
+
 }
 
 bool AStormActor::ServerStartStorm_Validate() {
