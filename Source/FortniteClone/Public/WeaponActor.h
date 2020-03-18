@@ -8,6 +8,7 @@
 
 class AProjectileActor;
 class AFortniteCloneCharacter;
+class UTexture2D;
 
 UCLASS()
 class FORTNITECLONE_API AWeaponActor : public AActor
@@ -41,6 +42,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "WeaponType")
 	int WeaponType; // 0 for pickaxe, 1 for assault rifle, 2 for shotgun
+
+	UPROPERTY(EditDefaultsOnly, Category = "WeaponType")
+		 UTexture2D* WeaponImage; // 1 for assault rifle, 2 for shotgun, 3 for b, 4 for s
 
 	virtual bool IsSupportedForNetworking() const override
 	{

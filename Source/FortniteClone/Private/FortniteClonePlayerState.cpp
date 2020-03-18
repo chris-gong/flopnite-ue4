@@ -31,6 +31,7 @@ AFortniteClonePlayerState::AFortniteClonePlayerState() {
 	JustReloadedRifle = false;
 	JustReloadedShotgun = false;
 	KillCount = 0;
+	WeaponImage = nullptr;
 }
 
 void AFortniteClonePlayerState::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const

@@ -23,17 +23,25 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "CharacterPartSkeletalMesh.h"
 #include "Cpt_IK_Foot.h"
+#include "Engine/Texture2D.h"
 #include "Runtime/Engine/Classes/Materials/Material.h"
 
 DEFINE_LOG_CATEGORY(LogFortniteCloneCharacter);
 //////////////////////////////////////////////////////////////////////////
 // AFortniteCloneCharacter
 
-AFortniteCloneCharacter::AFortniteCloneCharacter()
+AFortniteCloneCharacter::AFortniteCloneCharacter(const class FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	bReplicates = true;
 	// Set size for collision capsule
+
+	
+	//InitializeCharacterPartSkeletalMeshComponent();
+
+
+
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
 	// Set up capsule component for detecting overlap
@@ -44,6 +52,8 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &AFortniteCloneCharacter::OnOverlapBegin);
 	TriggerCapsule->OnComponentEndOverlap.AddDynamic(this, &AFortniteCloneCharacter::OnOverlapEnd);
 
+	CharacterPartSkeletalMeshComponent = CreateDefaultSubobject<UCharacterPartSkeletalMesh>(TEXT("NewMesh"));
+	CharacterPartSkeletalMeshComponent->SetupAttachment(TriggerCapsule);
 	// set our turn rates for input
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
@@ -69,6 +79,10 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+
+	check(TriggerCapsule);
+	check(FollowCamera);
+	check(CameraBoom);
 
 	// Init IK Foot Component
 	m_pIK_Foot = CreateDefaultSubobject<UCpt_IK_Foot>(TEXT("IK_Foot"));
@@ -129,6 +143,13 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	bIsInAVehicle = false;
 }
 
+void AFortniteCloneCharacter::InitializeCharacterPartSkeletalMeshComponent() {
+
+
+}
+
+
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
@@ -176,17 +197,13 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 
 	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AFortniteCloneCharacter::OnResetVR);
+	//debug IK 
+	//PlayerInputComponent->BindAction("Debug", IE_Pressed, this, &AFortniteCloneCharacter::IKDebugToggle);
 
 }
 
 void AFortniteCloneCharacter::BeginPlay() {
 	Super::BeginPlay();
-	//GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
-	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Client ")  + FString::FromInt(ENetMode::NM_Client) + FString(" server ") + FString::FromInt(ENetMode::NM_DedicatedServer));
-	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()));
-	/*if (GetNetMode() != ENetMode::NM_Client || GetNetMode() != ENetMode::NM_Standalone) {
-		return;
-	}*/
 	if (HasAuthority()) {
 		if (WeaponClasses[CurrentWeaponType]) {
 			// for some reason I can't call clientgetweapontransform here
@@ -514,6 +531,7 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 							}
 							// PICK UP WEAPON
 							State->EquippedWeapons.Add(WeaponActor->WeaponType);
+							State->WeaponImage = WeaponActor->WeaponImage;
 							State->EquippedWeaponsClips[WeaponActor->WeaponType] = WeaponActor->MagazineSize; // this has to be done before calling client method below
 							//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("MagSize: ") + FString::FromInt(WeaponActor->MagazineSize));
 							ClientGetWeaponTransform(WeaponActor->WeaponType);
@@ -708,13 +726,6 @@ void AFortniteCloneCharacter::MoveRight(float Value)
 			AddMovementInput(Direction, Value * 0.45);
 		}
 	}
-	/*UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-	if (Animation) {
-		//set blend space variable
-		Animation->WalkingX = Value * 90;
-		Animation->RunningX = Value * 90;
-		//Server_SetMovingVariables();
-	}*/
 	if (Value == 0) {
 		ServerResetMovingRight();
 	}
@@ -1090,6 +1101,24 @@ float AFortniteCloneCharacter::GetHealth() {
 
 float AFortniteCloneCharacter::GetShield() {
 	return Shield;
+}
+
+UTexture2D * AFortniteCloneCharacter::GetWeaponImage() {
+	if (GetController()) {
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+		if (State) {
+			return State->WeaponImage;
+		}
+		else { 
+		
+			return nullptr;
+		}
+		
+	}
+	else
+	{
+		return nullptr;
+	}
 }
 
 int AFortniteCloneCharacter::GetWoodMaterialCount() {

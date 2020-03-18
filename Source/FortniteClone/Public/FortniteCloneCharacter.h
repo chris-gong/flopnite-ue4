@@ -19,6 +19,7 @@ class UThirdPersonAnimInstance;
 class AStormActor;
 class UAnimMontage;
 class AVehicle;
+class UCharacterPartSkeletalMesh;
 
 UCLASS(config=Game)
 class AFortniteCloneCharacter : public ACharacter
@@ -28,6 +29,9 @@ class AFortniteCloneCharacter : public ACharacter
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		UCharacterPartSkeletalMesh* CharacterPartSkeletalMeshComponent;
 
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -41,7 +45,10 @@ class AFortniteCloneCharacter : public ACharacter
 		class UCpt_IK_Foot* m_pIK_Foot;
 
 public:
-	AFortniteCloneCharacter();
+	AFortniteCloneCharacter(const class FObjectInitializer& ObjectInitializer);
+
+	UFUNCTION()
+	void InitializeCharacterPartSkeletalMeshComponent();
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
@@ -136,6 +143,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Health")
 	float GetShield();
+
+	UFUNCTION(BlueprintPure, Category = "Weapon")
+	class UTexture2D * GetWeaponImage();
 
 	UFUNCTION(BlueprintPure, Category = "Material")
 	int GetWoodMaterialCount();

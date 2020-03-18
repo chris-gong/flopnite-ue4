@@ -32,6 +32,9 @@ public:
 	bool HoldingHealingItem;
 
 	UPROPERTY(Replicated)
+		class UTexture2D* WeaponImage;
+
+	UPROPERTY(Replicated)
 	bool AimedIn;
 
 	UPROPERTY(Replicated)

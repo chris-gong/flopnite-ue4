@@ -17,6 +17,7 @@ class FORTNITECLONE_API AStormActor : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AStormActor();
+	void InitializeStorm();
 
 protected:
 	// Called when the game starts or when spawned
@@ -26,15 +27,36 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+
 	UPROPERTY(ReplicatedUsing = OnRep_StormMoving, Transient, BlueprintReadOnly, Category = "Delegats")
 		bool StormMoving;
 
 	UFUNCTION()
 	void OnRep_StormMoving();
 
+	UFUNCTION(BlueprintPure)
+	FString GetTimeRemainingUtillNextStage();
+
+	UFUNCTION(BlueprintPure)
+	FString GetTimeElapsedUtillNextStage();
+
 	UPROPERTY(BlueprintAssignable, Category = "Delegats")
 		FOnStormMove OnStormMove;
 
+
+	UPROPERTY(Replicated, BlueprintReadOnly)
+		float timeElapsed;
+
+	UPROPERTY(Replicated, BlueprintReadOnly)
+		float timeRemaining;
+
+	UPROPERTY()
+		FTimerHandle StormStateTimerHandle;
+		UPROPERTY()
+		FTimerHandle StormSetupTimerHandle;
+
+	UPROPERTY()
+		FTimerHandle StormDamageTimerHandle;
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	float Damage;
@@ -42,41 +64,69 @@ public:
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	bool IsShrinking;
 
+	UPROPERTY(Replicated)
+		float StormAdvanceStageRate;
+
+	UPROPERTY(Replicated)
+		float StormIncreaseDamageRate;
+
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	FVector SizeScale;
+
+	UPROPERTY(Replicated)
+		FVector InitialSizeScale;
+
+	UPROPERTY(Replicated)
+		FVector InitialActorLocation;
+
+	UPROPERTY(Replicated)
+		TArray<FVector> SizeScales;
+
+	UPROPERTY(Replicated)
+		int32 ScaleIndex;
+
+	UPROPERTY(Replicated)
+		int32 ScaleTotalCount;
+
+	UPROPERTY()
+		float ScaleDownRate;
+
+	UPROPERTY()
+		float ScaleHighThreshold;
+
+	UPROPERTY()
+		float ScaleMidThreshold;
+
+	UPROPERTY()
+		float ScaleLowThreshold;
+
+	UPROPERTY()
+		float ScaleHighModifier;
+
+	UPROPERTY()
+		float ScaleMidModifier;
+
+	UPROPERTY()
+		float ScaleLowModifier;
 
 	UPROPERTY(BlueprintReadOnly)
 	int Stage;
 
-	FString TimeString;
+
 
 	virtual bool IsSupportedForNetworking() const override
 	{
 		return true;
 	}
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerSetIsShrinking();
-
-	FTimerHandle StormDamageTimerHandle;
-
-	FTimerHandle StormStateTimerHandle;
-
-	UPROPERTY(Replicated, BlueprintReadOnly)
-	float timeElapsed;
-	UPROPERTY(Replicated, BlueprintReadOnly)
-	float timeRemaining;
-
-	UFUNCTION(BlueprintPure)
-		FString GetStormTime();
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerSetNewDamage();
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerStartStorm();
 
-	UFUNCTION(BlueprintPure)
-		bool GetStormStats();
+	UFUNCTION(Server, Reliable, WithValidation)
+		void AdvanceStage();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerSetNewDamage();
 
 };
