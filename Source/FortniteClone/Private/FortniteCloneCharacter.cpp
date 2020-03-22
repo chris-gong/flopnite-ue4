@@ -573,7 +573,6 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 							}
 							// PICK UP WEAPON
 							State->EquippedWeapons.Add(WeaponActor->WeaponType);
-							State->WeaponImage = WeaponActor->WeaponImage;
 							State->EquippedWeaponsClips[WeaponActor->WeaponType] = WeaponActor->MagazineSize; // this has to be done before calling client method below
 							//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("MagSize: ") + FString::FromInt(WeaponActor->MagazineSize));
 							ClientGetWeaponTransform(WeaponActor->WeaponType);
@@ -582,6 +581,7 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 						}
 
 					}
+
 
 				}
 				else if (OtherActor->IsA(AHealingActor::StaticClass())) {

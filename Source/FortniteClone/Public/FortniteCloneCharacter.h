@@ -21,7 +21,7 @@ class UAnimMontage;
 class AVehicle;
 class UCharacterPartSkeletalMesh;
 
-#define PRINT_TO_SCREEN(...) if(GEngine) GEngine->AddOnScreenDebugMessage(##__VA_ARGS__); 
+#define PRINT_TO_SCREEN(...) if(GEngine) GEngine->AddOnScreenDebugMessage(##__VA_ARGS__); // should be in the FortniteClone.h
 
 
 UCLASS(config=Game)
