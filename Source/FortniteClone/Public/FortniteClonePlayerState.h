@@ -37,6 +37,13 @@ public:
 	UPROPERTY(Replicated)
 	bool AimedIn;
 
+
+	UPROPERTY(Replicated)
+		bool adminFlyEnabled;
+
+	UPROPERTY(Replicated)
+		bool infiniteAmmoEnabled;
+
 	UPROPERTY(Replicated)
 	TArray<int> EquippedWeapons; //0 for pickaxe, 1 for assault rifle, 2 for shotgun
 

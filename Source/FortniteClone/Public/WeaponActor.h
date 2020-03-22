@@ -10,14 +10,34 @@ class AProjectileActor;
 class AFortniteCloneCharacter;
 class UTexture2D;
 
+
+UENUM(BlueprintType)
+enum class EFortWeaponType : uint8
+{
+	WT_Common	UMETA(DisplayName = "Common"),
+	WT_Uncommon	UMETA(DisplayName = "Uncommon"),
+	WT_Rare	    UMETA(DisplayName = "Rare"),
+	WT_Epic	    UMETA(DisplayName = "Epic"),
+	WT_Legendary UMETA(DisplayName = "Legendary"),
+	WT_Mythic UMETA(DisplayName = "Mythic")
+};
+
+
+
+
 UCLASS()
-class FORTNITECLONE_API AWeaponActor : public AActor
+class FORTNITECLONE_API AWeaponActor : public AActor	
 {
 	GENERATED_BODY()
+
+		
 	
 public:	
 	// Sets default values for this actor's properties
 	AWeaponActor();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Enum)
+		EFortWeaponType WeaponRarities;
 
 protected:
 	// Called when the game starts or when spawned

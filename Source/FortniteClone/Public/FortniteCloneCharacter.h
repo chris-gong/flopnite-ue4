@@ -21,6 +21,9 @@ class UAnimMontage;
 class AVehicle;
 class UCharacterPartSkeletalMesh;
 
+#define PRINT_TO_SCREEN(...) if(GEngine) GEngine->AddOnScreenDebugMessage(##__VA_ARGS__); 
+
+
 UCLASS(config=Game)
 class AFortniteCloneCharacter : public ACharacter
 {
@@ -172,6 +175,9 @@ public:
 	/* The current healing item being held */
 	UPROPERTY(Replicated)
 	AHealingActor* CurrentHealingItem;
+
+	UPROPERTY()
+		AWeaponActor* PickupActor;
 
 	/* Pointer to storm instance to get current damage */
 	UPROPERTY(Replicated)
@@ -348,6 +354,9 @@ protected:
 	UPROPERTY(Replicated)
 	int CurrentWeaponType; // 0 for pickaxe, 1 for assault rifle, 2 for shotgun, -1 for non weapon items
 
+	UPROPERTY()
+		bool bPickJustPressed;
+
 	UPROPERTY(Replicated)
 	int CurrentHealingItemType; // 0 for bandage, 1 for potion, -1 for non healing type items
 
@@ -376,6 +385,9 @@ protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+
+
+
 	// End of APawn interface
 
 public:
@@ -385,6 +397,12 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	// Tick function is called every frame
 	virtual void Tick(float DeltaTime) override;
+
+
+
+	UFUNCTION()
+	void FlyForward(float Value);
+
 	// Override playanimmontage to use pawn mesh
 	virtual float PlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None) override;
 
@@ -406,6 +424,18 @@ public:
 	}
 
 public:
+	UFUNCTION()
+	void PickUpWeapon();
+
+	//UFUNCTION()
+	//void SetWeaponActor(AActor* NewActor);
+
+	//UFUNCTION()
+	//void ActuallyPickUpWeapon(AActor* Weapon);
+
+	//UFUNCTION()
+	//void PickReleased();
+
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSetIsWalkingTrue();
 

@@ -32,13 +32,13 @@ DEFINE_LOG_CATEGORY(LogFortniteCloneCharacter);
 //////////////////////////////////////////////////////////////////////////
 // AFortniteCloneCharacter
 
+
+
 AFortniteCloneCharacter::AFortniteCloneCharacter(const class FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	bReplicates = true;
 	// Set size for collision capsule
 
-	
-	//InitializeCharacterPartSkeletalMeshComponent();
 
 
 
@@ -52,8 +52,13 @@ AFortniteCloneCharacter::AFortniteCloneCharacter(const class FObjectInitializer&
 	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &AFortniteCloneCharacter::OnOverlapBegin);
 	TriggerCapsule->OnComponentEndOverlap.AddDynamic(this, &AFortniteCloneCharacter::OnOverlapEnd);
 
-	CharacterPartSkeletalMeshComponent = CreateDefaultSubobject<UCharacterPartSkeletalMesh>(TEXT("NewMesh"));
+
+	CharacterPartSkeletalMeshComponent = CreateDefaultSubobject<UCharacterPartSkeletalMesh>(TEXT("CharacterPartSkeletalMesh"));
+
+	InitializeCharacterPartSkeletalMeshComponent();
+	
 	CharacterPartSkeletalMeshComponent->SetupAttachment(TriggerCapsule);
+
 	// set our turn rates for input
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
@@ -80,15 +85,18 @@ AFortniteCloneCharacter::AFortniteCloneCharacter(const class FObjectInitializer&
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
-	check(TriggerCapsule);
-	check(FollowCamera);
-	check(CameraBoom);
 
 	// Init IK Foot Component
 	m_pIK_Foot = CreateDefaultSubobject<UCpt_IK_Foot>(TEXT("IK_Foot"));
 	// Set Foot bone name to IK Component
 	m_pIK_Foot->Set_IKSocketName(TEXT("foot_l"), TEXT("foot_r"));
 
+
+	//check(CharacterPartSkeletalMeshComponent != nullptr);
+	//check(TriggerCapsule != nullptr);
+	//check(FollowCamera != nullptr);
+	//check(CameraBoom != nullptr);
+	//check(m_pIK_Foot != nullptr);
 
 	CurrentWeaponType = 0;
 	CurrentHealingItemType = -1;
@@ -145,8 +153,28 @@ AFortniteCloneCharacter::AFortniteCloneCharacter(const class FObjectInitializer&
 
 void AFortniteCloneCharacter::InitializeCharacterPartSkeletalMeshComponent() {
 
+	check(CharacterPartSkeletalMeshComponent != nullptr);
+	CharacterPartSkeletalMeshComponent->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+	CharacterPartSkeletalMeshComponent->bReceivesDecals = false;
+
+	CharacterPartSkeletalMeshComponent->RelativeScale3D.X = 1.0f;
+	CharacterPartSkeletalMeshComponent->RelativeScale3D.Y = 1.0f;
+	CharacterPartSkeletalMeshComponent->RelativeScale3D.Z = 1.0f;
+
+	CharacterPartSkeletalMeshComponent->AlwaysLoadOnClient = true;
+	CharacterPartSkeletalMeshComponent->AlwaysLoadOnServer = true;
+	CharacterPartSkeletalMeshComponent->bOwnerNoSee = false;
+	CharacterPartSkeletalMeshComponent->MeshComponentUpdateFlag = EMeshComponentUpdateFlag::AlwaysTickPose;
+	CharacterPartSkeletalMeshComponent->bCastDynamicShadow = true;
+
+	CharacterPartSkeletalMeshComponent->SetCollisionObjectType(ECC_Pawn);
+
+	CharacterPartSkeletalMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+	//CharacterPartSkeletalMeshComponent->SetupAttachment(GetMesh());
 
 }
+
 
 
 
@@ -181,6 +209,8 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAction("Ironsights", IE_Pressed, this, &AFortniteCloneCharacter::AimGunIn);
 	PlayerInputComponent->BindAction("Ironsights", IE_Released, this, &AFortniteCloneCharacter::AimGunOut);
 	PlayerInputComponent->BindAction("OpenSettings", IE_Pressed, this, &AFortniteCloneCharacter::OpenSettingsMenu);
+	PlayerInputComponent->BindAction("Pickup", IE_Pressed, this, &AFortniteCloneCharacter::PickUpWeapon);
+
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
@@ -200,6 +230,13 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	//debug IK 
 	//PlayerInputComponent->BindAction("Debug", IE_Pressed, this, &AFortniteCloneCharacter::IKDebugToggle);
 
+}
+
+void AFortniteCloneCharacter::PickUpWeapon() {
+	if (PickupActor != nullptr) {
+		PRINT_TO_SCREEN(-1, 2.f, FColor::Red, TEXT("PickupActor is not null"));
+
+	}
 }
 
 void AFortniteCloneCharacter::BeginPlay() {
@@ -334,8 +371,13 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 	if (HasAuthority()) {
 		// TODO: building preview should only be spawned client side
 		if (GetController()) {
+
 			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 			if (State) {
+
+				if (((APlayerController*)GetController())->IsInputKeyDown(EKeys::MiddleMouseButton) && State->adminFlyEnabled)
+					FlyForward(25.0f);
+
 				if (BuildingPreview != nullptr) {
 					BuildingPreview->Destroy(); //destroy the last structure preview
 					BuildingPreview = nullptr;
@@ -551,7 +593,6 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 						CurrentHealingItem = nullptr;
 					}
 					if (State) {
-						//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
 						if (State->InBuildMode || State->JustShotRifle || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedHealingItem || State->JustReloadedRifle || State->JustReloadedShotgun) {
 							return; // can't pick up items while in build mode or if just shot rifle, shot shotgun, swung pickaxe, used healing item, or reloaded
 						}
@@ -610,10 +651,34 @@ void AFortniteCloneCharacter::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, 
 			if (OtherActor->IsA(AStormActor::StaticClass())) {
 				InStorm = true;
 			}
+			if (OtherActor->IsA(AWeaponActor::StaticClass())) {
+				PickupActor = nullptr;
+
+			}
 		}
 	}
 }
 
+
+void AFortniteCloneCharacter::FlyForward(float Value)
+{
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("move forward ") + FString::FromInt(GetNetMode()));
+
+	if ((Controller != nullptr) && (Value != 0.0f) && HasAuthority())
+	{
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(Controller->PlayerState);
+		if (State)
+		{
+			FRotator Rotation = Controller->GetControlRotation();
+
+			//float X = 90.f;//(-sinf(DegreesToRadians(Rotation.Yaw)) * cosf(DegreesToRadians(Rotation.Pitch))) * Value;
+			///float Y = 0.f;//(cosf(DegreesToRadians(Rotation.Yaw)) * cosf(DegreesToRadians(Rotation.Pitch))) * Value;
+			//float Z = (sinf(DegreesToRadians(Rotation.Pitch))) * Value * 7.0f;
+
+			//AddActorLocalOffset(FVector(X, Y, Z), false, nullptr, ETeleportType::TeleportPhysics);
+		}
+	}
+}
 float AFortniteCloneCharacter::PlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName)
 {
 	USkeletalMeshComponent* UseMesh = GetMesh();
