@@ -6,6 +6,14 @@
 #include "GameFramework/Character.h"
 #include "FortniteCloneCharacter.generated.h"
 
+
+UENUM(BlueprintType)		//"BlueprintType" is essential to include
+enum class EPlayerStates : uint8
+{
+	VE_Combat 		UMETA(DisplayName = "Combat"),
+	VE_Construction UMETA(DisplayName = "Construction"),
+};
+
 DECLARE_LOG_CATEGORY_EXTERN(LogFortniteCloneCharacter, Log, All);
 
 class USpringArmComponent;
@@ -20,6 +28,8 @@ class AStormActor;
 class UAnimMontage;
 class AVehicle;
 class UCharacterPartSkeletalMesh;
+class ULineTraceComponent;
+class UInventoryComponent;
 
 #define PRINT_TO_SCREEN(...) if(GEngine) GEngine->AddOnScreenDebugMessage(##__VA_ARGS__); // should be in the FortniteClone.h
 
@@ -47,11 +57,36 @@ class AFortniteCloneCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "IK_Foot", meta = (AllowPrivateAccess = "true"))
 		class UCpt_IK_Foot* m_pIK_Foot;
 
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+		class ULineTraceComponent* LineTraceComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+		class UInventoryComponent* InventoryComp;
+
+	
+
 public:
 	AFortniteCloneCharacter(const class FObjectInitializer& ObjectInitializer);
 
+
+
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		FName WeaponAttachSocketName;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+		TSubclassOf<AWeaponActor> RifleWeaponClass;
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerPickup(FHitResult HitResult);
+
+
 	UFUNCTION()
 	void InitializeCharacterPartSkeletalMeshComponent();
+
+	UFUNCTION()
+	void SpawnPickaxe();
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
@@ -177,7 +212,7 @@ public:
 	AHealingActor* CurrentHealingItem;
 
 	UPROPERTY()
-		AWeaponActor* PickupActor;
+		AWeaponActor* CurrentEquippedWeapon;
 
 	/* Pointer to storm instance to get current damage */
 	UPROPERTY(Replicated)
@@ -248,8 +283,24 @@ public:
 
 	UPROPERTY()
 	AFortniteCloneCharacter * CurrentDirver;
-
+	
+	virtual FVector GetPawnViewLocation() const override;
+		
 protected:
+
+
+	bool bWantsToZoom;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player | Weapon | Misc")
+		float ZoomedFOV;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player | Weapon | Misc")
+		float DefaultFOV;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player | Weapon | Misc")
+		float ZoomedSpeed;
+
+	bool CanAim();
 
 	void IKDebugToggle();
 
@@ -350,6 +401,9 @@ protected:
 	/*UFUNCTION(Server, WithValidation)
 	void ServerSetAnimInstance(UThirdPersonAnimInstance* AnimInstance);*/
 
+	void Pickup();
+
+
 	/* Index of the class in array to spawn the weapon */
 	UPROPERTY(Replicated)
 	int CurrentWeaponType; // 0 for pickaxe, 1 for assault rifle, 2 for shotgun, -1 for non weapon items
@@ -424,18 +478,6 @@ public:
 	}
 
 public:
-	UFUNCTION()
-	void PickUpWeapon();
-
-	//UFUNCTION()
-	//void SetWeaponActor(AActor* NewActor);
-
-	//UFUNCTION()
-	//void ActuallyPickUpWeapon(AActor* Weapon);
-
-	//UFUNCTION()
-	//void PickReleased();
-
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSetIsWalkingTrue();
 
@@ -615,6 +657,13 @@ public:
 
 	UFUNCTION()
 	void OnRepSetSkin();
+
+	UFUNCTION(BlueprintPure)
+	int32 GetCurrentWeaponAmmo();
+
+
+	UFUNCTION(BlueprintPure)
+		float GetCurrentMaxAmmo();
 
 private:
 	// Object creation can only happen after the character has finished being constructed

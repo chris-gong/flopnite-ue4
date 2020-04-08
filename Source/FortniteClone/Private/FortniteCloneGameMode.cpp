@@ -102,7 +102,10 @@ void AFortniteCloneGameMode::BeginPlay() {
 	
 	TArray<AActor*> StormActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AStormActor::StaticClass(), StormActors);
-	CurrentStorm = Cast<AStormActor>(StormActors[0]);
+	if (CurrentStorm) {
+		CurrentStorm = Cast<AStormActor>(StormActors[0]);
+	}
+	
 
 	//NetMulticastSpawnStorm();
 }

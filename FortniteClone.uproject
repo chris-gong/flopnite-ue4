@@ -10,7 +10,9 @@
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
 				"Engine",
-				"PhysXVehicles"
+				"PhysXVehicles",
+				"UMG",
+				"CoreUObject"
 			]
 		}
 	],
