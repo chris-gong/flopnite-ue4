@@ -27,7 +27,7 @@
 #include "Cpt_IK_Foot.h"
 #include "Engine/Texture2D.h"
 #include "LineTraceComponent.h"
-#include "InventoryComponent.h"
+#include "FortInventoryComponent.h"
 #include "DrawDebugHelpers.h"
 #include "Runtime/Engine/Classes/Materials/Material.h"
 #include "FortniteClone.h"
@@ -63,7 +63,8 @@ AFortniteCloneCharacter::AFortniteCloneCharacter(const class FObjectInitializer&
 
 	CharacterPartSkeletalMeshComponent->SetupAttachment(TriggerCapsule);
 
-	// set our turn rates for input
+	// set our turn rates for in
+
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
 
@@ -95,12 +96,9 @@ AFortniteCloneCharacter::AFortniteCloneCharacter(const class FObjectInitializer&
 	// Set Foot bone name to IK Component
 	m_pIK_Foot->Set_IKSocketName(TEXT("foot_l"), TEXT("foot_r"));
 
-
-
-
 	LineTraceComp = CreateDefaultSubobject<ULineTraceComponent>(TEXT("LineTraceComp"));
 
-	InventoryComp = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComp"));
+	FortInventoryComp = CreateDefaultSubobject<UFortInventoryComponent>(TEXT("InventoryComp"));
 
 
 	//check(CharacterPartSkeletalMeshComponent != nullptr)
@@ -214,8 +212,8 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAction("ShootGun", IE_Pressed, this, &AFortniteCloneCharacter::ShootGun);
 	PlayerInputComponent->BindAction("UseHealingItem", IE_Pressed, this, &AFortniteCloneCharacter::UseHealingItem);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AFortniteCloneCharacter::Reload);
-	PlayerInputComponent->BindAction("HoldPickaxe", IE_Pressed, this, &AFortniteCloneCharacter::HoldPickaxe);
-	PlayerInputComponent->BindAction("HoldAssaultRifle", IE_Pressed, this, &AFortniteCloneCharacter::HoldAssaultRifle);
+	PlayerInputComponent->BindAction("HoldPickaxe", IE_Pressed, this, &AFortniteCloneCharacter::EquipSlot1);
+	PlayerInputComponent->BindAction("HoldAssaultRifle", IE_Pressed, this, &AFortniteCloneCharacter::EquipSlot2);
 	PlayerInputComponent->BindAction("HoldShotgun", IE_Pressed, this, &AFortniteCloneCharacter::HoldShotgun);
 	PlayerInputComponent->BindAction("HoldBandage", IE_Pressed, this, &AFortniteCloneCharacter::HoldBandage);
 	PlayerInputComponent->BindAction("HoldPotion", IE_Pressed, this, &AFortniteCloneCharacter::HoldPotion);
@@ -272,6 +270,11 @@ void AFortniteCloneCharacter::SpawnPickaxe()
 }
 void AFortniteCloneCharacter::BeginPlay() {
 	Super::BeginPlay();
+
+	if (Role == ROLE_Authority)
+	{
+		Equip(0);
+	}
 
 	DefaultFOV = FollowCamera->FieldOfView;
 
@@ -401,6 +404,13 @@ void AFortniteCloneCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProper
 void AFortniteCloneCharacter::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 
+
+	if (Health < 0)
+	{
+		FortInventoryComp->DropAllItems();
+	}
+
+
 	if (CanAim())
 	{
 		float TargetFOV = bWantsToZoom ? ZoomedFOV : DefaultFOV;
@@ -409,13 +419,6 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 
 		FollowCamera->FieldOfView = NewFOV;
 	}
-	
-
-	for (int32 element : InventoryComp->Slots)
-	{
-		UE_LOG(LogTemp, Error, TEXT("(My Message) %d"), element);
-	}
-
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Tick mode ") + FString::FromInt(GetNetMode()));~
 	FVector DirectionVector = FVector(0, AimYaw, AimPitch);
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Tick mode ") + FString::SanitizeFloat(DirectionVector.Z));
@@ -1152,6 +1155,11 @@ void AFortniteCloneCharacter::HoldShotgun() {
 	ServerSwitchToShotgun();
 }
 
+void AFortniteCloneCharacter::SpawnWeaponSound(USoundBase * SoundToPlay, FVector LocationToPlay)
+{
+	UGameplayStatics::SpawnSoundAttached(SoundToPlay, GetMesh(), WeaponAttachSocketName, LocationToPlay, EAttachLocation::SnapToTarget, false);
+}
+
 void AFortniteCloneCharacter::HoldBandage() {
 	ServerSwitchToHealingItem(0);
 }
@@ -1339,16 +1347,9 @@ void AFortniteCloneCharacter::Pickup()
 					//ClientGetWeaponTransform(WeaponActor->WeaponType);
 					if (Role < ROLE_Authority)
 					{
-						if (InventoryComp->HasFreeSlots())
-						{
-							ServerPickup(OutHit);
-							WeaponActor->Destroy();
-						}
-						else
-						{
-							return;
-						}
-						
+						FortInventoryComp->AddItem(WeaponActor);
+						ServerPickup(OutHit);
+						WeaponActor->Destroy();
 					}
 					else
 					{
@@ -1377,7 +1378,7 @@ void AFortniteCloneCharacter::ServerPickup_Implementation(FHitResult HitResult) 
 
 	if (CurrentWeapon)
 	{
-		if (InventoryComp) {
+		
 
 			//InventoryComp->Slots.RemoveAt(1);
 			CurrentWeapon->SetOwner(this);
@@ -1387,11 +1388,11 @@ void AFortniteCloneCharacter::ServerPickup_Implementation(FHitResult HitResult) 
 
 				CurrentEquippedWeapon->Destroy();
 
-				//UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
-				//WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, CurrentWeapon->AttachSocketName);
+
 			
 				CurrentWeapon->AttachToComponent(GetMesh(), AttachmentRules, WeaponAttachSocketName);
 				CurrentWeapon->SetActorLocationAndRotation(GetMesh()->GetSocketLocation(CurrentWeapon->AttachSocketName), GetMesh()->GetSocketRotation(CurrentWeapon->AttachSocketName));
+			 
 
 
 				CurrentWeaponType = CurrentWeapon->WeaponType;
@@ -1411,8 +1412,7 @@ void AFortniteCloneCharacter::ServerPickup_Implementation(FHitResult HitResult) 
 				State->HoldingHealingItem = false;
 				State->CurrentWeapon = WeaponType;
 				State->CurrentHealingItem = -1;
-			}
-		}	
+			}	
 	}
 }
 
@@ -1577,6 +1577,45 @@ bool AFortniteCloneCharacter::ServerBuildStructure_Validate(TSubclassOf<ABuildin
 	return true;
 }
 
+
+
+void AFortniteCloneCharacter::Equip(uint8 index)
+{
+	if (Role < ROLE_Authority)
+	{
+		ServerEquip(index);
+	}
+}
+
+void AFortniteCloneCharacter::ServerEquip_Implementation(uint8 index)
+{
+	Equip(index);
+}
+
+bool AFortniteCloneCharacter::ServerEquip_Validate(uint8 index)
+{
+	return true;
+}
+
+void AFortniteCloneCharacter::EquipSlot1()
+{
+	Equip(0);
+}
+
+void AFortniteCloneCharacter::EquipSlot2()
+{
+	Equip(1);
+}
+
+void AFortniteCloneCharacter::EquipSlot3()
+{
+	Equip(2);
+}
+
+void AFortniteCloneCharacter::EquipSlot4()
+{
+	Equip(3);
+}
 void AFortniteCloneCharacter::ServerSetBuildModeWall_Implementation() {
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);

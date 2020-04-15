@@ -17,6 +17,7 @@ enum class EPlayerStates : uint8
 DECLARE_LOG_CATEGORY_EXTERN(LogFortniteCloneCharacter, Log, All);
 
 class USpringArmComponent;
+class UFortInventoryComponent;
 class UCameraComponent;
 class UCapsuleComponent;
 class ABuildingActor;
@@ -29,7 +30,7 @@ class UAnimMontage;
 class AVehicle;
 class UCharacterPartSkeletalMesh;
 class ULineTraceComponent;
-class UInventoryComponent;
+
 
 #define PRINT_TO_SCREEN(...) if(GEngine) GEngine->AddOnScreenDebugMessage(##__VA_ARGS__); // should be in the FortniteClone.h
 
@@ -62,15 +63,11 @@ class AFortniteCloneCharacter : public ACharacter
 		class ULineTraceComponent* LineTraceComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-		class UInventoryComponent* InventoryComp;
-
+		class UFortInventoryComponent* FortInventoryComp;
 	
-
 public:
+
 	AFortniteCloneCharacter(const class FObjectInitializer& ObjectInitializer);
-
-
-
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		FName WeaponAttachSocketName;
@@ -87,6 +84,7 @@ public:
 
 	UFUNCTION()
 	void SpawnPickaxe();
+
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
@@ -388,6 +386,13 @@ protected:
 	UFUNCTION()
 	void HoldShotgun();
 
+public:
+
+	UFUNCTION()
+	void SpawnWeaponSound(USoundBase * SoundToPlay, FVector LocationToPlay);
+
+protected:
+
 	UFUNCTION()
 	void HoldBandage();
 
@@ -597,6 +602,17 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerBuildStructure(TSubclassOf<ABuildingActor> StructureClass, FVector SpawnLocationFRotator, FRotator SpawnRotation, int StructureId);
+
+	UFUNCTION()
+	void Equip(uint8 index);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerEquip(uint8 index);
+
+	virtual void EquipSlot1();
+	virtual void EquipSlot2();
+	virtual void EquipSlot3();
+	virtual void EquipSlot4();
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSetMaterialCount(int Count, int MaterialType);

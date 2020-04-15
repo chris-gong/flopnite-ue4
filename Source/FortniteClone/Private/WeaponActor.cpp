@@ -3,6 +3,7 @@
 #include "WeaponActor.h"
 #include "DrawDebugHelpers.h"
 #include "FortniteClone.h"
+#include "FortDamageText.h"
 #include "FortniteCloneCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "ProjectileActor.h"
@@ -17,10 +18,6 @@ DEFINE_LOG_CATEGORY(LogWeaponActor);
 
 AWeaponActor::AWeaponActor() {
 
-	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-
-	MeshComp->SetupAttachment(SceneComp);
-
 	SetReplicates(true);
 
 	TracerTargetName = "Target";
@@ -33,7 +30,7 @@ AWeaponActor::AWeaponActor() {
 void AWeaponActor::BeginPlay() {
 	Super::BeginPlay();
 
-		CurrentAmmo = 50000;	
+		CurrentAmmo = 30;	
 	
 }
 
@@ -51,6 +48,7 @@ void AWeaponActor::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutL
 	DOREPLIFETIME(AWeaponActor, ADamage);
 	DOREPLIFETIME(AWeaponActor, BaseDamage);
 	DOREPLIFETIME(AWeaponActor, MaxDamge);
+	DOREPLIFETIME(AWeaponActor, DamText);
 }
 
 
@@ -73,92 +71,102 @@ void AWeaponActor::Fire()
 
 	AActor* MyOwner = GetOwner();
 	if (MyOwner) {
-		if (CanShoot())
+
+		for (int i = 0; i < Bullets; i++)
 		{
-			UWorld* const World = GetWorld();
-			if (World != NULL)
+			if (CanShoot())
 			{
-				UseAmmo();
-
-				FVector EyeLocation;
-				FRotator EyeRoatation;
-				MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRoatation);
-
-				FVector ShotDirection = EyeRoatation.Vector();
-
-				FVector TraceEnd = EyeLocation + (ShotDirection * 10000);
-
-				FCollisionQueryParams QueryParams;
-				QueryParams.AddIgnoredActor(this);
-				QueryParams.AddIgnoredActor(MyOwner);
-				QueryParams.bTraceComplex = true;
-
-				// Particle "Target" parameter
-				FVector TracerEndPoint = TraceEnd;
-
-				FHitResult Hit;
-				if (GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, COLLISION_WEAPON, QueryParams))
+				UWorld* const World = GetWorld();
+				if (World != NULL)
 				{
+					
 
+					FVector EyeLocation;
+					FRotator EyeRoatation;
+					MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRoatation);
 
-					FActorSpawnParameters SpawnParams;
-					SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+					FVector ShotDirection = EyeRoatation.Vector();
 
+					FVector TraceEnd = EyeLocation + (ShotDirection * 10000);
 
-					AActor * Actor = Hit.GetActor();
-					ADamage = FMath::RandRange(BaseDamage, MaxDamge);
+					FCollisionQueryParams QueryParams;
+					QueryParams.AddIgnoredActor(this);
+					QueryParams.AddIgnoredActor(MyOwner);
+					QueryParams.bTraceComplex = true;
+
+					// Particle "Target" parameter
+					FVector TracerEndPoint = TraceEnd;
 
 					AFortniteCloneCharacter * Player = Cast<AFortniteCloneCharacter>(GetOwner());
-					if (Player)
+
+					UseAmmo();
+
+					FHitResult Hit;
+					if (GetWorld()->LineTraceSingleByChannel(Hit, EyeLocation, TraceEnd, COLLISION_WEAPON, QueryParams))
 					{
-						if (Player->GetMesh() != nullptr) {
+						FActorSpawnParameters SpawnParams;
+						SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+						AActor * Actor = Hit.GetActor();
+						ADamage = FMath::RandRange(BaseDamage, MaxDamge);
+
+						
+						if (Player)
+						{
+							AProjectileActor *  Bullet = World->SpawnActor<AProjectileActor>(BulletClass, EyeLocation, EyeRoatation, SpawnParams);
+							if (Bullet != nullptr)
+							{
+								//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
+								Bullet->Weapon = this;
+								Bullet->WeaponHolder = Player;
+								Bullet->SetOwner(Player);
+								Bullet->Damage = ADamage;
+							}
+						}
+
+						//UGameplayStatics::ApplyPointDamage(Actor, ADamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamgeType);
+
+						TracerEndPoint = Hit.ImpactPoint;
+
+
+						if (AFortniteCloneCharacter * HitChar = Cast<AFortniteCloneCharacter>(Actor)) {
+
+							DamText = GetWorld()->SpawnActor<AFortDamageText>(DamageTextClass, TracerEndPoint, GetOwner()->GetActorRotation(), SpawnParams);
+
+							DamText->SetOwner(this);
+
+							if (Player->Shield > 0)
+							{
+								DamText->Text->SetTextRenderColor(FColor::Blue);
+								DamText->Text->TextRenderColor = FColor::Blue;
+							}
+
 
 						}
-					}
-
-					UGameplayStatics::ApplyPointDamage(Actor, ADamage, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamgeType);
-					
-					TracerEndPoint = Hit.ImpactPoint;
-
-
-					if (AFortniteCloneCharacter * HitChar = Cast<AFortniteCloneCharacter>(Actor)) {
-					
-						AFortDamageText * DamText = GetWorld()->SpawnActor<AFortDamageText>(DamageTextClass, TracerEndPoint, GetOwner()->GetActorRotation(), SpawnParams);
-
-						DamText->SetOwner(this);
 
 					}
 
+					DrawDebugLine(GetWorld(), EyeLocation, Hit.ImpactPoint, FColor::Red, false, 1.0f, 0, 1.0f);
+
+					PlayFireEffects(TracerEndPoint);
+
+					if (Role == ROLE_Authority)
+					{
+						HitScanTrace.TraceTo = TracerEndPoint;
+					}
+
+					Player->SpawnWeaponSound(FireSound, GetOwner()->GetActorLocation());
 				}
-
-				DrawDebugLine(GetWorld(), EyeLocation, Hit.ImpactPoint, FColor::Red, false, 1.0f, 0, 1.0f);
-
-				PlayFireEffects(TracerEndPoint);
-
-				if (Role == ROLE_Authority)
+				else
 				{
-					HitScanTrace.TraceTo = TracerEndPoint;
+					return;
 				}
-
-				// try and play the sound if specified
-				if (FireSound != nullptr)
-				{
-					UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetOwner()->GetActorLocation());
-				}
-
-				
-
 			}
 			else
 			{
 				return;
 			}
 		}
-		else 
-		{
-			return;
-		}
-		
 	}
 }
 

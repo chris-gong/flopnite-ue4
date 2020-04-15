@@ -41,6 +41,8 @@ AProjectileActor::AProjectileActor()
 // Called when the game starts or when spawned
 void AProjectileActor::BeginPlay()
 {
+	AWeaponActor * MyOwner = Cast<AWeaponActor>(GetOwner());
+
 	Super::BeginPlay();
 	if (HasAuthority()) {
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "projectile beginplay");
@@ -59,6 +61,7 @@ void AProjectileActor::Tick(float DeltaTime)
 
 void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	if (HasAuthority()) {
+		AWeaponActor * MyOwner = Cast<AWeaponActor>(GetOwner());
 		if (OtherActor != nullptr) {
 			//bullet should only destroy itself once it overlaps with an actor other than itself, the weapon it came from, and the holder of that weapon
 			if ((Weapon && OtherActor == (AActor*)Weapon) || (WeaponHolder && OtherActor == (AActor*)WeaponHolder) || OtherActor == this) {
@@ -78,17 +81,21 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 							if (FortniteCloneCharacter) {
 								FortniteCloneCharacter->ClientDrawBloodEffect();
 								if (FortniteCloneCharacter->Shield > 0) {
-									if (FortniteCloneCharacter->Shield - Damage < 0) {
-										int LeftoverDamage = Damage - FortniteCloneCharacter->Shield;
+									if (FortniteCloneCharacter->Shield - MyOwner->ADamage < 0) {
+										int LeftoverDamage = MyOwner->ADamage - FortniteCloneCharacter->Shield;
 										FortniteCloneCharacter->Shield = 0;
 										FortniteCloneCharacter->Health -= LeftoverDamage;
 									}
 									else {
-										FortniteCloneCharacter->Shield -= Damage;
+										FortniteCloneCharacter->Shield -= MyOwner->ADamage;
 									}
 								}
 								else {
-									FortniteCloneCharacter->Health -= Damage;
+									if (MyOwner)
+									{
+										FortniteCloneCharacter->Health -= MyOwner->ADamage;
+									}
+									
 								}
 								if (WeaponHolder) {
 									// draw hitmarker

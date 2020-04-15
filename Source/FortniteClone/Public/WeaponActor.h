@@ -3,8 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
-#include "FortDamageText.h"
+#include "FortPickupActor.h"
 #include "WeaponActor.generated.h"
 
 class AProjectileActor;
@@ -77,7 +76,7 @@ enum class EWeaponType : uint8
 };
 
 UCLASS()
-class FORTNITECLONE_API AWeaponActor : public AActor
+class FORTNITECLONE_API AWeaponActor : public AFortPickupActor
 {
 	GENERATED_BODY()
 
@@ -105,8 +104,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;	
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")
-	UStaticMeshComponent* MeshComp;
+	
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
 		USceneComponent* SceneComp;
@@ -167,10 +165,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = Gameplay)
 		float ADamage;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+		int Bullets;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Gameplay)
 		FName AttachSocketName;
 
 protected:
+
+	UPROPERTY(Replicated)
+	AFortDamageText * DamText;
 	
 	void SimulateWeaponFire();
 
