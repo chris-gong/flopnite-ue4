@@ -50,6 +50,8 @@ AFortniteClonePlayerState::AFortniteClonePlayerState() {
 	SetInfiniteAmmoCmd->AsVariable()->SetOnChangedCallback(FConsoleVariableDelegate::CreateLambda([&](IConsoleVariable* Var) { if (HasAuthority()) { infiniteAmmoEnabled = Var->GetBool(); } }));
 }
 
+
+
 void AFortniteClonePlayerState::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -75,6 +77,7 @@ void AFortniteClonePlayerState::GetLifetimeReplicatedProps(TArray< FLifetimeProp
 	DOREPLIFETIME(AFortniteClonePlayerState, bIsSpectator);
 	DOREPLIFETIME(AFortniteClonePlayerState, adminFlyEnabled);
 	DOREPLIFETIME(AFortniteClonePlayerState, infiniteAmmoEnabled);
+	
 }
 
 void AFortniteClonePlayerState::Tick(float DeltaSeconds) {

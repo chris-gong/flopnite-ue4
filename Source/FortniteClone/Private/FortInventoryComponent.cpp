@@ -12,6 +12,7 @@ UFortInventoryComponent::UFortInventoryComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	
+	Slots.Add(4);
 }
 
 
@@ -29,6 +30,7 @@ void UFortInventoryComponent::GetLifetimeReplicatedProps(TArray< FLifetimeProper
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UFortInventoryComponent, Items);
+	DOREPLIFETIME(UFortInventoryComponent, Slots);
 }
 
 

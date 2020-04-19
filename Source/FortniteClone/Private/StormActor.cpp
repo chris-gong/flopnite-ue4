@@ -20,6 +20,7 @@ AStormActor::AStormActor()
 	StormAdvanceStageRate = 30.f; //Default every 30 seconds
 	StormIncreaseDamageRate = 120.f; //Default every 120 seconds
 	IsShrinking = false;
+	CanShrink = true;
 	InitialSizeScale = GetActorScale3D();
 	InitialActorLocation = GetActorLocation();
 	ScaleDownRate = 0.999485f;
@@ -102,7 +103,7 @@ void AStormActor::Tick(float DeltaTime)
 
 	StormMoving = IsShrinking;
 
-	if (HasAuthority() && IsShrinking)
+	if (HasAuthority() && IsShrinking && CanShrink)
 	{
 		OnRep_StormMoving();
 

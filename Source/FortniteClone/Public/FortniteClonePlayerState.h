@@ -8,9 +8,12 @@
 
 class AFortniteCloneCharacter;
 
+
+
 /**
  * 
  */
+
 UCLASS()
 class FORTNITECLONE_API AFortniteClonePlayerState : public APlayerState
 {
@@ -18,6 +21,7 @@ class FORTNITECLONE_API AFortniteClonePlayerState : public APlayerState
 	
 public:
 	AFortniteClonePlayerState();
+
 
 	UPROPERTY(Replicated)
 	bool InBuildMode;

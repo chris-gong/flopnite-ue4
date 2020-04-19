@@ -32,7 +32,7 @@ class UCharacterPartSkeletalMesh;
 class ULineTraceComponent;
 
 
-#define PRINT_TO_SCREEN(...) if(GEngine) GEngine->AddOnScreenDebugMessage(##__VA_ARGS__); // should be in the FortniteClone.h
+
 
 
 UCLASS(config=Game)

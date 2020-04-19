@@ -106,11 +106,8 @@ void AWeaponActor::Fire()
 					{
 						FActorSpawnParameters SpawnParams;
 						SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
 						AActor * Actor = Hit.GetActor();
 						ADamage = FMath::RandRange(BaseDamage, MaxDamge);
-
-						
 						if (Player)
 						{
 							AProjectileActor *  Bullet = World->SpawnActor<AProjectileActor>(BulletClass, EyeLocation, EyeRoatation, SpawnParams);

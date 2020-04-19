@@ -19,12 +19,15 @@ public:
 protected:
 	
 	virtual void BeginPlay() override;
+public:
 
-	UPROPERTY(Replicated)
+	UPROPERTY(Replicated, BlueprintReadOnly)
 		TArray<class AFortPickupActor*> Items;
 
-public:	
-	
+	UPROPERTY(Replicated, BlueprintReadOnly)
+		TArray<int> Slots;
+
+
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION()

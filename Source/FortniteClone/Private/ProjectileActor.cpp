@@ -13,6 +13,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Engine/Engine.h"
 #include "UnrealNetwork.h"
+#include "FortniteCloneGameMode.h"
 #include "Components/SphereComponent.h"
 
 // Sets default values
@@ -27,6 +28,8 @@ AProjectileActor::AProjectileActor()
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
 	CollisionComp->InitSphereRadius(5.0f);
 	CollisionComp->SetCollisionProfileName("Projectile");
+
+
 	CollisionComp->bEditableWhenInherited = true;
 	RootComponent = CollisionComp;
 
@@ -36,6 +39,9 @@ AProjectileActor::AProjectileActor()
 	ProjectileMovementComponent->InitialSpeed = ProjectileSpeed;
 	ProjectileMovementComponent->MaxSpeed = ProjectileSpeed;
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
+
+	SetReplicates(true);
+	SetReplicateMovement(true);
 }
 
 // Called when the game starts or when spawned
@@ -103,6 +109,7 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 								}
 								if (FortniteCloneCharacter->Health <= 0) {
 									if (WeaponActor) {
+						
 										WeaponActor->Destroy();
 									}
 									if (FortniteCloneCharacter) {
@@ -116,7 +123,8 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 										if (FortniteClonePlayerController) {
 											FortniteClonePlayerController->ServerSwitchToSpectatorMode();
 										}
-										FortniteCloneCharacter->Destroy();
+										FortniteCloneCharacter->GetMesh()->SetSimulatePhysics(true);
+										FortniteCloneCharacter->SetLifeSpan(1.0f);
 									}
 									FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(WeaponHolder);
 									if (FortniteCloneCharacter) {
@@ -176,7 +184,8 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 										if (FortniteClonePlayerController) {
 											FortniteClonePlayerController->ServerSwitchToSpectatorMode();
 										}
-										FortniteCloneCharacter->Destroy();
+										FortniteCloneCharacter->GetMesh()->SetSimulatePhysics(true);
+										FortniteCloneCharacter->SetLifeSpan(2.0f);
 									}
 									FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(WeaponHolder);
 									if (FortniteCloneCharacter) {
@@ -241,13 +250,25 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 								FortniteCloneCharacter->BuildingPreview->Destroy();
 							}
 							if (FortniteCloneCharacter) {
+								if (AFortniteCloneGameMode* GM = Cast<AFortniteCloneGameMode>(GetWorld()->GetAuthGameMode()))
+								{
+									AFortniteCloneCharacter * Killer = Cast<AFortniteCloneCharacter>(GetOwner());
+									GM->PlayerDied(FortniteCloneCharacter, Killer);
+								}
+								else
+								{
+									FString LogMsg = FString(" GetAuthGameMode is null");
+									GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, LogMsg);
+								}
 								AFortniteClonePlayerController* FortniteClonePlayerController = Cast<AFortniteClonePlayerController>(FortniteCloneCharacter->GetController());
 								if (FortniteClonePlayerController) {
 									FortniteClonePlayerController->ServerSwitchToSpectatorMode();
+									FortniteCloneCharacter->Destroy();
 								}
-								FortniteCloneCharacter->Destroy();
+								//FortniteCloneCharacter->GetMesh()->SetSimulatePhysics(true);
+								//FortniteCloneCharacter->SetLifeSpan(0.2f);
 							}
-							FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(WeaponHolder);
+							FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(GetOwner());
 							if (FortniteCloneCharacter) {
 								if (FortniteCloneCharacter->GetController() && FortniteCloneCharacter->GetController()->PlayerState) {
 									AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(FortniteCloneCharacter->GetController()->PlayerState);

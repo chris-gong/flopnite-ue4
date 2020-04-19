@@ -7,6 +7,8 @@
 #include "FortniteCloneGameMode.generated.h"
 
 class AStormActor;
+class AFortniteClonePlayerState;
+class AFortniteClonePlayerController;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogMyServerGame, Log, All);
 
@@ -32,6 +34,8 @@ public:
 	virtual void BeginPlay() override;
 
 	void DrawNewEye();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual void StartPlay() override;
 
@@ -60,6 +64,12 @@ public:
 	UPROPERTY()
 		class UUserWidget* CurrentWidget;
 
+	void WinnerFound(class AFortniteClonePlayerState* WinnerState);
+
+	void PlayerDied(class AFortniteCloneCharacter * Killed, class AFortniteCloneCharacter * Killer);
+
+	UPROPERTY(Transient, BlueprintReadOnly)
+		TArray<class AFortniteClonePlayerController*> Players;
 };
 
 

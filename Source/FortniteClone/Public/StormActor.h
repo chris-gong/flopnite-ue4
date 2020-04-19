@@ -17,6 +17,7 @@ class FORTNITECLONE_API AStormActor : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AStormActor();
+
 	void InitializeStorm();
 
 protected:
@@ -43,6 +44,8 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Delegats")
 		FOnStormMove OnStormMove;
 
+	UPROPERTY(BlueprintReadWrite)
+		bool CanShrink = true;
 
 	UPROPERTY(Replicated, BlueprintReadOnly)
 		float timeElapsed;
@@ -61,7 +64,7 @@ public:
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	float Damage;
 
-	UPROPERTY(Replicated, BlueprintReadOnly)
+	UPROPERTY(Replicated, BlueprintReadWrite)
 	bool IsShrinking;
 
 	UPROPERTY(Replicated)

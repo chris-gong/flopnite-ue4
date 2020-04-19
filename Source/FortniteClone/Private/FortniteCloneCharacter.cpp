@@ -220,6 +220,7 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAction("Ironsights", IE_Pressed, this, &AFortniteCloneCharacter::AimGunIn);
 	PlayerInputComponent->BindAction("Ironsights", IE_Released, this, &AFortniteCloneCharacter::AimGunOut);
 	PlayerInputComponent->BindAction("OpenSettings", IE_Pressed, this, &AFortniteCloneCharacter::OpenSettingsMenu);
+	
 
 	PlayerInputComponent->BindAction("Pickup", IE_Pressed, this, &AFortniteCloneCharacter::Pickup);
 
@@ -263,6 +264,8 @@ void AFortniteCloneCharacter::SpawnPickaxe()
 			HoldingWeapon = true;
 			AimedIn = false;
 			HoldingWeaponType = 1;
+
+			FortInventoryComp->Slots.RemoveSingle(1);
 		}
 
 	}
@@ -1411,6 +1414,8 @@ void AFortniteCloneCharacter::ServerPickup_Implementation(FHitResult HitResult) 
 				State->HoldingWeapon = true;
 				State->HoldingHealingItem = false;
 				State->CurrentWeapon = WeaponType;
+				FortInventoryComp->AddItem(CurrentWeapon);
+
 				State->CurrentHealingItem = -1;
 			}	
 	}
@@ -1584,6 +1589,10 @@ void AFortniteCloneCharacter::Equip(uint8 index)
 	if (Role < ROLE_Authority)
 	{
 		ServerEquip(index);
+	}
+	if (FortInventoryComp)
+	{
+		FortInventoryComp->SelectItem(index);
 	}
 }
 
