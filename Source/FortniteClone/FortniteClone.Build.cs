@@ -11,7 +11,5 @@ public class FortniteClone : ModuleRules
         bEnableExceptions = true;
 
         PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "UMG", "GameLiftServerSDK", "GameLiftClientSDK"});
-
-		PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
-	}
+    }
 }

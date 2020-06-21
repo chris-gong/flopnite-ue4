@@ -31,26 +31,7 @@ AFortniteClonePlayerState::AFortniteClonePlayerState() {
 	JustReloadedRifle = false;
 	JustReloadedShotgun = false;
 	KillCount = 0;
-	WeaponImage = nullptr;
-	adminFlyEnabled = true;
-	infiniteAmmoEnabled = true;
-
-	IConsoleVariable* AdminFlyCmd = IConsoleManager::Get().RegisterConsoleVariable(TEXT("AdminFly"),
-		2,
-		TEXT("AdminCommand: Run 'AdminFly 1' to enable admin fly mode, 0 to disable.\nMiddle Mouse Button to fly forward"),
-		ECVF_Scalability | ECVF_RenderThreadSafe);
-
-	AdminFlyCmd->AsVariable()->SetOnChangedCallback(FConsoleVariableDelegate::CreateLambda([&](IConsoleVariable* Var) { if (HasAuthority()) { adminFlyEnabled = Var->GetBool(); } }));
-
-	IConsoleVariable* SetInfiniteAmmoCmd = IConsoleManager::Get().RegisterConsoleVariable(TEXT("InfiniteAmmo"),
-		2,
-		TEXT("AdminCommand: Run 'InfiniteAmmo 1' to enable infinite ammo, 0 to disable .\n"),
-		ECVF_Scalability | ECVF_RenderThreadSafe);
-
-	SetInfiniteAmmoCmd->AsVariable()->SetOnChangedCallback(FConsoleVariableDelegate::CreateLambda([&](IConsoleVariable* Var) { if (HasAuthority()) { infiniteAmmoEnabled = Var->GetBool(); } }));
 }
-
-
 
 void AFortniteClonePlayerState::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
 {
@@ -75,9 +56,6 @@ void AFortniteClonePlayerState::GetLifetimeReplicatedProps(TArray< FLifetimeProp
 	DOREPLIFETIME(AFortniteClonePlayerState, JustReloadedShotgun);
 	DOREPLIFETIME(AFortniteClonePlayerState, KillCount);
 	DOREPLIFETIME(AFortniteClonePlayerState, bIsSpectator);
-	DOREPLIFETIME(AFortniteClonePlayerState, adminFlyEnabled);
-	DOREPLIFETIME(AFortniteClonePlayerState, infiniteAmmoEnabled);
-	
 }
 
 void AFortniteClonePlayerState::Tick(float DeltaSeconds) {

@@ -6,18 +6,9 @@
 #include "GameFramework/Character.h"
 #include "FortniteCloneCharacter.generated.h"
 
-
-UENUM(BlueprintType)		//"BlueprintType" is essential to include
-enum class EPlayerStates : uint8
-{
-	VE_Combat 		UMETA(DisplayName = "Combat"),
-	VE_Construction UMETA(DisplayName = "Construction"),
-};
-
 DECLARE_LOG_CATEGORY_EXTERN(LogFortniteCloneCharacter, Log, All);
 
 class USpringArmComponent;
-class UFortInventoryComponent;
 class UCameraComponent;
 class UCapsuleComponent;
 class ABuildingActor;
@@ -27,13 +18,6 @@ class AFortniteClonePlayerState;
 class UThirdPersonAnimInstance;
 class AStormActor;
 class UAnimMontage;
-class AVehicle;
-class UCharacterPartSkeletalMesh;
-class ULineTraceComponent;
-
-
-
-
 
 UCLASS(config=Game)
 class AFortniteCloneCharacter : public ACharacter
@@ -44,9 +28,6 @@ class AFortniteCloneCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		UCharacterPartSkeletalMesh* CharacterPartSkeletalMeshComponent;
-
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
@@ -54,37 +35,8 @@ class AFortniteCloneCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, Category = "Trigger Capsule")
 	UCapsuleComponent* TriggerCapsule;
 
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "IK_Foot", meta = (AllowPrivateAccess = "true"))
-		class UCpt_IK_Foot* m_pIK_Foot;
-
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-		class ULineTraceComponent* LineTraceComp;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-		class UFortInventoryComponent* FortInventoryComp;
-	
 public:
-
-	AFortniteCloneCharacter(const class FObjectInitializer& ObjectInitializer);
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		FName WeaponAttachSocketName;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Player")
-		TSubclassOf<AWeaponActor> RifleWeaponClass;
-
-	UFUNCTION(Server, Reliable, WithValidation)
-		void ServerPickup(FHitResult HitResult);
-
-
-	UFUNCTION()
-	void InitializeCharacterPartSkeletalMeshComponent();
-
-	UFUNCTION()
-	void SpawnPickaxe();
-
+	AFortniteCloneCharacter();
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
@@ -180,9 +132,6 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Health")
 	float GetShield();
 
-	UFUNCTION(BlueprintPure, Category = "Weapon")
-	class UTexture2D * GetWeaponImage();
-
 	UFUNCTION(BlueprintPure, Category = "Material")
 	int GetWoodMaterialCount();
 
@@ -209,16 +158,9 @@ public:
 	UPROPERTY(Replicated)
 	AHealingActor* CurrentHealingItem;
 
-	UPROPERTY()
-		AWeaponActor* CurrentEquippedWeapon;
-
 	/* Pointer to storm instance to get current damage */
 	UPROPERTY(Replicated)
 	AStormActor* CurrentStorm;
-
-	/* Pointer to storm instance to get current damage */
-	UPROPERTY()
-		bool bIsInAVehicle;
 
 	/* Current preview of wall to be built in build mode */
 	UPROPERTY(Replicated)
@@ -279,28 +221,7 @@ public:
 	UPROPERTY()
 	int CurrentStructureId;
 
-	UPROPERTY()
-	AFortniteCloneCharacter * CurrentDirver;
-	
-	virtual FVector GetPawnViewLocation() const override;
-		
 protected:
-
-
-	bool bWantsToZoom;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player | Weapon | Misc")
-		float ZoomedFOV;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player | Weapon | Misc")
-		float DefaultFOV;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player | Weapon | Misc")
-		float ZoomedSpeed;
-
-	bool CanAim();
-
-	void IKDebugToggle();
 
 	/** Resets HMD orientation in VR. */
 	void OnResetVR();
@@ -386,13 +307,6 @@ protected:
 	UFUNCTION()
 	void HoldShotgun();
 
-public:
-
-	UFUNCTION()
-	void SpawnWeaponSound(USoundBase * SoundToPlay, FVector LocationToPlay);
-
-protected:
-
 	UFUNCTION()
 	void HoldBandage();
 
@@ -406,15 +320,9 @@ protected:
 	/*UFUNCTION(Server, WithValidation)
 	void ServerSetAnimInstance(UThirdPersonAnimInstance* AnimInstance);*/
 
-	void Pickup();
-
-
 	/* Index of the class in array to spawn the weapon */
 	UPROPERTY(Replicated)
 	int CurrentWeaponType; // 0 for pickaxe, 1 for assault rifle, 2 for shotgun, -1 for non weapon items
-
-	UPROPERTY()
-		bool bPickJustPressed;
 
 	UPROPERTY(Replicated)
 	int CurrentHealingItemType; // 0 for bandage, 1 for potion, -1 for non healing type items
@@ -444,9 +352,6 @@ protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-
-
-
 	// End of APawn interface
 
 public:
@@ -456,12 +361,6 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	// Tick function is called every frame
 	virtual void Tick(float DeltaTime) override;
-
-
-
-	UFUNCTION()
-	void FlyForward(float Value);
-
 	// Override playanimmontage to use pawn mesh
 	virtual float PlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None) override;
 
@@ -472,7 +371,6 @@ public:
 	/* called when character touches something with its body */
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
 
 	UFUNCTION()
 	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
@@ -603,17 +501,6 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerBuildStructure(TSubclassOf<ABuildingActor> StructureClass, FVector SpawnLocationFRotator, FRotator SpawnRotation, int StructureId);
 
-	UFUNCTION()
-	void Equip(uint8 index);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerEquip(uint8 index);
-
-	virtual void EquipSlot1();
-	virtual void EquipSlot2();
-	virtual void EquipSlot3();
-	virtual void EquipSlot4();
-
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSetMaterialCount(int Count, int MaterialType);
 
@@ -674,20 +561,8 @@ public:
 	UFUNCTION()
 	void OnRepSetSkin();
 
-	UFUNCTION(BlueprintPure)
-	int32 GetCurrentWeaponAmmo();
-
-
-	UFUNCTION(BlueprintPure)
-		float GetCurrentMaxAmmo();
-
 private:
 	// Object creation can only happen after the character has finished being constructed
 	virtual void BeginPlay() override;
-
-public:
-	UFUNCTION(BlueprintPure, Category = "SafeZone")
-	bool GetIsStorm();
-
 };
 

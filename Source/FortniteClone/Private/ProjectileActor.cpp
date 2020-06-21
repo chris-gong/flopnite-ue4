@@ -13,7 +13,6 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Engine/Engine.h"
 #include "UnrealNetwork.h"
-#include "FortniteCloneGameMode.h"
 #include "Components/SphereComponent.h"
 
 // Sets default values
@@ -28,27 +27,20 @@ AProjectileActor::AProjectileActor()
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
 	CollisionComp->InitSphereRadius(5.0f);
 	CollisionComp->SetCollisionProfileName("Projectile");
-
-
 	CollisionComp->bEditableWhenInherited = true;
 	RootComponent = CollisionComp;
 
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
 	ProjectileMovementComponent->UpdatedComponent = CollisionComp;
 	ProjectileMovementComponent->ProjectileGravityScale = 0.0;
-	ProjectileMovementComponent->InitialSpeed = ProjectileSpeed;
-	ProjectileMovementComponent->MaxSpeed = ProjectileSpeed;
+	/*ProjectileMovementComponent->InitialSpeed = ProjectileSpeed;
+	ProjectileMovementComponent->MaxSpeed = ProjectileSpeed;*/
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
-
-	SetReplicates(true);
-	SetReplicateMovement(true);
 }
 
 // Called when the game starts or when spawned
 void AProjectileActor::BeginPlay()
 {
-	AWeaponActor * MyOwner = Cast<AWeaponActor>(GetOwner());
-
 	Super::BeginPlay();
 	if (HasAuthority()) {
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "projectile beginplay");
@@ -67,7 +59,6 @@ void AProjectileActor::Tick(float DeltaTime)
 
 void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	if (HasAuthority()) {
-		AWeaponActor * MyOwner = Cast<AWeaponActor>(GetOwner());
 		if (OtherActor != nullptr) {
 			//bullet should only destroy itself once it overlaps with an actor other than itself, the weapon it came from, and the holder of that weapon
 			if ((Weapon && OtherActor == (AActor*)Weapon) || (WeaponHolder && OtherActor == (AActor*)WeaponHolder) || OtherActor == this) {
@@ -87,21 +78,17 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 							if (FortniteCloneCharacter) {
 								FortniteCloneCharacter->ClientDrawBloodEffect();
 								if (FortniteCloneCharacter->Shield > 0) {
-									if (FortniteCloneCharacter->Shield - MyOwner->ADamage < 0) {
-										int LeftoverDamage = MyOwner->ADamage - FortniteCloneCharacter->Shield;
+									if (FortniteCloneCharacter->Shield - Damage < 0) {
+										int LeftoverDamage = Damage - FortniteCloneCharacter->Shield;
 										FortniteCloneCharacter->Shield = 0;
 										FortniteCloneCharacter->Health -= LeftoverDamage;
 									}
 									else {
-										FortniteCloneCharacter->Shield -= MyOwner->ADamage;
+										FortniteCloneCharacter->Shield -= Damage;
 									}
 								}
 								else {
-									if (MyOwner)
-									{
-										FortniteCloneCharacter->Health -= MyOwner->ADamage;
-									}
-									
+									FortniteCloneCharacter->Health -= Damage;
 								}
 								if (WeaponHolder) {
 									// draw hitmarker
@@ -109,7 +96,6 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 								}
 								if (FortniteCloneCharacter->Health <= 0) {
 									if (WeaponActor) {
-						
 										WeaponActor->Destroy();
 									}
 									if (FortniteCloneCharacter) {
@@ -123,8 +109,7 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 										if (FortniteClonePlayerController) {
 											FortniteClonePlayerController->ServerSwitchToSpectatorMode();
 										}
-										FortniteCloneCharacter->GetMesh()->SetSimulatePhysics(true);
-										FortniteCloneCharacter->SetLifeSpan(1.0f);
+										FortniteCloneCharacter->Destroy();
 									}
 									FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(WeaponHolder);
 									if (FortniteCloneCharacter) {
@@ -184,8 +169,7 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 										if (FortniteClonePlayerController) {
 											FortniteClonePlayerController->ServerSwitchToSpectatorMode();
 										}
-										FortniteCloneCharacter->GetMesh()->SetSimulatePhysics(true);
-										FortniteCloneCharacter->SetLifeSpan(2.0f);
+										FortniteCloneCharacter->Destroy();
 									}
 									FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(WeaponHolder);
 									if (FortniteCloneCharacter) {
@@ -250,25 +234,13 @@ void AProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 								FortniteCloneCharacter->BuildingPreview->Destroy();
 							}
 							if (FortniteCloneCharacter) {
-								if (AFortniteCloneGameMode* GM = Cast<AFortniteCloneGameMode>(GetWorld()->GetAuthGameMode()))
-								{
-									AFortniteCloneCharacter * Killer = Cast<AFortniteCloneCharacter>(GetOwner());
-									GM->PlayerDied(FortniteCloneCharacter, Killer);
-								}
-								else
-								{
-									FString LogMsg = FString(" GetAuthGameMode is null");
-									GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, LogMsg);
-								}
 								AFortniteClonePlayerController* FortniteClonePlayerController = Cast<AFortniteClonePlayerController>(FortniteCloneCharacter->GetController());
 								if (FortniteClonePlayerController) {
 									FortniteClonePlayerController->ServerSwitchToSpectatorMode();
-									FortniteCloneCharacter->Destroy();
 								}
-								//FortniteCloneCharacter->GetMesh()->SetSimulatePhysics(true);
-								//FortniteCloneCharacter->SetLifeSpan(0.2f);
+								FortniteCloneCharacter->Destroy();
 							}
-							FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(GetOwner());
+							FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(WeaponHolder);
 							if (FortniteCloneCharacter) {
 								if (FortniteCloneCharacter->GetController() && FortniteCloneCharacter->GetController()->PlayerState) {
 									AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(FortniteCloneCharacter->GetController()->PlayerState);
