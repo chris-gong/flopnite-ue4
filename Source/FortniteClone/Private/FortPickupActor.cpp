@@ -14,6 +14,7 @@
 #include "Math/UnrealMathUtility.h"
 #include "Net/UnrealNetwork.h"
 #include "UnrealNetwork.h"
+#include "Components/StaticMeshComponent.h"
 
 // Sets default values
 AFortPickupActor::AFortPickupActor()
@@ -50,9 +51,29 @@ void AFortPickupActor::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & 
 }
 
 
+void AFortPickupActor::ServerInInventory_Implementation(bool In)
+{
+
+	if (In)
+	{
+		MeshComp->SetSimulatePhysics(false);
+		SetActorEnableCollision(false);
+	}
+	else
+	{
+		MeshComp->SetSimulatePhysics(true);
+		SetActorEnableCollision(true);
+	}
+	
+}
+
+bool AFortPickupActor::ServerInInventory_Validate(bool In){ return true; }
+
 void AFortPickupActor::InInventory(bool In)
 {
-	if (Role == ROLE_Authority)
+	if (GetOwner()->Role < ROLE_Authority)
 	{
+		ServerInInventory(In);
+		return;
 	}
 }

@@ -27,10 +27,11 @@ class AFortniteClonePlayerState;
 class UThirdPersonAnimInstance;
 class AStormActor;
 class UAnimMontage;
+class AFortPickupActor;
 class AVehicle;
 class UCharacterPartSkeletalMesh;
 class ULineTraceComponent;
-
+class UFortHealthComponent;
 
 
 
@@ -46,6 +47,9 @@ class AFortniteCloneCharacter : public ACharacter
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		UCharacterPartSkeletalMesh* CharacterPartSkeletalMeshComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Health, meta = (AllowPrivateAccess = "true"))
+		UFortHealthComponent* HealthComponent;
 
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -66,8 +70,13 @@ class AFortniteCloneCharacter : public ACharacter
 		class UFortInventoryComponent* FortInventoryComp;
 	
 public:
-
 	AFortniteCloneCharacter(const class FObjectInitializer& ObjectInitializer);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		TArray<AFortPickupActor*> Inventory;
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+		int SelectedItem;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		FName WeaponAttachSocketName;
@@ -202,7 +211,7 @@ public:
 	int GetHealingItemCount(int HealingItemType);
 
 	/* The current weapon being held */
-	UPROPERTY(Replicated)
+	UPROPERTY(Replicated, BlueprintReadOnly)
 	AWeaponActor* CurrentWeapon;
 
 	/* The current healing item being held */
@@ -684,6 +693,9 @@ public:
 private:
 	// Object creation can only happen after the character has finished being constructed
 	virtual void BeginPlay() override;
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSpawnPickaxe();
 
 public:
 	UFUNCTION(BlueprintPure, Category = "SafeZone")

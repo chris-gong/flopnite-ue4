@@ -109,6 +109,14 @@
 		{
 			"Name": "GLTFImporter",
 			"Enabled": true
+		},
+		{
+			"Name": "FMODStudio",
+			"Enabled": false
+		},
+		{
+			"Name": "RiderLink",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [

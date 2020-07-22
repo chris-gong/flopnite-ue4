@@ -66,6 +66,10 @@ void AFortniteCloneGameMode::PlayerDied(class AFortniteCloneCharacter * Killed, 
 {
 	if (Killed)
 	{
+		PlayerKilled = Killed;
+
+		PlayerKiller = Killer;
+
 		if (AFortniteClonePlayerController * PC = Cast<AFortniteClonePlayerController>(Killed->GetController()))
 		{
 			Players.RemoveSingle(PC);

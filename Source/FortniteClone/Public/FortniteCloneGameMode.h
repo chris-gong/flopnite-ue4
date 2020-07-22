@@ -28,6 +28,12 @@ public:
 
 	int TimePassed;
 
+	UPROPERTY(BlueprintReadOnly)
+		 class AFortniteCloneCharacter * PlayerKiller;
+
+	UPROPERTY(BlueprintReadOnly)
+		class AFortniteCloneCharacter * PlayerKilled;
+
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Storm | DO NOT CHANGE ")
 	AStormActor* CurrentStorm;
 

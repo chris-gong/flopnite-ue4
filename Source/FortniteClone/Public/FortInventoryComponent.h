@@ -16,29 +16,45 @@ public:
 
 	UFortInventoryComponent();
 
+
 protected:
 	
 	virtual void BeginPlay() override;
+
+	UFUNCTION(BlueprintCallable)
+	void AttachItem(class AFortPickupActor * Item);
+
 public:
+	
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
+		int SelectedItem;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FName SelectedItemAttachSocket;
 
-	UPROPERTY(Replicated, BlueprintReadOnly)
-		TArray<class AFortPickupActor*> Items;
+	UPROPERTY(Replicated, BlueprintReadOnly, VisibleAnywhere)
+	TArray<class AFortPickupActor*> Items;
 
-	UPROPERTY(Replicated, BlueprintReadOnly)
-		TArray<int> Slots;
-
+	UPROPERTY(Replicated, BlueprintReadOnly, VisibleAnywhere)
+	int Slots;
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	UFUNCTION(BlueprintCallable, Server, Reliable, WithValidation)
+	void ServerAddItem(class AFortPickupActor * Item);
+	
+	UFUNCTION(BlueprintCallable)
+    void AddItem(class AFortPickupActor* Item);
+	
 	UFUNCTION()
-		bool AddItem(class AFortPickupActor * Item);
+	void DropItem(class AFortPickupActor * Item);
 
 	UFUNCTION()
-		void DropItem(class AFortPickupActor * Item);
+	void DropAllItems();
 
-	UFUNCTION()
-		void DropAllItems();
+	UFUNCTION(BlueprintCallable)
+	bool HasFreeSlots();
 
-	UFUNCTION()
-		bool HasFreeSlots();
+	UFUNCTION(BlueprintCallable)
+	void SelectItem(uint8 index);
 };

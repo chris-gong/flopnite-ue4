@@ -38,12 +38,12 @@ void AFortniteCloneSpectator::SetupPlayerInputComponent(UInputComponent* PlayerI
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAxis("MoveForward", this, &AFortniteCloneSpectator::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &AFortniteCloneSpectator::MoveRight);
-	PlayerInputComponent->BindAxis("MoveUp", this, &AFortniteCloneSpectator::MoveUp);
+	//PlayerInputComponent->BindAxis("MoveForward", this, &AFortniteCloneSpectator::MoveForward);
+	//PlayerInputComponent->BindAxis("MoveRight", this, &AFortniteCloneSpectator::MoveRight);
+	//PlayerInputComponent->BindAxis("MoveUp", this, &AFortniteCloneSpectator::MoveUp);
 
-	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
-	PlayerInputComponent->BindAxis("TurnRate", this, &AFortniteCloneSpectator::TurnAtRate);
+	//PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
+	//PlayerInputComponent->BindAxis("TurnRate", this, &AFortniteCloneSpectator::TurnAtRate);
 }
 
 void AFortniteCloneSpectator::MoveForward(float Value) {

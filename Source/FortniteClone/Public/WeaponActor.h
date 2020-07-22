@@ -40,40 +40,6 @@ public:
 };
 
 
-UENUM(BlueprintType)
-enum class EFortWeaponType : uint8
-{
-	WT_Common	UMETA(DisplayName = "Common"),
-	WT_Uncommon	UMETA(DisplayName = "Uncommon"),
-	WT_Rare	    UMETA(DisplayName = "Rare"),
-	WT_Epic	    UMETA(DisplayName = "Epic"),
-	WT_Legendary UMETA(DisplayName = "Legendary"),
-	WT_Mythic UMETA(DisplayName = "Mythic")
-};
-
-
-USTRUCT(BlueprintType)
-struct FWeaponInformation
-{
-	GENERATED_USTRUCT_BODY()
-
-public:
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Weapon")
-		UTexture2D * WeaponImage;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Weapon")
-		EFortWeaponType WeaponType;
-};
-
-
-UENUM(BlueprintType)
-enum class EWeaponType : uint8
-{
-	WEAPT_Rifle	UMETA(DisplayName = "Rifle"),
-	WEAPT_Shotgun	UMETA(DisplayName = "Shotgun"),
-	WEAPT_Pickaxe    UMETA(DisplayName = "Pickaxe")
-};
 
 UCLASS()
 class FORTNITECLONE_API AWeaponActor : public AFortPickupActor
@@ -81,30 +47,24 @@ class FORTNITECLONE_API AWeaponActor : public AFortPickupActor
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this actor's properties
+	
 	AWeaponActor();
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
 
-	
+	virtual void BeginPlay() override;
 
 public:
 
 	void Fire();
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	FWeaponInformation WeaponInfo;
+	void Reload();
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		EWeaponType WeaponTypeEnum;
-
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerReload();
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;	
-
-	
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
 		USceneComponent* SceneComp;
@@ -131,29 +91,21 @@ public:
 	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Bullet", BlueprintReadOnly)
 		int32 CurrentBulletCount; // Only applies to assault rifle and shotgun
 
-	UPROPERTY(EditDefaultsOnly, Category = "WeaponType")
-		int32 WeaponType; // 0 for pickaxe, 1 for assault rifle, 2 for shotgun
+	
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "WeaponType")
 		int32 MaxAmmo;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "WeaponType")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Replicated, Category = "WeaponType", meta = (ClampMax = 0.0f))
 		int32 CurrentAmmo;
 
 	/** AnimMontage to play each time we fire */
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadWrite, Category = Gameplay)
 		class UAnimMontage* FireAnimation;
 
-	/** Sound to play each time we fire */
-	UPROPERTY(EditAnywhere, Replicated, BlueprintReadWrite, Category = Gameplay)
-		class USoundBase* FireSound;
-
 	/** Damage Text  */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Gameplay)
 		 TSubclassOf<AFortDamageText> DamageTextClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Gameplay)
-		bool IsWeapon;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Replicated, Category = Gameplay)
 		float BaseDamage;
@@ -214,10 +166,18 @@ protected:
 	UFUNCTION()
 		void OnRep_HitScanTrace();
 
+	UAudioComponent* PlayWeaponSound(USoundCue* SoundToPlay);
+
+	float PlayWeaponAnimation(UAnimMontage* Animation, float InPlayRate = 1.0f, FName StartSectionName = NAME_None);
+
+	void StopWeaponAnimation(UAnimMontage* Animation);
 
 private:
 
 	bool CanShoot();
 
 	void UseAmmo();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Sounds")
+		USoundCue* FireSound;
 };
