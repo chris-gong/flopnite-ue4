@@ -6,10 +6,6 @@
 #include "GameFramework/Actor.h"
 #include "MaterialActor.generated.h"
 
-
-class UBoxComponent;
-
-
 UCLASS()
 class FORTNITECLONE_API AMaterialActor : public AActor
 {
@@ -18,9 +14,6 @@ class FORTNITECLONE_API AMaterialActor : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AMaterialActor();
-
-	UPROPERTY()
-		UBoxComponent * Box;
 
 protected:
 	// Called when the game starts or when spawned
@@ -36,11 +29,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Material")
 	int MaterialCount;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Replicated, Category = "Health")
-		int Health;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Replicated, Category = "Health")
-		int MaxHealth;
+	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Health")
+	int Health;
 
 	virtual bool IsSupportedForNetworking() const override
 	{

@@ -3,11 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "FortPickupActor.h"
+#include "GameFramework/Actor.h"
 #include "WeaponActor.generated.h"
 
 class AProjectileActor;
 class AFortniteCloneCharacter;
+<<<<<<< HEAD
 class UTexture2D;
 class UAnimMontage;
 class UAudioComponent;
@@ -40,18 +41,27 @@ public:
 };
 
 
+=======
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 
 UCLASS()
-class FORTNITECLONE_API AWeaponActor : public AFortPickupActor
+class FORTNITECLONE_API AWeaponActor : public AActor
 {
 	GENERATED_BODY()
+<<<<<<< HEAD
 
 public:
 	
+=======
+	
+public:	
+	// Sets default values for this actor's properties
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 	AWeaponActor();
 
 protected:
 
+<<<<<<< HEAD
 	virtual void BeginPlay() override;
 
 public:
@@ -77,20 +87,26 @@ public:
 	{
 		return true;
 	}
+=======
+public:	
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 
 	//associated bullet
 	UPROPERTY(EditDefaultsOnly, Category = "Bullet")
-		TSubclassOf<AProjectileActor> BulletClass;
+	TSubclassOf<AProjectileActor> BulletClass;
+
+	UPROPERTY(Replicated)
+	AFortniteCloneCharacter* Holder;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Bullet")
-		TSubclassOf<UDamageType> DamgeType;
+	int MagazineSize; // Only applies to assault rifle and shotgun
 
-	UPROPERTY(EditDefaultsOnly, Category = "Bullet")
-		int MagazineSize; // Only applies to assault rifle and shotgun
+	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Bullet")
+	int CurrentBulletCount; // Only applies to assault rifle and shotgun
 
-	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Bullet", BlueprintReadOnly)
-		int32 CurrentBulletCount; // Only applies to assault rifle and shotgun
-
+<<<<<<< HEAD
 	
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "WeaponType")
@@ -181,3 +197,13 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Sounds")
 		USoundCue* FireSound;
 };
+=======
+	UPROPERTY(EditDefaultsOnly, Category = "WeaponType")
+	int WeaponType; // 0 for pickaxe, 1 for assault rifle, 2 for shotgun
+
+	virtual bool IsSupportedForNetworking() const override
+	{
+		return true;
+	}
+};
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9

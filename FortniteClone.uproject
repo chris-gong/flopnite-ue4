@@ -9,10 +9,7 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
-				"Engine",
-				"PhysXVehicles",
-				"UMG",
-				"CoreUObject"
+				"Engine"
 			]
 		}
 	],
@@ -113,10 +110,13 @@
 		{
 			"Name": "FMODStudio",
 			"Enabled": false
+<<<<<<< HEAD
 		},
 		{
 			"Name": "RiderLink",
 			"Enabled": true
+=======
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 		}
 	],
 	"TargetPlatforms": [

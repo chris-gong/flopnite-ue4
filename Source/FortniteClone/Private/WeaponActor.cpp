@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "WeaponActor.h"
+<<<<<<< HEAD
 #include "DrawDebugHelpers.h"
 #include "FortniteClone.h"
 #include "FortDamageText.h"
@@ -286,52 +287,36 @@ bool AWeaponActor::CanShoot()
    {
 	   return false;
    }
+=======
+#include "UnrealNetwork.h"
+
+// Sets default values
+AWeaponActor::AWeaponActor()
+{
+ 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 }
 
-void AWeaponActor::UseAmmo()
+// Called when the game starts or when spawned
+void AWeaponActor::BeginPlay()
 {
-	CurrentAmmo--;
-}
-
-void AWeaponActor::ServerFire_Implementation()
-{
-	Fire();
-}
-
-bool AWeaponActor::ServerFire_Validate()
-{
-	return true;
-}
-
-
-void AWeaponActor::PlayFireEffects_Implementation(FVector TraceEnd)
-{
-	
-	if (MuzzleFX) {
-		UGameplayStatics::SpawnEmitterAttached(MuzzleFX, MeshComp, MuzzleAttachPoint);
-	}
-
-	if (TracerEffect)
-	{
-		FVector MuzzleLocation = MeshComp->GetSocketLocation(MuzzleAttachPoint);
-
-		UParticleSystemComponent * TracerComp = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), TracerEffect, MuzzleLocation);
-		if (TracerComp)
-		{
-			TracerComp->SetVectorParameter(TracerTargetName, TraceEnd);
-		}
-	}
-	if (ShellEjectFX)
-	{
-		UGameplayStatics::SpawnEmitterAttached(ShellEjectFX, MeshComp, ShellEjectAttachPoint);
-	}
+	Super::BeginPlay();
 	
 }
 
-bool AWeaponActor::PlayFireEffects_Validate(FVector TraceEnd)
+// Called every frame
+void AWeaponActor::Tick(float DeltaTime)
 {
-	return true;
+	Super::Tick(DeltaTime);
+
 }
 
+void AWeaponActor::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-
+	DOREPLIFETIME(AWeaponActor, Holder);
+	DOREPLIFETIME(AWeaponActor, CurrentBulletCount);
+}

@@ -73,7 +73,7 @@ public:
 	**/
 	UFUNCTION(BlueprintCallable, Category = "GameLift Client Object")	
 	UGameLiftCreatePlayerSession* CreatePlayerSession(FString GameSessionID, FString UniquePlayerID);
-	
+
 	UFUNCTION(BlueprintCallable, Category = "GameLift Client Object")
 	UGameLiftDescribeGameSessionQueues* DescribeGameSessionQueues(FString QueueName);
 

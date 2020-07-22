@@ -36,8 +36,6 @@ public:
 
 	void DrawSettingsMenu();
 
-	void CreateNewStormEye();
-
 private:
 	UTexture2D* CrosshairTexture;
 
@@ -70,9 +68,6 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "BuildingHotkeys")
 	TSubclassOf<UUserWidget> BuildingHotkeysWidgetClass;
-
-	UPROPERTY(EditAnywhere, Category = "Storm | NewEye")
-	TSubclassOf<UUserWidget> NewEyeClass;
 
 	UPROPERTY(EditAnywhere, Category = "Widget")
 	UUserWidget* CurrentWidget;
