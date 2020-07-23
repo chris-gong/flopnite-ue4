@@ -83,7 +83,7 @@ public:
 	void ServerInInventory(bool In);
 
 	UFUNCTION()
-	void InInventory(bool In);
+	void InInventory(bool In, AActor * Caller);
 
 	UPROPERTY(EditAnywhere,  Replicated)
 		FName Socket;

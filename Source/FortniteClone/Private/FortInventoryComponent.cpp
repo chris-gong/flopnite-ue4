@@ -64,7 +64,7 @@ void UFortInventoryComponent::ServerAddItem_Implementation(class AFortPickupActo
 	{
 		SelectedItem = Items.Add(Item);
 		Slots--;
-		Items[SelectedItem]->InInventory(true);
+		Items[SelectedItem]->InInventory(true, GetOwner());
 		//Item->index = Items.Num();
 		if(Item->IsA(AWeaponActor::StaticClass()))
 		{
@@ -142,7 +142,7 @@ void UFortInventoryComponent::DropItem(class AFortPickupActor * Item)
 		DropLocation.Y += FMath::RandRange(-50.0f, 100.0f);
 
 		Item->SetActorLocation(DropLocation);
-		Item->InInventory(false);
+		Item->InInventory(false, GetOwner());
 	}
 }
 

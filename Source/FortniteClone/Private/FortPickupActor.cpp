@@ -69,9 +69,9 @@ void AFortPickupActor::ServerInInventory_Implementation(bool In)
 
 bool AFortPickupActor::ServerInInventory_Validate(bool In){ return true; }
 
-void AFortPickupActor::InInventory(bool In)
+void AFortPickupActor::InInventory(bool In, AActor * Caller)
 {
-	if (GetOwner()->Role < ROLE_Authority)
+	if (Caller->Role < ROLE_Authority)
 	{
 		ServerInInventory(In);
 		return;

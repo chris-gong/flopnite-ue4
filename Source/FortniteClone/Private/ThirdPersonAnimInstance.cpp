@@ -45,6 +45,7 @@ void UThirdPersonAnimInstance::GetLifetimeReplicatedProps(TArray< FLifetimePrope
 
 void UThirdPersonAnimInstance::NativeUpdateAnimation(float DeltaSeconds) {
 	Super::NativeUpdateAnimation(DeltaSeconds);
+	Tick_IKFoot();
 	AFortniteCloneCharacter* FortniteCloneCharacter = Cast<AFortniteCloneCharacter>(TryGetPawnOwner());
 	if (FortniteCloneCharacter) {
 		IsWalking = FortniteCloneCharacter->IsWalking;
@@ -59,4 +60,35 @@ void UThirdPersonAnimInstance::NativeUpdateAnimation(float DeltaSeconds) {
 		AimPitch = FortniteCloneCharacter->AimPitch;
 		AimYaw = FortniteCloneCharacter->AimYaw;
 	}
+}
+
+void UThirdPersonAnimInstance::NativeInitializeAnimation()
+{
+	Super::NativeInitializeAnimation();
+	Init_IKFootRef();
+}
+
+void UThirdPersonAnimInstance::Init_IKFootRef()
+{
+	// Get IKFoot Component from owner
+	APawn* pOwner = TryGetPawnOwner();
+	if (pOwner != nullptr)
+	{
+		UActorComponent* pActorComp = pOwner->GetComponentByClass(UCpt_IK_Foot::StaticClass());
+		if (pActorComp != nullptr)
+		{
+			m_pIK_Foot_Ref = Cast<UCpt_IK_Foot>(pActorComp);
+			if (m_pIK_Foot_Ref == nullptr)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("IKFootRef is nullptr"));
+			}
+		}
+	}
+}
+
+void UThirdPersonAnimInstance::Tick_IKFoot()
+{
+	if (m_pIK_Foot_Ref == nullptr) return;
+
+	m_stIKAnimValue = m_pIK_Foot_Ref->GetIKAnimValue();
 }

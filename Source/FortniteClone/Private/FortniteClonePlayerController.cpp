@@ -4,11 +4,8 @@
 #include "FortniteClonePlayerState.h"
 #include "FortniteCloneCharacter.h"
 #include "FortniteCloneSpectator.h"
-<<<<<<< HEAD
 #include "FortniteCloneGameMode.h"
 #include "FortniteCloneGameInstance.h"
-=======
->>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 #include "Engine/Engine.h"
 #include "UnrealNetwork.h"
 #include "StormActor.h"
@@ -56,6 +53,7 @@ void AFortniteClonePlayerController::Tick(float DeltaTime) {
 			PlayerPawn->SetActorLocationAndRotation(GM->PlayerKiller->GetActorLocation(), GM->PlayerKiller->GetActorRotation());
 		}
 	}
+
 }
 
 void AFortniteClonePlayerController::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
@@ -164,4 +162,9 @@ int AFortniteClonePlayerController::GetPlayerCount() {
 int AFortniteClonePlayerController::GetSpectatorCount() {
 	ServerGetNumSpectators();
 	return SpectatorCount;
+}
+
+void AFortniteClonePlayerController::StormStarted()
+{
+
 }

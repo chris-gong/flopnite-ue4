@@ -5,6 +5,7 @@
 #include "FortniteClonePlayerState.h"
 #include "ThirdPersonAnimInstance.h"
 #include "ProjectileActor.h"
+#include "Vehicle.h"
 #include "StormActor.h"
 #include "FortniteCloneHUD.h"
 #include "WeaponActor.h"
@@ -22,19 +23,21 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "CharacterPartSkeletalMesh.h"
+#include "Cpt_IK_Foot.h"
+#include "Engine/Texture2D.h"
+#include "LineTraceComponent.h"
+#include "FortInventoryComponent.h"
+#include "DrawDebugHelpers.h"
 #include "Runtime/Engine/Classes/Materials/Material.h"
-<<<<<<< HEAD
 #include "FortCharacterMovement.h"
 #include "FortHealthComponent.h"
 #include "FortniteClone.h"
-=======
->>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 
 DEFINE_LOG_CATEGORY(LogFortniteCloneCharacter);
 //////////////////////////////////////////////////////////////////////////
 // AFortniteCloneCharacter
 
-<<<<<<< HEAD
 
 
 AFortniteCloneCharacter::AFortniteCloneCharacter(const class FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.SetDefaultSubobjectClass<UFortCharacterMovement>(ACharacter::CharacterMovementComponentName))
@@ -42,12 +45,6 @@ AFortniteCloneCharacter::AFortniteCloneCharacter(const class FObjectInitializer&
 	bReplicates = true;
 	// Set size for collision capsule
 
-=======
-AFortniteCloneCharacter::AFortniteCloneCharacter()
-{
-	bReplicates = true;
-	// Set size for collision capsule
->>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
 	// Set up capsule component for detecting overlap
@@ -58,7 +55,15 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &AFortniteCloneCharacter::OnOverlapBegin);
 	TriggerCapsule->OnComponentEndOverlap.AddDynamic(this, &AFortniteCloneCharacter::OnOverlapEnd);
 
-	// set our turn rates for input
+
+	CharacterPartSkeletalMeshComponent = CreateDefaultSubobject<UCharacterPartSkeletalMesh>(TEXT("CharacterPartSkeletalMesh"));
+
+	InitializeCharacterPartSkeletalMeshComponent();
+
+	CharacterPartSkeletalMeshComponent->SetupAttachment(TriggerCapsule);
+
+	// set our turn rates for in
+
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
 
@@ -84,7 +89,6 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
-<<<<<<< HEAD
 
 	// Init IK Foot Component
 	m_pIK_Foot = CreateDefaultSubobject<UCpt_IK_Foot>(TEXT("IK_Foot"));
@@ -98,8 +102,6 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	HealthComponent = CreateDefaultSubobject<UFortHealthComponent>(TEXT("HealthComp"));
 
 	//check(CharacterPartSkeletalMeshComponent != nullptr)
-=======
->>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 	CurrentWeaponType = 0;
 	CurrentHealingItemType = -1;
 	CurrentBuildingMaterial = 0;
@@ -119,7 +121,11 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	RunningX = 0;
 	RunningY = 0;
 	InStorm = true;
-	CurrentStructureId = 0;	
+	CurrentStructureId = 0;
+
+	WeaponAttachSocketName = "hand_right_socket_rifle";
+
+	ZoomedFOV = 45.0f;
 
 	// Playerstate properties
 	/*InBuildMode = false;
@@ -149,14 +155,41 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 
-<<<<<<< HEAD
 
 	bIsInAVehicle = false;
 
 	SelectedItem = -1;
-=======
->>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 }
+
+
+
+void AFortniteCloneCharacter::InitializeCharacterPartSkeletalMeshComponent() {
+
+	check(CharacterPartSkeletalMeshComponent != nullptr);
+	CharacterPartSkeletalMeshComponent->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+	CharacterPartSkeletalMeshComponent->bReceivesDecals = false;
+
+	CharacterPartSkeletalMeshComponent->RelativeScale3D.X = 1.0f;
+	CharacterPartSkeletalMeshComponent->RelativeScale3D.Y = 1.0f;
+	CharacterPartSkeletalMeshComponent->RelativeScale3D.Z = 1.0f;
+
+	CharacterPartSkeletalMeshComponent->AlwaysLoadOnClient = true;
+	CharacterPartSkeletalMeshComponent->AlwaysLoadOnServer = true;
+	CharacterPartSkeletalMeshComponent->bOwnerNoSee = false;
+	CharacterPartSkeletalMeshComponent->MeshComponentUpdateFlag = EMeshComponentUpdateFlag::AlwaysTickPose;
+	CharacterPartSkeletalMeshComponent->bCastDynamicShadow = true;
+
+	CharacterPartSkeletalMeshComponent->SetCollisionObjectType(ECC_Pawn);
+
+	CharacterPartSkeletalMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+	//CharacterPartSkeletalMeshComponent->SetupAttachment(GetMesh());
+
+}
+
+
+
+
 
 //////////////////////////////////////////////////////////////////////////
 // Input
@@ -181,7 +214,6 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAction("ShootGun", IE_Pressed, this, &AFortniteCloneCharacter::ShootGun);
 	PlayerInputComponent->BindAction("UseHealingItem", IE_Pressed, this, &AFortniteCloneCharacter::UseHealingItem);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AFortniteCloneCharacter::Reload);
-<<<<<<< HEAD
 
 
 	PlayerInputComponent->BindAction("Ironsights", IE_Pressed, this, &AFortniteCloneCharacter::AimGunIn);
@@ -201,16 +233,6 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 
 	PlayerInputComponent->BindAction("Pickup", IE_Pressed, this, &AFortniteCloneCharacter::Pickup);
 
-=======
-	PlayerInputComponent->BindAction("HoldPickaxe", IE_Pressed, this, &AFortniteCloneCharacter::HoldPickaxe);
-	PlayerInputComponent->BindAction("HoldAssaultRifle", IE_Pressed, this, &AFortniteCloneCharacter::HoldAssaultRifle);
-	PlayerInputComponent->BindAction("HoldShotgun", IE_Pressed, this, &AFortniteCloneCharacter::HoldShotgun);
-	PlayerInputComponent->BindAction("HoldBandage", IE_Pressed, this, &AFortniteCloneCharacter::HoldBandage);
-	PlayerInputComponent->BindAction("HoldPotion", IE_Pressed, this, &AFortniteCloneCharacter::HoldPotion);
-	PlayerInputComponent->BindAction("Ironsights", IE_Pressed, this, &AFortniteCloneCharacter::AimGunIn);
-	PlayerInputComponent->BindAction("Ironsights", IE_Released, this, &AFortniteCloneCharacter::AimGunOut);
-	PlayerInputComponent->BindAction("OpenSettings", IE_Pressed, this, &AFortniteCloneCharacter::OpenSettingsMenu);
->>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
@@ -227,7 +249,6 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 
 	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AFortniteCloneCharacter::OnResetVR);
-<<<<<<< HEAD
 }
 
 
@@ -275,40 +296,6 @@ void AFortniteCloneCharacter::BeginPlay() {
 	DefaultFOV = FollowCamera->FieldOfView;
 
 	if (HasAuthority()) {
-=======
-
-}
-
-void AFortniteCloneCharacter::BeginPlay() {
-	Super::BeginPlay();
-	//GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
-	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Client ")  + FString::FromInt(ENetMode::NM_Client) + FString(" server ") + FString::FromInt(ENetMode::NM_DedicatedServer));
-	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()));
-	/*if (GetNetMode() != ENetMode::NM_Client || GetNetMode() != ENetMode::NM_Standalone) {
-		return;
-	}*/
-	if (HasAuthority()) {
-		if (WeaponClasses[CurrentWeaponType]) {
-			// for some reason I can't call clientgetweapontransform here
-			FName WeaponSocketName = TEXT("hand_right_socket_pickaxe");
-			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
-			FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
-			CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[CurrentWeaponType], SpawnTransform));
-			if (CurrentWeapon != nullptr)
-			{
-				//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
-				CurrentWeapon->Holder = this;
-				UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
-
-				UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
-				WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
-				HoldingWeapon = true;
-				AimedIn = false;
-				HoldingWeaponType = 1;
-			}
-
-		}
->>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 		// find the storm and keep a reference to it for damage purposes
 		TArray<AActor*> StormActors;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AStormActor::StaticClass(), StormActors);
@@ -333,12 +320,39 @@ void AFortniteCloneCharacter::BeginPlay() {
 			}
 			SkinInitialized = true;
 		}
-		
+
 		FTimerHandle StormDamageTimerHandle;
 		GetWorldTimerManager().SetTimer(StormDamageTimerHandle, this, &AFortniteCloneCharacter::ServerApplyStormDamage, 1.0f, true);
 
 	}
 }
+
+FVector AFortniteCloneCharacter::GetPawnViewLocation() const
+{
+	if (FollowCamera) {
+		return FollowCamera->GetComponentLocation();
+	}
+		 return Super::GetPawnViewLocation();
+}
+
+bool AFortniteCloneCharacter::CanAim()
+{
+	if (bWantsToZoom && CurrentWeapon->IsWeapon)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void AFortniteCloneCharacter::IKDebugToggle()
+{
+	m_pIK_Foot->SetIKDebug(!m_pIK_Foot->GetIKDebugState()); 
+}
+
+
 
 void AFortniteCloneCharacter::PostInitializeComponents()
 {
@@ -405,7 +419,6 @@ void AFortniteCloneCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProper
 
 void AFortniteCloneCharacter::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
-<<<<<<< HEAD
 
 
 	
@@ -433,16 +446,18 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 		FollowCamera->FieldOfView = NewFOV;
 	}
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Tick mode ") + FString::FromInt(GetNetMode()));~
-=======
-	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Tick mode ") + FString::FromInt(GetNetMode()));
->>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 	FVector DirectionVector = FVector(0, AimYaw, AimPitch);
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Tick mode ") + FString::SanitizeFloat(DirectionVector.Z));
 	if (HasAuthority()) {
 		// TODO: building preview should only be spawned client side
 		if (GetController()) {
+
 			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 			if (State) {
+
+				if (((APlayerController*)GetController())->IsInputKeyDown(EKeys::MiddleMouseButton) && State->adminFlyEnabled)
+					FlyForward(25.0f);
+
 				if (BuildingPreview != nullptr) {
 					BuildingPreview->Destroy(); //destroy the last structure preview
 					BuildingPreview = nullptr;
@@ -586,41 +601,40 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 		AimPitch = NewPitch;
 		AimYaw = NewYaw;
 	}
-	
+
 }
 
 void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	if (HasAuthority()) {
-		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("NetMode: ") + FString::FromInt(GetNetMode()) + FString(" Player overlapped with: ") + OtherActor->GetName());
-		if (OtherActor != nullptr && OtherActor != this) {
-			if (CurrentWeapon != nullptr && OtherActor == (AActor*)CurrentWeapon) {
-				// if the character is overlapping with its weapon, dont do anything about it
-				return;
-			}
-			if (CurrentHealingItem != nullptr && OtherActor == (AActor*)CurrentHealingItem) {
-				// if the character is overlapping with its healing item, dont do anything about it
-				return;
-			}
-			if (OtherActor->IsA(AWeaponActor::StaticClass())) {
-				AWeaponActor* WeaponActor = Cast<AWeaponActor>(OtherActor);
-				if (WeaponActor->WeaponType == 0) {
-					return; // do nothing if it's a pickaxe
+		if (!bIsInAVehicle) {
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("NetMode: ") + FString::FromInt(GetNetMode()) + FString(" Player overlapped with: ") + OtherActor->GetName());
+			if (OtherActor != nullptr && OtherActor != this) {
+				if (CurrentWeapon != nullptr && OtherActor == (AActor*)CurrentWeapon) {
+					// if the character is overlapping with its weapon, dont do anything about it
+					return;
 				}
-				if (WeaponActor->Holder != nullptr) {
-					return; // do nothing if someone is holding the weapon
+				if (CurrentHealingItem != nullptr && OtherActor == (AActor*)CurrentHealingItem) {
+					// if the character is overlapping with its healing item, dont do anything about it
+					return;
 				}
-				if (GetController()) {
-					// pick up the item if the two conditions above are false
+				else if (OtherActor->IsA(AHealingActor::StaticClass())) {
+					//pick up the item
+					AHealingActor* HealingActor = Cast<AHealingActor>(OtherActor);
 					AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+					if (CurrentHealingItem) {
+						CurrentHealingItem->Destroy();
+						CurrentHealingItem = nullptr;
+					}
 					if (State) {
 						if (State->InBuildMode || State->JustShotRifle || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedHealingItem || State->JustReloadedRifle || State->JustReloadedShotgun) {
 							return; // can't pick up items while in build mode or if just shot rifle, shot shotgun, swung pickaxe, used healing item, or reloaded
 						}
-						// if the player already has a weapon of this type, do not equip it
-						if (State->EquippedWeapons.Contains(WeaponActor->WeaponType)) {
-							return;
+						//CurrentHealingItem = Cast<AHealingActor>(OtherActor);
+						if (HealingActor->Holder != nullptr) {
+							return; // do nothing if someone is holding the healing item
 						}
-						// Destroy old weapon/healing item
+						//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("didn't end early"));
+						// Destroy old weapon
 						if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
 							State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
 						}
@@ -628,73 +642,33 @@ void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp
 							CurrentWeapon->Destroy();
 							CurrentWeapon = nullptr;
 						}
-						if (CurrentHealingItem) {
-							CurrentHealingItem->Destroy();
-							CurrentHealingItem = nullptr;
+						// pick up healing item
+						State->HealingItemCounts[HealingActor->HealingType] += HealingActor->Count;
+						ClientGetHealingItemTransform(HealingActor->HealingType);
+						HealingActor->Destroy();
+					}
+				}
+				else if (OtherActor->IsA(AAmmunitionActor::StaticClass())) {
+					if (GetController()) {
+						AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+						AAmmunitionActor* Ammo = Cast<AAmmunitionActor>(OtherActor);
+						if (State) {
+							// increment ammo count
+							State->EquippedWeaponsAmmunition[Ammo->WeaponType] += Ammo->BulletCount;
 						}
-						// PICK UP WEAPON
-						State->EquippedWeapons.Add(WeaponActor->WeaponType);
-						State->EquippedWeaponsClips[WeaponActor->WeaponType] = WeaponActor->MagazineSize; // this has to be done before calling client method below
-						//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("MagSize: ") + FString::FromInt(WeaponActor->MagazineSize));
-						ClientGetWeaponTransform(WeaponActor->WeaponType);
+						Ammo->Destroy();
+					}
+				}
+				else if (OtherActor->IsA(AStormActor::StaticClass())) {
+					/*FString LogMsg = FString("storm overlap begin ") + FString::FromInt(GetNetMode());
+					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, LogMsg);
+					UE_LOG(LogFortniteCloneCharacter, Warning, TEXT("%s"), *LogMsg);*/
+					InStorm = false;
+				}
+			}
 
-						WeaponActor->Destroy();
-					}
-
-				}
-
-			}
-			else if (OtherActor->IsA(AHealingActor::StaticClass())) {
-				//pick up the item
-				AHealingActor* HealingActor = Cast<AHealingActor>(OtherActor);
-				AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-				if (CurrentHealingItem) {
-					CurrentHealingItem->Destroy();
-					CurrentHealingItem = nullptr;
-				}
-				if (State) {
-					//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
-					if (State->InBuildMode || State->JustShotRifle || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedHealingItem || State->JustReloadedRifle || State->JustReloadedShotgun) {
-						return; // can't pick up items while in build mode or if just shot rifle, shot shotgun, swung pickaxe, used healing item, or reloaded
-					}
-					//CurrentHealingItem = Cast<AHealingActor>(OtherActor);
-					if (HealingActor->Holder != nullptr) {
-						return; // do nothing if someone is holding the healing item
-					}
-					//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("didn't end early"));
-					// Destroy old weapon
-					if (CurrentWeapon && CurrentWeaponType > 0 && CurrentWeaponType < 3) {
-						State->EquippedWeaponsClips[CurrentWeaponType] = CurrentWeapon->CurrentBulletCount;
-					}
-					if (CurrentWeapon) {
-						CurrentWeapon->Destroy();
-						CurrentWeapon = nullptr;
-					}
-					// pick up healing item
-					State->HealingItemCounts[HealingActor->HealingType] += HealingActor->Count;
-					ClientGetHealingItemTransform(HealingActor->HealingType);
-					HealingActor->Destroy();
-				}
-			}
-			else if (OtherActor->IsA(AAmmunitionActor::StaticClass())) {
-				if (GetController()) {
-					AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-					AAmmunitionActor* Ammo = Cast<AAmmunitionActor>(OtherActor);
-					if (State) {
-						// increment ammo count
-						State->EquippedWeaponsAmmunition[Ammo->WeaponType] += Ammo->BulletCount;
-					}
-					Ammo->Destroy();
-				}
-			}
-			else if (OtherActor->IsA(AStormActor::StaticClass())) {
-				/*FString LogMsg = FString("storm overlap begin ") + FString::FromInt(GetNetMode());
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, LogMsg);
-				UE_LOG(LogFortniteCloneCharacter, Warning, TEXT("%s"), *LogMsg);*/
-				InStorm = false;
-			}
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, OtherActor->GetName());
 		}
+
 	}
 }
 
@@ -710,6 +684,21 @@ void AFortniteCloneCharacter::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, 
 			if (OtherActor->IsA(AStormActor::StaticClass())) {
 				InStorm = true;
 			}
+		}
+	}
+}
+
+
+void AFortniteCloneCharacter::FlyForward(float Value)
+{
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("move forward ") + FString::FromInt(GetNetMode()));
+
+	if ((Controller != nullptr) && (Value != 0.0f) && HasAuthority())
+	{
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(Controller->PlayerState);
+		if (State)
+		{
+			FRotator Rotation = Controller->GetControlRotation();
 		}
 	}
 }
@@ -755,7 +744,7 @@ void AFortniteCloneCharacter::LookUpAtRate(float Rate)
 void AFortniteCloneCharacter::MoveForward(float Value)
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("move forward ") + FString::FromInt(GetNetMode()));
-	
+
 	if ((Controller != nullptr) && (Value != 0.0f))
 	{
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(Controller->PlayerState);
@@ -826,13 +815,6 @@ void AFortniteCloneCharacter::MoveRight(float Value)
 			AddMovementInput(Direction, Value * 0.45);
 		}
 	}
-	/*UThirdPersonAnimInstance* Animation = Cast<UThirdPersonAnimInstance>(GetMesh()->GetAnimInstance());
-	if (Animation) {
-		//set blend space variable
-		Animation->WalkingX = Value * 90;
-		Animation->RunningX = Value * 90;
-		//Server_SetMovingVariables();
-	}*/
 	if (Value == 0) {
 		ServerResetMovingRight();
 	}
@@ -1153,10 +1135,12 @@ void AFortniteCloneCharacter::Reload() {
 }
 
 void AFortniteCloneCharacter::AimGunIn() {
+	bWantsToZoom = true;
 	ServerAimDownSights();
 }
 
 void AFortniteCloneCharacter::AimGunOut() {
+	bWantsToZoom = false;
 	ServerAimHipFire();
 }
 
@@ -1174,7 +1158,7 @@ void AFortniteCloneCharacter::ShotgunTimeOut() {
 
 void AFortniteCloneCharacter::RifleReloadTimeOut() {
 	AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-	State->JustReloadedRifle= false;
+	State->JustReloadedRifle = false;
 }
 
 void AFortniteCloneCharacter::ShotgunReloadTimeOut() {
@@ -1194,6 +1178,11 @@ void AFortniteCloneCharacter::HoldShotgun() {
 	ServerSwitchToShotgun();
 }
 
+void AFortniteCloneCharacter::SpawnWeaponSound(USoundBase * SoundToPlay, FVector LocationToPlay)
+{
+	UGameplayStatics::SpawnSoundAttached(SoundToPlay, GetMesh(), WeaponAttachSocketName, LocationToPlay, EAttachLocation::SnapToTarget, false);
+}
+
 void AFortniteCloneCharacter::HoldBandage() {
 	ServerSwitchToHealingItem(0);
 }
@@ -1208,6 +1197,24 @@ float AFortniteCloneCharacter::GetHealth() {
 
 float AFortniteCloneCharacter::GetShield() {
 	return Shield;
+}
+
+UTexture2D * AFortniteCloneCharacter::GetWeaponImage() {
+	if (GetController()) {
+		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+		if (State) {
+			return State->WeaponImage;
+		}
+		else {
+
+			return nullptr;
+		}
+
+	}
+	else
+	{
+		return nullptr;
+	}
 }
 
 int AFortniteCloneCharacter::GetWoodMaterialCount() {
@@ -1310,7 +1317,6 @@ void AFortniteCloneCharacter::OpenSettingsMenu() {
 	}
 }
 
-<<<<<<< HEAD
 void AFortniteCloneCharacter::Pickup()
 {
 	APlayerCameraManager *camManager = GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
@@ -1395,8 +1401,6 @@ bool AFortniteCloneCharacter::ServerPickup_Validate(FHitResult HitResult)
 
 }
 
-=======
->>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 void AFortniteCloneCharacter::ServerSetIsWalkingTrue_Implementation() {
 	IsWalking = true;
 }
@@ -1522,6 +1526,11 @@ bool AFortniteCloneCharacter::ServerResetMovingRight_Validate() {
 	return true;
 }
 
+bool AFortniteCloneCharacter::GetIsStorm() {
+
+	return InStorm;
+}
+
 void AFortniteCloneCharacter::ServerSetMaterialCount_Implementation(int Count, int MaterialType) {
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
@@ -1547,7 +1556,6 @@ bool AFortniteCloneCharacter::ServerBuildStructure_Validate(TSubclassOf<ABuildin
 	return true;
 }
 
-<<<<<<< HEAD
 
 
 void AFortniteCloneCharacter::Equip(uint8 index)
@@ -1696,8 +1704,6 @@ void AFortniteCloneCharacter::EquipSlot4()
 		FortInventoryComp->SelectedItem = 3;
 	}
 }
-=======
->>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 void AFortniteCloneCharacter::ServerSetBuildModeWall_Implementation() {
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
@@ -1735,7 +1741,7 @@ void AFortniteCloneCharacter::ServerSetBuildModeWall_Implementation() {
 				State->BuildMode = FString("Wall");
 				State->HoldingWeapon = false;
 				State->HoldingHealingItem = false;
-				State->AimedIn = false; 
+				State->AimedIn = false;
 				//animinstance properties
 				HoldingWeapon = false;
 				AimedIn = false;
@@ -1784,7 +1790,7 @@ void AFortniteCloneCharacter::ServerSetBuildModeRamp_Implementation() {
 				if (CurrentWeaponType > -1 && CurrentWeaponType < 3) {
 					ClientGetWeaponTransform(CurrentWeaponType);
 				}
-				else if(CurrentHealingItemType > -1 && CurrentHealingItemType < 2){
+				else if (CurrentHealingItemType > -1 && CurrentHealingItemType < 2) {
 					//equip healing item since current weapon was null
 					ClientGetHealingItemTransform(CurrentHealingItemType);
 				}
@@ -1890,7 +1896,6 @@ bool AFortniteCloneCharacter::ServerSetBuildModeFloor_Validate() {
 
 void AFortniteCloneCharacter::ServerFireWeapon_Implementation() {
 		if (GetController()) {
-<<<<<<< HEAD
 			if(AWeaponActor * weap = Cast<AWeaponActor>(FortInventoryComp->Items[FortInventoryComp->SelectedItem]))
 			{
 				weap->Fire();
@@ -1898,10 +1903,9 @@ void AFortniteCloneCharacter::ServerFireWeapon_Implementation() {
 				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "weapon fired");
 			}
 			/*
-=======
->>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 			if (State) {
+				/*
 				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()) + FString(" Current weapon ") + FString::FromInt(State->CurrentWeapon));
 				if (State->HoldingWeapon) {
 					if (State->CurrentWeapon > 0 && State->CurrentWeapon < 3 && CurrentWeapon->CurrentBulletCount <= 0) {
@@ -1921,6 +1925,7 @@ void AFortniteCloneCharacter::ServerFireWeapon_Implementation() {
 							CurrentWeapon->CurrentBulletCount--;
 							State->EquippedWeaponsClips[CurrentWeaponType]--;
 							State->JustShotRifle = true;
+							//BCurrentWeapon->MuzzlePSC = UGameplayStatics::SpawnEmitterAttached(CurrentWeapon->MuzzleFX, CurrentWeapon->MeshComp, CurrentWeapon->MuzzleAttachPoint);
 							FTimerHandle RifleTimerHandle;
 							GetWorldTimerManager().SetTimer(RifleTimerHandle, this, &AFortniteCloneCharacter::ServerRifleTimeOut, 0.233f, false);
 						}
@@ -1958,7 +1963,8 @@ void AFortniteCloneCharacter::ServerFireWeapon_Implementation() {
 							FTimerHandle RifleTimerHandle;
 							GetWorldTimerManager().SetTimer(RifleTimerHandle, this, &AFortniteCloneCharacter::ServerRifleTimeOut, 0.233f, false);
 						}
-						else if (State->CurrentWeapon == 2) {
+						
+						if (State->CurrentWeapon == 2) {
 							if (State->JustShotShotgun) {
 								return;
 							}
@@ -1976,6 +1982,7 @@ void AFortniteCloneCharacter::ServerFireWeapon_Implementation() {
 
 				}
 			}
+			*/
 		}
 
 }
@@ -2384,7 +2391,7 @@ void AFortniteCloneCharacter::ServerAimHipFire_Implementation() {
 			State->AimedIn = false;
 		}
 	}
-	
+
 }
 
 bool AFortniteCloneCharacter::ServerAimHipFire_Validate() {
@@ -2552,13 +2559,13 @@ void AFortniteCloneCharacter::ServerSpawnAndAttachWeapon_Implementation(int Weap
 			else if (CurrentWeaponType == 2) {
 				WeaponSocketName = TEXT("hand_right_socket_shotgun");
 			}
-			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+			FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
 			CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[WeaponType], SpawnTransform));
-			if (CurrentWeapon != nullptr)
+			if (CurrentWeapon)
 			{
+				CurrentWeapon->SetOwner(this);
 				CurrentWeapon->CurrentBulletCount = State->EquippedWeaponsClips[CurrentWeaponType];
 				//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
-				CurrentWeapon->Holder = this;
 				UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
 
 				UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
@@ -2575,7 +2582,24 @@ void AFortniteCloneCharacter::ServerSpawnAndAttachWeapon_Implementation(int Weap
 			}
 		}
 	}
+	/*
+	if (Role == ROLE_Authority)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
+
+		CurrentWeapon = GetWorld()->SpawnActor<AWeaponActor>(OutHit.GetActor()->GetClass(), GetMesh()->GetSocketLocation("hand_right_socket_rifle"), GetMesh()->GetSocketRotation("hand_right_socket_rifle"), SpawnParams);
+		if (CurrentWeapon) {
+			CurrentWeapon->SetOwner(this);
+			CurrentWeapon->AttachToComponent(GetMesh(), AttachmentRules, WeaponAttachSocketName);
+			V_LOG(LogFortniteCloneCharacter, TEXT(" Set AttachToComponent "));
+		}
+	}
+	*/
 }
+
 
 bool AFortniteCloneCharacter::ServerSpawnAndAttachWeapon_Validate(int WeaponType, FTransform SpawnTransform) {
 	return true;
@@ -2605,7 +2629,7 @@ void AFortniteCloneCharacter::ServerSpawnAndAttachHealingItem_Implementation(int
 				CurrentHealingItem->Holder = this;
 
 				UGameplayStatics::FinishSpawningActor(CurrentHealingItem, SpawnTransform);
-				
+
 				FVector OldScale = CurrentHealingItem->GetActorScale3D();
 				CurrentHealingItem->SetActorScale3D(FVector(OldScale.X * 0.5, OldScale.Y * 0.5, OldScale.Z * 0.5)); // make the potion specifically smaller to fit hand
 
@@ -2630,10 +2654,12 @@ bool AFortniteCloneCharacter::ServerSpawnAndAttachHealingItem_Validate(int Heali
 }
 
 void AFortniteCloneCharacter::ClientCameraAimIn_Implementation() {
-	FollowCamera->FieldOfView = 45;
+
+	bWantsToZoom = true;
 }
 
 void AFortniteCloneCharacter::ClientCameraAimOut_Implementation() {
+	bWantsToZoom = false;
 	FollowCamera->FieldOfView = 90;
 }
 
@@ -2678,7 +2704,7 @@ void AFortniteCloneCharacter::ClientGetBulletTransform_Implementation() {
 			}
 		}
 	}
-	
+
 }
 
 void AFortniteCloneCharacter::NetMulticastPlayPickaxeSwingAnimation_Implementation() {
@@ -2751,7 +2777,7 @@ void AFortniteCloneCharacter::ClientDestroyStructure_Implementation(int Structur
 				break;
 			}
 		}
-		
+
 	}
 }
 
@@ -2777,5 +2803,29 @@ void AFortniteCloneCharacter::OnRepSetSkin() {
 	else {
 		// assign UMaterialInstance
 		CharacterMesh->SetMaterial(0, SkinMaterialInstances[CurrentSkin]);
+	}
+}
+
+int32 AFortniteCloneCharacter::GetCurrentWeaponAmmo() {
+
+	if (CurrentWeapon)
+	{
+		return CurrentWeapon->CurrentAmmo;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+float AFortniteCloneCharacter::GetCurrentMaxAmmo()
+{
+	if (CurrentWeapon)
+	{
+		return CurrentWeapon->MaxAmmo;
+	}
+	else
+	{
+		return 0.0f;
 	}
 }
