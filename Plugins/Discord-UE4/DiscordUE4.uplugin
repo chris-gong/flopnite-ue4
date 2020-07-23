@@ -1,0 +1,31 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "2.0",
+	"FriendlyName": "Discord UE4",
+	"Description": "Discord Rich Presence.",
+	"Category": "Satheesh",
+	"CreatedBy": "Satheesh Pv (ryanjon2040)",
+	"CreatedByURL": "https://unrealxeditor.wordpress.com/",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "https://discord.gg/QnzVK5R",
+	"EngineVersion": "4.24",
+	"CanContainContent": false,
+	"IsBetaVersion": true,
+	"IsExperimentalVersion": false,
+	"Installed": true,
+	"EnabledByDefault": true,
+	"Modules": [
+		{
+			"Name": "DiscordUE4",
+			"Type": "Runtime",
+			"LoadingPhase": "PreDefault",
+			"WhitelistPlatforms": [
+				"Win64",
+				"Win32",
+				"Mac"
+			]
+		}
+	]
+}
