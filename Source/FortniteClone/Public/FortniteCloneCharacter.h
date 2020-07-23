@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "FortPickupActor.h"
 #include "GameFramework/Character.h"
 #include "FortniteCloneCharacter.generated.h"
 
@@ -32,6 +33,7 @@ class AVehicle;
 class UCharacterPartSkeletalMesh;
 class ULineTraceComponent;
 class UFortHealthComponent;
+class AWeaponActor;
 
 
 
@@ -290,6 +292,9 @@ public:
 
 	UPROPERTY()
 	AFortniteCloneCharacter * CurrentDirver;
+
+	UPROPERTY(BlueprintReadOnly)
+	EWeaponType WeaponTypeE = EWeaponType::WEAPT_Pickaxe;
 	
 	virtual FVector GetPawnViewLocation() const override;
 		
@@ -461,12 +466,12 @@ protected:
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	/** Returns invsys subobject **/
+	FORCEINLINE class UFortInventoryComponent* GetInvSystem() const { return FortInventoryComp; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	// Tick function is called every frame
 	virtual void Tick(float DeltaTime) override;
-
-
 
 	UFUNCTION()
 	void FlyForward(float Value);

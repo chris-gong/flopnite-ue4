@@ -95,10 +95,6 @@
 			"Enabled": true
 		},
 		{
-			"Name": "CodeView",
-			"Enabled": true
-		},
-		{
 			"Name": "Spatialization",
 			"Enabled": true
 		},

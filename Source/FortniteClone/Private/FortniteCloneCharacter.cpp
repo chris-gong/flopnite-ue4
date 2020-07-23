@@ -429,7 +429,6 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 			FortInventoryComp->Items[i]->SetActorHiddenInGame(i != FortInventoryComp->SelectedItem);
 		}
 	}
-	
 
 	if (Health <= 0)
 	{
@@ -445,6 +444,7 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 
 		FollowCamera->FieldOfView = NewFOV;
 	}
+	
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Tick mode ") + FString::FromInt(GetNetMode()));~
 	FVector DirectionVector = FVector(0, AimYaw, AimPitch);
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Tick mode ") + FString::SanitizeFloat(DirectionVector.Z));
@@ -601,7 +601,6 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 		AimPitch = NewPitch;
 		AimYaw = NewYaw;
 	}
-
 }
 
 void AFortniteCloneCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
@@ -1584,127 +1583,41 @@ bool AFortniteCloneCharacter::ServerEquip_Validate(uint8 index)
 
 void AFortniteCloneCharacter::EquipSlot1()
 {
+	
 	if (FortInventoryComp->Items.IsValidIndex(0))
 	{
-		if (FortInventoryComp->Items.IsValidIndex(1))
-		{
-			FortInventoryComp->Items[1]->SetActorHiddenInGame(true);
-		}
-		
-		if (FortInventoryComp->Items.IsValidIndex(2))
-        {
-            FortInventoryComp->Items[2]->SetActorHiddenInGame(true);
-        }
-		if (FortInventoryComp->Items.IsValidIndex(3))
-		{
-			FortInventoryComp->Items[3]->SetActorHiddenInGame(true);
-		}
-		if (FortInventoryComp->Items.IsValidIndex(4))
-		{
-			FortInventoryComp->Items[4]->SetActorHiddenInGame(true);
-		}
-		if (FortInventoryComp->Items.IsValidIndex(5))
-		{
-			FortInventoryComp->Items[5]->SetActorHiddenInGame(true);
-		}
-		
-		
-
-		FortInventoryComp->Items[0]->SetActorHiddenInGame(false);
-		FortInventoryComp->SelectedItem = 0;
+		ServerEquip(0);
 	}
+	
 	
 }
 
 void AFortniteCloneCharacter::EquipSlot2()
 {
+	
 	if (FortInventoryComp->Items.IsValidIndex(1))
 	{
-		if (FortInventoryComp->Items.IsValidIndex(0))
-		{
-			FortInventoryComp->Items[0]->SetActorHiddenInGame(true);
-		}
-		
-		if (FortInventoryComp->Items.IsValidIndex(2))
-		{
-			FortInventoryComp->Items[2]->SetActorHiddenInGame(true);
-		}
-		if (FortInventoryComp->Items.IsValidIndex(3))
-		{
-			FortInventoryComp->Items[3]->SetActorHiddenInGame(true);
-		}
-		if (FortInventoryComp->Items.IsValidIndex(4))
-		{
-			FortInventoryComp->Items[4]->SetActorHiddenInGame(true);
-		}
-		if (FortInventoryComp->Items.IsValidIndex(5))
-		{
-			FortInventoryComp->Items[5]->SetActorHiddenInGame(true);
-		}
-		
-		FortInventoryComp->Items[1]->SetActorHiddenInGame(false);
-		FortInventoryComp->Items[1]->MeshComp->SetVisibility(true);
-		FortInventoryComp->SelectedItem = 1;
+		ServerEquip(1);
 	}
 }
 
 void AFortniteCloneCharacter::EquipSlot3()
 {
+	
 	if (FortInventoryComp->Items.IsValidIndex(2))
 	{
-		if (FortInventoryComp->Items.IsValidIndex(0))
-		{
-			FortInventoryComp->Items[0]->SetActorHiddenInGame(true);
-		}
-		if (FortInventoryComp->Items.IsValidIndex(1))
-		{
-			FortInventoryComp->Items[1]->SetActorHiddenInGame(true);
-		}
-		if (FortInventoryComp->Items.IsValidIndex(3))
-		{
-			FortInventoryComp->Items[3]->SetActorHiddenInGame(true);
-		}
-		if (FortInventoryComp->Items.IsValidIndex(4))
-		{
-			FortInventoryComp->Items[4]->SetActorHiddenInGame(true);
-		}
-		if (FortInventoryComp->Items.IsValidIndex(5))
-		{
-			FortInventoryComp->Items[5]->SetActorHiddenInGame(true);
-		}
-		
-		FortInventoryComp->Items[2]->SetActorHiddenInGame(false);
-		FortInventoryComp->Items[2]->MeshComp->SetVisibility(true);
-		FortInventoryComp->SelectedItem = 2;
+		ServerEquip(2);
 	}
+	
 }
 
 void AFortniteCloneCharacter::EquipSlot4()
 {
 	if (FortInventoryComp->Items.IsValidIndex(3))
 	{
-		if (FortInventoryComp->Items.IsValidIndex(0))
-		{
-			FortInventoryComp->Items[0]->SetActorHiddenInGame(true);
-		}
-		
-		if (FortInventoryComp->Items.IsValidIndex(2))
-		{
-			FortInventoryComp->Items[2]->SetActorHiddenInGame(true);
-		}
-		if (FortInventoryComp->Items.IsValidIndex(1))
-		{
-			FortInventoryComp->Items[1]->SetActorHiddenInGame(true);
-		}
-		if (FortInventoryComp->Items.IsValidIndex(5))
-		{
-			FortInventoryComp->Items[5]->SetActorHiddenInGame(true);
-		}
-		
-		FortInventoryComp->Items[3]->SetActorHiddenInGame(false);
-		FortInventoryComp->Items[3]->MeshComp->SetVisibility(true);
-		FortInventoryComp->SelectedItem = 3;
+		ServerEquip(3);
 	}
+	
 }
 void AFortniteCloneCharacter::ServerSetBuildModeWall_Implementation() {
 	if (GetController()) {
@@ -1898,12 +1811,12 @@ bool AFortniteCloneCharacter::ServerSetBuildModeFloor_Validate() {
 
 void AFortniteCloneCharacter::ServerFireWeapon_Implementation() {
 		if (GetController()) {
-			if(AWeaponActor * weap = Cast<AWeaponActor>(FortInventoryComp->Items[FortInventoryComp->SelectedItem]))
-			{
-				weap->Fire();
-
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "weapon fired");
-			}
+				if(AWeaponActor * weap = Cast<AWeaponActor>(FortInventoryComp->Items[FortInventoryComp->SelectedItem]))
+				{
+					weap->SetOwner(this);
+					weap->Fire();
+					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "weapon fired");
+				}
 			/*
 			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 			if (State) {

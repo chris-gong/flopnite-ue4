@@ -81,6 +81,7 @@ void UFortInventoryComponent::ServerAddItem_Implementation(class AFortPickupActo
 			return;
 		}
 		AttachItem(Items[SelectedItem]);
+		player->WeaponTypeE = Items[SelectedItem]->WeaponTypeEnum;
 	}
 }
 
@@ -114,7 +115,11 @@ void UFortInventoryComponent::AttachItem(class AFortPickupActor * Item)
 void UFortInventoryComponent::SelectItem(uint8 index)
 {
 	Slots--;
-	SelectedItem = index;	
+	SelectedItem = index;
+	if (Items.IsValidIndex(index))
+	{
+		Items[index]->SetActorHiddenInGame(false);
+	}
 }
 
 

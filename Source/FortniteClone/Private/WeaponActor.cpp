@@ -16,6 +16,7 @@
 #include "FortniteClonePlayerState.h"
 #include "GameFramework/Actor.h"
 #include "FortniteCloneCharacter.h"
+#include "FortInventoryComponent.h"
 
 
 DEFINE_LOG_CATEGORY(LogWeaponActor);
@@ -184,19 +185,22 @@ void AWeaponActor::Fire()
 		else
 		{
 			AFortniteCloneCharacter * Player = Cast<AFortniteCloneCharacter>(MyOwner);
-
-			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(Player->GetController()->PlayerState);
-			if (State)
+			
+			if (Player->WeaponTypeE == EWeaponType::WEAPT_Pickaxe)
 			{
-				if (State->CurrentWeapon == 0) {
-					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "pickaxe swung");
-					if (State->JustSwungPickaxe) {
-						return;
+				AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(Player->GetController()->PlayerState);
+				if (State)
+				{
+					if (Player->GetInvSystem()->Items[Player->GetInvSystem()->SelectedItem]->WeaponTypeEnum == EWeaponType::WEAPT_Pickaxe) {
+						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "pickaxe swung");
+						if (State->JustSwungPickaxe) {
+							return;
+						}
+						Player->NetMulticastPlayPickaxeSwingAnimation();
+						State->JustSwungPickaxe = true;
+						FTimerHandle PickaxeTimerHandle;
+						GetWorldTimerManager().SetTimer(PickaxeTimerHandle, Player, &AFortniteCloneCharacter::ServerPickaxeTimeOut, 0.403f, false);
 					}
-					Player->NetMulticastPlayPickaxeSwingAnimation();
-					State->JustSwungPickaxe = true;
-					FTimerHandle PickaxeTimerHandle;
-					GetWorldTimerManager().SetTimer(PickaxeTimerHandle, Player, &AFortniteCloneCharacter::ServerPickaxeTimeOut, 0.403f, false);
 				}
 			}				
 		}

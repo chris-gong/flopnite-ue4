@@ -24,6 +24,7 @@ class USceneComponent;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogWeaponActor, Log, All);
 
+
 // Contains information of a single hitscan weapon linetrace
 USTRUCT()
 struct FHitScanTrace
