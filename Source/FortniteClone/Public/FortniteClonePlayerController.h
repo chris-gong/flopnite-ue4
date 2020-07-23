@@ -46,6 +46,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Count")
 	int GetSpectatorCount();
 
+	void StormStarted();
+
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerGetNumPlayers();
 

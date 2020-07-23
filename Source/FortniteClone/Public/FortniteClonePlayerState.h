@@ -8,9 +8,12 @@
 
 class AFortniteCloneCharacter;
 
+
+
 /**
  * 
  */
+
 UCLASS()
 class FORTNITECLONE_API AFortniteClonePlayerState : public APlayerState
 {
@@ -18,6 +21,7 @@ class FORTNITECLONE_API AFortniteClonePlayerState : public APlayerState
 	
 public:
 	AFortniteClonePlayerState();
+
 
 	UPROPERTY(Replicated)
 	bool InBuildMode;
@@ -32,7 +36,17 @@ public:
 	bool HoldingHealingItem;
 
 	UPROPERTY(Replicated)
+		class UTexture2D* WeaponImage;
+
+	UPROPERTY(Replicated)
 	bool AimedIn;
+
+
+	UPROPERTY(Replicated)
+		bool adminFlyEnabled;
+
+	UPROPERTY(Replicated)
+		bool infiniteAmmoEnabled;
 
 	UPROPERTY(Replicated)
 	TArray<int> EquippedWeapons; //0 for pickaxe, 1 for assault rifle, 2 for shotgun
