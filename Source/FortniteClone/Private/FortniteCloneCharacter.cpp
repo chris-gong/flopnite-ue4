@@ -1324,9 +1324,11 @@ void AFortniteCloneCharacter::Pickup()
 	FVector camLocation = camManager->GetCameraLocation();
 	FVector camForward = camManager->GetCameraRotation().Vector();
 
+	FVector Start = GetFollowCamera()->GetComponentLocation();
+	FVector ForwardVector = FollowCamera->GetForwardVector();
+	FVector End = ((ForwardVector * 1000.f) + Start);
+	
 	FHitResult OutHit;
-	FVector Start = GetMesh()->GetSocketLocation("head");
-	FVector End = Start + FollowCamera->GetForwardVector() * 170.0f;
 	FCollisionQueryParams CollisionParams;
 
 #if WITH_EDITOR

@@ -35,12 +35,12 @@ public:
 	UPROPERTY(Replicated, BlueprintReadOnly, VisibleAnywhere)
 	TArray<class AFortPickupActor*> Items;
 
-	UPROPERTY(Replicated, BlueprintReadOnly, VisibleAnywhere)
+	UPROPERTY(Replicated, BlueprintReadWrite, VisibleAnywhere)
 	int Slots;
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	UFUNCTION(BlueprintCallable, Server, Reliable, WithValidation)
+	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerAddItem(class AFortPickupActor * Item);
 	
 	UFUNCTION(BlueprintCallable)
@@ -52,7 +52,7 @@ public:
 	UFUNCTION()
 	void DropAllItems();
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintPure)
 	bool HasFreeSlots();
 
 	UFUNCTION(BlueprintCallable)

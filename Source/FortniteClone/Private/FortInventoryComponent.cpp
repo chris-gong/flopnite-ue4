@@ -74,16 +74,13 @@ void UFortInventoryComponent::ServerAddItem_Implementation(class AFortPickupActo
 			weap->SetOwner(GetOwner());
 			Items[SelectedItem]->SetOwner(GetOwner());
 			AttachItem(Items[SelectedItem]);
-			AttachItem(Item);
 		}
 		else{
 			Items[SelectedItem]->SetOwner(GetOwner());
 			AttachItem(Items[SelectedItem]);
-			AttachItem(Item);
 			return;
 		}
 		AttachItem(Items[SelectedItem]);
-		AttachItem(Item);
 	}
 }
 
@@ -96,6 +93,7 @@ void UFortInventoryComponent::AddItem(class AFortPickupActor* Item)
 	if (player->Role < ROLE_Authority)
 	{
 		ServerAddItem(Item);
+		SelectedItem = Items.Add(Item);
 	}
 }
 
