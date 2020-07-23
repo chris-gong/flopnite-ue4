@@ -23,15 +23,31 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/Materials/Material.h"
+<<<<<<< HEAD
+#include "FortCharacterMovement.h"
+#include "FortHealthComponent.h"
+#include "FortniteClone.h"
+=======
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 
 DEFINE_LOG_CATEGORY(LogFortniteCloneCharacter);
 //////////////////////////////////////////////////////////////////////////
 // AFortniteCloneCharacter
 
+<<<<<<< HEAD
+
+
+AFortniteCloneCharacter::AFortniteCloneCharacter(const class FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer.SetDefaultSubobjectClass<UFortCharacterMovement>(ACharacter::CharacterMovementComponentName))
+{
+	bReplicates = true;
+	// Set size for collision capsule
+
+=======
 AFortniteCloneCharacter::AFortniteCloneCharacter()
 {
 	bReplicates = true;
 	// Set size for collision capsule
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
 	// Set up capsule component for detecting overlap
@@ -68,6 +84,22 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+<<<<<<< HEAD
+
+	// Init IK Foot Component
+	m_pIK_Foot = CreateDefaultSubobject<UCpt_IK_Foot>(TEXT("IK_Foot"));
+	// Set Foot bone name to IK Component
+	m_pIK_Foot->Set_IKSocketName(TEXT("foot_l"), TEXT("foot_r"));
+
+	LineTraceComp = CreateDefaultSubobject<ULineTraceComponent>(TEXT("LineTraceComp"));
+
+	FortInventoryComp = CreateDefaultSubobject<UFortInventoryComponent>(TEXT("InventoryComp"));
+
+	HealthComponent = CreateDefaultSubobject<UFortHealthComponent>(TEXT("HealthComp"));
+
+	//check(CharacterPartSkeletalMeshComponent != nullptr)
+=======
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 	CurrentWeaponType = 0;
 	CurrentHealingItemType = -1;
 	CurrentBuildingMaterial = 0;
@@ -117,6 +149,13 @@ AFortniteCloneCharacter::AFortniteCloneCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 
+<<<<<<< HEAD
+
+	bIsInAVehicle = false;
+
+	SelectedItem = -1;
+=======
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -142,6 +181,27 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAction("ShootGun", IE_Pressed, this, &AFortniteCloneCharacter::ShootGun);
 	PlayerInputComponent->BindAction("UseHealingItem", IE_Pressed, this, &AFortniteCloneCharacter::UseHealingItem);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AFortniteCloneCharacter::Reload);
+<<<<<<< HEAD
+
+
+	PlayerInputComponent->BindAction("Ironsights", IE_Pressed, this, &AFortniteCloneCharacter::AimGunIn);
+	PlayerInputComponent->BindAction("Ironsights", IE_Released, this, &AFortniteCloneCharacter::AimGunOut);
+	PlayerInputComponent->BindAction("OpenSettings", IE_Pressed, this, &AFortniteCloneCharacter::OpenSettingsMenu);
+
+
+	
+	PlayerInputComponent->BindAction("HoldPickaxe", IE_Pressed, this, &AFortniteCloneCharacter::EquipSlot1);
+	PlayerInputComponent->BindAction("HoldAssaultRifle", IE_Pressed, this, &AFortniteCloneCharacter::EquipSlot2);
+	PlayerInputComponent->BindAction("HoldShotgun", IE_Pressed, this, &AFortniteCloneCharacter::HoldShotgun);
+	PlayerInputComponent->BindAction("HoldBandage", IE_Pressed, this, &AFortniteCloneCharacter::HoldBandage);
+	PlayerInputComponent->BindAction("HoldPotion", IE_Pressed, this, &AFortniteCloneCharacter::HoldPotion);
+	
+	
+	
+
+	PlayerInputComponent->BindAction("Pickup", IE_Pressed, this, &AFortniteCloneCharacter::Pickup);
+
+=======
 	PlayerInputComponent->BindAction("HoldPickaxe", IE_Pressed, this, &AFortniteCloneCharacter::HoldPickaxe);
 	PlayerInputComponent->BindAction("HoldAssaultRifle", IE_Pressed, this, &AFortniteCloneCharacter::HoldAssaultRifle);
 	PlayerInputComponent->BindAction("HoldShotgun", IE_Pressed, this, &AFortniteCloneCharacter::HoldShotgun);
@@ -150,6 +210,7 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAction("Ironsights", IE_Pressed, this, &AFortniteCloneCharacter::AimGunIn);
 	PlayerInputComponent->BindAction("Ironsights", IE_Released, this, &AFortniteCloneCharacter::AimGunOut);
 	PlayerInputComponent->BindAction("OpenSettings", IE_Pressed, this, &AFortniteCloneCharacter::OpenSettingsMenu);
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
@@ -166,6 +227,55 @@ void AFortniteCloneCharacter::SetupPlayerInputComponent(class UInputComponent* P
 
 	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AFortniteCloneCharacter::OnResetVR);
+<<<<<<< HEAD
+}
+
+
+void AFortniteCloneCharacter::SpawnPickaxe()
+{
+	if (WeaponClasses[CurrentWeaponType]) {
+		// for some reason I can't call clientgetweapontransform here
+		FName WeaponSocketName = TEXT("hand_right_socket_pickaxe");
+		FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld, true);
+		FTransform SpawnTransform(GetActorRotation(), GetActorLocation());
+		CurrentWeapon = Cast<AWeaponActor>(UGameplayStatics::BeginDeferredActorSpawnFromClass(this, WeaponClasses[CurrentWeaponType], SpawnTransform));
+		if (CurrentWeapon != nullptr)
+		{
+			//spawnactor has no way of passing parameters so need to use begindeferredactorspawn and finishspawningactor
+			CurrentWeapon->Holder = this;
+			UGameplayStatics::FinishSpawningActor(CurrentWeapon, SpawnTransform);
+
+			UStaticMeshComponent* WeaponStaticMeshComponent = Cast<UStaticMeshComponent>(CurrentWeapon->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+			WeaponStaticMeshComponent->AttachToComponent(this->GetMesh(), AttachmentRules, WeaponSocketName);
+			HoldingWeapon = true;
+			AimedIn = false;
+			HoldingWeaponType = 1;
+
+			//FortInventoryComp->Items.Add(CurrentWeapon);
+			//FortInventoryComp->SelectItem(0);
+		
+		}
+
+	}
+
+}
+
+void AFortniteCloneCharacter::ServerSpawnPickaxe_Implementation(){
+	SpawnPickaxe();
+}
+
+bool AFortniteCloneCharacter::ServerSpawnPickaxe_Validate(){
+	return true;	
+}
+
+
+void AFortniteCloneCharacter::BeginPlay() {
+	Super::BeginPlay();
+	
+	DefaultFOV = FollowCamera->FieldOfView;
+
+	if (HasAuthority()) {
+=======
 
 }
 
@@ -198,6 +308,7 @@ void AFortniteCloneCharacter::BeginPlay() {
 			}
 
 		}
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 		// find the storm and keep a reference to it for damage purposes
 		TArray<AActor*> StormActors;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AStormActor::StaticClass(), StormActors);
@@ -294,7 +405,37 @@ void AFortniteCloneCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProper
 
 void AFortniteCloneCharacter::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
+<<<<<<< HEAD
+
+
+	
+	for (int32 i = 0; i < FortInventoryComp->Items.Num(); ++i)
+	{
+		if (FortInventoryComp->Items[i])
+		{
+			FortInventoryComp->Items[i]->SetActorHiddenInGame(i != FortInventoryComp->SelectedItem);
+		}
+	}
+	
+
+	if (Health <= 0)
+	{
+		FortInventoryComp->DropAllItems();
+	}
+
+
+	if (CanAim())
+	{
+		float TargetFOV = bWantsToZoom ? ZoomedFOV : DefaultFOV;
+
+		float NewFOV = FMath::FInterpTo(FollowCamera->FieldOfView, TargetFOV, DeltaTime, ZoomedSpeed);
+
+		FollowCamera->FieldOfView = NewFOV;
+	}
+	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Tick mode ") + FString::FromInt(GetNetMode()));~
+=======
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Tick mode ") + FString::FromInt(GetNetMode()));
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 	FVector DirectionVector = FVector(0, AimYaw, AimPitch);
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Tick mode ") + FString::SanitizeFloat(DirectionVector.Z));
 	if (HasAuthority()) {
@@ -379,9 +520,6 @@ void AFortniteCloneCharacter::Tick(float DeltaTime) {
 								GridLocation.X -= 240.00001;
 							}
 						}
-
-						/*LogMsg = FString("Current building material ") + FString::FromInt(CurrentBuildingMaterial) + FString(" ") + FString::SanitizeFloat(GridRotationYaw) + FString(" ") + FString::SanitizeFloat(ProjectedRotation.Yaw);
-						UE_LOG(LogFortniteCloneCharacter, Warning, TEXT("%s"), *LogMsg);*/
 						if (CurrentBuildingMaterial >= 0 && CurrentBuildingMaterial <= 2) {
 							if (RampPreviewClasses.IsValidIndex(CurrentBuildingMaterial)) {
 								if (RampPreviewClasses[CurrentBuildingMaterial] != nullptr) {
@@ -1172,6 +1310,93 @@ void AFortniteCloneCharacter::OpenSettingsMenu() {
 	}
 }
 
+<<<<<<< HEAD
+void AFortniteCloneCharacter::Pickup()
+{
+	APlayerCameraManager *camManager = GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
+
+	FVector camLocation = camManager->GetCameraLocation();
+	FVector camForward = camManager->GetCameraRotation().Vector();
+
+	FHitResult OutHit;
+	FVector Start = GetMesh()->GetSocketLocation("head");
+	FVector End = Start + FollowCamera->GetForwardVector() * 170.0f;
+	FCollisionQueryParams CollisionParams;
+
+#if WITH_EDITOR
+	DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 5, 0, 5);
+#endif // WITH_EDITOR
+
+	bool bisHit = GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_Visibility, CollisionParams);
+
+	AActor* HitActor = OutHit.GetActor();
+	if (AWeaponActor* WeaponHit = Cast<AWeaponActor>(HitActor)) {
+		if (AWeaponActor* Weapon = Cast<AWeaponActor>(WeaponHit)) {
+			AWeaponActor* WeaponActor = Cast<AWeaponActor>(Weapon);
+			if (WeaponActor->WeaponType == 0) {
+				return;
+			}
+			if (WeaponActor->Holder != nullptr) {
+				return; // do nothing if someone is holding the weapon
+			}
+			if (GetController()) {
+				// pick up the item if the two conditions above are false
+				AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+				if (State) {
+					if (State->InBuildMode || State->JustShotRifle || State->JustShotShotgun || State->JustSwungPickaxe || State->JustUsedHealingItem || State->JustReloadedRifle || State->JustReloadedShotgun) {
+						return; // can't pick up items while in build mode or if just shot rifle, shot shotgun, swung pickaxe, used healing item, or reloaded
+					}
+					// if the player already has a weapon of this type, do not equip it
+					if (State->EquippedWeapons.Contains(WeaponActor->WeaponType)) {
+						return;
+					}
+					if (Role < ROLE_Authority)
+					{
+						FortInventoryComp->AddItem(WeaponActor);
+						//ServerPickup(OutHit);
+					}
+					else
+					{
+						/** Only use the server for testing remove this if you want to use the server as a player in the shipping build */
+						#if WITH_EDITOR
+						FortInventoryComp->AddItem(WeaponActor);
+						//ServerPickup(OutHit);
+						#endif //WITH_EDITOR
+					}
+					WeaponActor->Destroy();
+				}
+			}
+		}
+	}
+}
+
+
+void AFortniteCloneCharacter::ServerPickup_Implementation(FHitResult HitResult) {
+
+	CurrentEquippedWeapon = CurrentWeapon;
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, false);
+	CurrentWeapon = GetWorld()->SpawnActor<AWeaponActor>(HitResult.GetActor()->GetClass(), FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+
+	if (CurrentWeapon)
+	{
+			CurrentWeapon->SetOwner(this);
+			if (GetController())
+			{
+			}	
+	}
+}
+
+bool AFortniteCloneCharacter::ServerPickup_Validate(FHitResult HitResult)
+{
+	return true;
+
+}
+
+=======
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 void AFortniteCloneCharacter::ServerSetIsWalkingTrue_Implementation() {
 	IsWalking = true;
 }
@@ -1322,6 +1547,157 @@ bool AFortniteCloneCharacter::ServerBuildStructure_Validate(TSubclassOf<ABuildin
 	return true;
 }
 
+<<<<<<< HEAD
+
+
+void AFortniteCloneCharacter::Equip(uint8 index)
+{
+	if (Role < ROLE_Authority)
+	{
+		ServerEquip(index);
+	}
+	if (FortInventoryComp)
+	{
+		FortInventoryComp->SelectItem(index);
+	}
+}
+
+void AFortniteCloneCharacter::ServerEquip_Implementation(uint8 index)
+{
+	Equip(index);
+}
+
+bool AFortniteCloneCharacter::ServerEquip_Validate(uint8 index)
+{
+	return true;
+}
+
+void AFortniteCloneCharacter::EquipSlot1()
+{
+	if (FortInventoryComp->Items.IsValidIndex(0))
+	{
+		if (FortInventoryComp->Items.IsValidIndex(1))
+		{
+			FortInventoryComp->Items[1]->SetActorHiddenInGame(true);
+		}
+		
+		if (FortInventoryComp->Items.IsValidIndex(2))
+        {
+            FortInventoryComp->Items[2]->SetActorHiddenInGame(true);
+        }
+		if (FortInventoryComp->Items.IsValidIndex(3))
+		{
+			FortInventoryComp->Items[3]->SetActorHiddenInGame(true);
+		}
+		if (FortInventoryComp->Items.IsValidIndex(4))
+		{
+			FortInventoryComp->Items[4]->SetActorHiddenInGame(true);
+		}
+		if (FortInventoryComp->Items.IsValidIndex(5))
+		{
+			FortInventoryComp->Items[5]->SetActorHiddenInGame(true);
+		}
+		
+		
+
+		FortInventoryComp->Items[0]->SetActorHiddenInGame(false);
+		FortInventoryComp->SelectedItem = 0;
+	}
+	
+}
+
+void AFortniteCloneCharacter::EquipSlot2()
+{
+	if (FortInventoryComp->Items.IsValidIndex(1))
+	{
+		if (FortInventoryComp->Items.IsValidIndex(0))
+		{
+			FortInventoryComp->Items[0]->SetActorHiddenInGame(true);
+		}
+		
+		if (FortInventoryComp->Items.IsValidIndex(2))
+		{
+			FortInventoryComp->Items[2]->SetActorHiddenInGame(true);
+		}
+		if (FortInventoryComp->Items.IsValidIndex(3))
+		{
+			FortInventoryComp->Items[3]->SetActorHiddenInGame(true);
+		}
+		if (FortInventoryComp->Items.IsValidIndex(4))
+		{
+			FortInventoryComp->Items[4]->SetActorHiddenInGame(true);
+		}
+		if (FortInventoryComp->Items.IsValidIndex(5))
+		{
+			FortInventoryComp->Items[5]->SetActorHiddenInGame(true);
+		}
+		
+		FortInventoryComp->Items[1]->SetActorHiddenInGame(false);
+		FortInventoryComp->Items[1]->MeshComp->SetVisibility(true);
+		FortInventoryComp->SelectedItem = 1;
+	}
+}
+
+void AFortniteCloneCharacter::EquipSlot3()
+{
+	if (FortInventoryComp->Items.IsValidIndex(2))
+	{
+		if (FortInventoryComp->Items.IsValidIndex(0))
+		{
+			FortInventoryComp->Items[0]->SetActorHiddenInGame(true);
+		}
+		if (FortInventoryComp->Items.IsValidIndex(1))
+		{
+			FortInventoryComp->Items[1]->SetActorHiddenInGame(true);
+		}
+		if (FortInventoryComp->Items.IsValidIndex(3))
+		{
+			FortInventoryComp->Items[3]->SetActorHiddenInGame(true);
+		}
+		if (FortInventoryComp->Items.IsValidIndex(4))
+		{
+			FortInventoryComp->Items[4]->SetActorHiddenInGame(true);
+		}
+		if (FortInventoryComp->Items.IsValidIndex(5))
+		{
+			FortInventoryComp->Items[5]->SetActorHiddenInGame(true);
+		}
+		
+		FortInventoryComp->Items[2]->SetActorHiddenInGame(false);
+		FortInventoryComp->Items[2]->MeshComp->SetVisibility(true);
+		FortInventoryComp->SelectedItem = 2;
+	}
+}
+
+void AFortniteCloneCharacter::EquipSlot4()
+{
+	if (FortInventoryComp->Items.IsValidIndex(3))
+	{
+		if (FortInventoryComp->Items.IsValidIndex(0))
+		{
+			FortInventoryComp->Items[0]->SetActorHiddenInGame(true);
+		}
+		
+		if (FortInventoryComp->Items.IsValidIndex(2))
+		{
+			FortInventoryComp->Items[2]->SetActorHiddenInGame(true);
+		}
+		if (FortInventoryComp->Items.IsValidIndex(1))
+		{
+			FortInventoryComp->Items[1]->SetActorHiddenInGame(true);
+		}
+		if (FortInventoryComp->Items.IsValidIndex(5))
+		{
+			FortInventoryComp->Items[5]->SetActorHiddenInGame(true);
+		}
+		
+		FortInventoryComp->Items[3]->SetActorHiddenInGame(false);
+		FortInventoryComp->Items[3]->MeshComp->SetVisibility(true);
+		FortInventoryComp->SelectedItem = 3;
+	}
+}
+=======
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 void AFortniteCloneCharacter::ServerSetBuildModeWall_Implementation() {
 	if (GetController()) {
 		AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
@@ -1513,8 +1889,17 @@ bool AFortniteCloneCharacter::ServerSetBuildModeFloor_Validate() {
 }
 
 void AFortniteCloneCharacter::ServerFireWeapon_Implementation() {
-	if (CurrentWeapon != nullptr) {
 		if (GetController()) {
+<<<<<<< HEAD
+			if(AWeaponActor * weap = Cast<AWeaponActor>(FortInventoryComp->Items[FortInventoryComp->SelectedItem]))
+			{
+				weap->Fire();
+
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, "weapon fired");
+			}
+			/*
+=======
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
 			if (State) {
 				//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(GetNetMode()) + FString(" Current weapon ") + FString::FromInt(State->CurrentWeapon));
@@ -1592,7 +1977,7 @@ void AFortniteCloneCharacter::ServerFireWeapon_Implementation() {
 				}
 			}
 		}
-	}
+
 }
 
 bool AFortniteCloneCharacter::ServerFireWeapon_Validate() {
@@ -1640,128 +2025,137 @@ bool AFortniteCloneCharacter::ServerUseHealingItem_Validate(int HealingItemType)
 
 
 void AFortniteCloneCharacter::ServerReloadWeapons_Implementation() { // todo add current weapon null check
-	if (CurrentWeapon != nullptr) {
-		if (GetController()) {
-			AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
-			if (State) {
-				if (State->CurrentWeapon > 2 || State->CurrentWeapon < 1) {
-					return; // can only reload if holding a assault rifle or shotgun
-				}
-				if (State->JustShotRifle || State->JustShotShotgun || State->JustReloadedRifle || State->JustReloadedShotgun) {
-					return; // currently reloading or just shot
-				}
-				if (State->AimedIn) {
-					if (State->CurrentWeapon == 1) {
-						if (State->JustShotRifle) {
-							return;
-						}
-						if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] <= 0) {
-							return; // no ammo left
-						}
+	UWorld * World = GetWorld();
+	if (World)
+	{
+		if (CurrentWeapon) {
+			if (GetController()) {
 
-						int BulletsNeeded = CurrentWeapon->MagazineSize - CurrentWeapon->CurrentBulletCount;
-						if (BulletsNeeded == 0) {
-							return; // magazine is full
-						}
+				CurrentWeapon->Reload();
 
-						if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] < BulletsNeeded) {
-							BulletsNeeded = State->EquippedWeaponsAmmunition[State->CurrentWeapon];
-							State->EquippedWeaponsAmmunition[State->CurrentWeapon] = 0;
-						}
-						else {
-							State->EquippedWeaponsAmmunition[State->CurrentWeapon] -= BulletsNeeded;
-						}
-						NetMulticastPlayReloadRifleIronsightsAnimation();
-						CurrentWeapon->CurrentBulletCount += BulletsNeeded;
-						State->EquippedWeaponsClips[State->CurrentWeapon] += BulletsNeeded;
-						State->JustReloadedRifle = true;
-						FTimerHandle RifleTimerHandle;
-						GetWorldTimerManager().SetTimer(RifleTimerHandle, this, &AFortniteCloneCharacter::ServerRifleReloadTimeOut, 2.167f, false);
+				/*
+				AFortniteClonePlayerState* State = Cast<AFortniteClonePlayerState>(GetController()->PlayerState);
+				if (State) {
+					if (CurrentWeapon->WeaponTypeEnum == EWeaponType::WEAPT_Shotgun || CurrentWeapon->WeaponTypeEnum == EWeaponType::WEAPT_Rifle) {
+						return; // can only reload if holding a assault rifle or shotgun
 					}
-					else if (State->CurrentWeapon == 2) {
-						if (State->JustShotShotgun) {
-							return;
+					if (State->JustShotRifle || State->JustShotShotgun || State->JustReloadedRifle || State->JustReloadedShotgun) {
+						return; // currently reloading or just shot
+					}
+					if (State->AimedIn) {
+						if (CurrentWeapon->WeaponTypeEnum == EWeaponType::WEAPT_Rifle) {
+							if (State->JustShotRifle) {
+								return;
+							}
+							if (CurrentWeapon->MaxAmmo <= 0) {
+								return; // no ammo left
+							}
+
+							int BulletsNeeded = CurrentWeapon->MagazineSize - CurrentWeapon->CurrentAmmo;
+							if (BulletsNeeded == 0) {
+								return; // magazine is full
+							}
+
+							if (CurrentWeapon->MaxAmmo < BulletsNeeded) {
+								BulletsNeeded = State->EquippedWeaponsAmmunition[State->CurrentWeapon];
+								State->EquippedWeaponsAmmunition[State->CurrentWeapon] = 0;
+							}
+							else {
+								State->EquippedWeaponsAmmunition[State->CurrentWeapon] -= BulletsNeeded;
+							}
+							NetMulticastPlayReloadRifleIronsightsAnimation();
+							CurrentWeapon->CurrentAmmo += BulletsNeeded;
+							State->EquippedWeaponsClips[State->CurrentWeapon] += BulletsNeeded;
+							State->JustReloadedRifle = true;
+							FTimerHandle RifleTimerHandle;
+							GetWorldTimerManager().SetTimer(RifleTimerHandle, this, &AFortniteCloneCharacter::ServerRifleReloadTimeOut, 2.167f, false);
 						}
-						if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] <= 0) {
-							return; // no ammo left
+						else if (State->CurrentWeapon == 2) {
+							if (State->JustShotShotgun) {
+								return;
+							}
+							if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] <= 0) {
+								return; // no ammo left
+							}
+
+							int BulletsNeeded = CurrentWeapon->MagazineSize - CurrentWeapon->CurrentBulletCount;
+							if (BulletsNeeded == 0) {
+								return; // magazine is full
+							}
+
+							if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] < BulletsNeeded) {
+								BulletsNeeded = State->EquippedWeaponsAmmunition[State->CurrentWeapon];
+								State->EquippedWeaponsAmmunition[State->CurrentWeapon] = 0;
+							}
+							else {
+								State->EquippedWeaponsAmmunition[State->CurrentWeapon] -= BulletsNeeded;
+							}
+							NetMulticastPlayReloadShotgunIronsightsAnimation();
+							CurrentWeapon->CurrentBulletCount += BulletsNeeded;
+							State->EquippedWeaponsClips[State->CurrentWeapon] += BulletsNeeded;
+							State->JustReloadedShotgun = true;
+							FTimerHandle ShotgunTimerHandle;
+							GetWorldTimerManager().SetTimer(ShotgunTimerHandle, this, &AFortniteCloneCharacter::ServerShotgunReloadTimeOut, 4.3f, false);
+						}
+					}
+					else {
+						if (State->CurrentWeapon == 1) {
+							if (State->JustShotRifle) {
+								return;
+							}
+							if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] <= 0) {
+								return; // no ammo left
+							}
+							int BulletsNeeded = CurrentWeapon->MagazineSize - CurrentWeapon->CurrentBulletCount;
+							if (BulletsNeeded == 0) {
+								return; // magazine is full
+							}
+							//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(State->EquippedWeaponsAmmunition[State->CurrentWeapon]));
+							if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] < BulletsNeeded) {
+								BulletsNeeded = State->EquippedWeaponsAmmunition[State->CurrentWeapon];
+								State->EquippedWeaponsAmmunition[State->CurrentWeapon] = 0;
+							}
+							else {
+								State->EquippedWeaponsAmmunition[State->CurrentWeapon] -= BulletsNeeded;
+							}
+							NetMulticastPlayReloadRifleAnimation();
+							CurrentWeapon->CurrentBulletCount += BulletsNeeded;
+							State->EquippedWeaponsClips[State->CurrentWeapon] += BulletsNeeded;
+							//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(CurrentWeapon->CurrentBulletCount));
+							State->JustReloadedRifle = true;
+							FTimerHandle RifleTimerHandle;
+							GetWorldTimerManager().SetTimer(RifleTimerHandle, this, &AFortniteCloneCharacter::ServerRifleReloadTimeOut, 2.167f, false);
+						}
+						else if (State->CurrentWeapon == 2) {
+							if (State->JustShotShotgun) {
+								return;
+							}
+							if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] <= 0) {
+								return; // no ammo left
+							}
+							int BulletsNeeded = CurrentWeapon->MagazineSize - CurrentWeapon->CurrentBulletCount;
+							if (BulletsNeeded == 0) {
+								return; // magazine is full
+							}
+
+							if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] < BulletsNeeded) {
+								BulletsNeeded = State->EquippedWeaponsAmmunition[State->CurrentWeapon];
+								State->EquippedWeaponsAmmunition[State->CurrentWeapon] = 0;
+							}
+							else {
+								State->EquippedWeaponsAmmunition[State->CurrentWeapon] -= BulletsNeeded;
+							}
+							NetMulticastPlayReloadShotgunAnimation();
+							CurrentWeapon->CurrentBulletCount += BulletsNeeded;
+							State->EquippedWeaponsClips[State->CurrentWeapon] += BulletsNeeded;
+							State->JustReloadedShotgun = true;
+							FTimerHandle ShotgunTimerHandle;
+							GetWorldTimerManager().SetTimer(ShotgunTimerHandle, this, &AFortniteCloneCharacter::ServerShotgunReloadTimeOut, 4.3f, false);
 						}
 
-						int BulletsNeeded = CurrentWeapon->MagazineSize - CurrentWeapon->CurrentBulletCount;
-						if (BulletsNeeded == 0) {
-							return; // magazine is full
-						}
-
-						if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] < BulletsNeeded) {
-							BulletsNeeded = State->EquippedWeaponsAmmunition[State->CurrentWeapon];
-							State->EquippedWeaponsAmmunition[State->CurrentWeapon] = 0;
-						}
-						else {
-							State->EquippedWeaponsAmmunition[State->CurrentWeapon] -= BulletsNeeded;
-						}
-						NetMulticastPlayReloadShotgunIronsightsAnimation();
-						CurrentWeapon->CurrentBulletCount += BulletsNeeded;
-						State->EquippedWeaponsClips[State->CurrentWeapon] += BulletsNeeded;
-						State->JustReloadedShotgun = true;
-						FTimerHandle ShotgunTimerHandle;
-						GetWorldTimerManager().SetTimer(ShotgunTimerHandle, this, &AFortniteCloneCharacter::ServerShotgunReloadTimeOut, 4.3f, false);
 					}
 				}
-				else {
-					if (State->CurrentWeapon == 1) {
-						if (State->JustShotRifle) {
-							return;
-						}
-						if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] <= 0) {
-							return; // no ammo left
-						}
-						int BulletsNeeded = CurrentWeapon->MagazineSize - CurrentWeapon->CurrentBulletCount;
-						if (BulletsNeeded == 0) {
-							return; // magazine is full
-						}
-						//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(State->EquippedWeaponsAmmunition[State->CurrentWeapon]));
-						if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] < BulletsNeeded) {
-							BulletsNeeded = State->EquippedWeaponsAmmunition[State->CurrentWeapon];
-							State->EquippedWeaponsAmmunition[State->CurrentWeapon] = 0;
-						}
-						else {
-							State->EquippedWeaponsAmmunition[State->CurrentWeapon] -= BulletsNeeded;
-						}
-						NetMulticastPlayReloadRifleAnimation();
-						CurrentWeapon->CurrentBulletCount += BulletsNeeded;
-						State->EquippedWeaponsClips[State->CurrentWeapon] += BulletsNeeded;
-						//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(CurrentWeapon->CurrentBulletCount));
-						State->JustReloadedRifle = true;
-						FTimerHandle RifleTimerHandle;
-						GetWorldTimerManager().SetTimer(RifleTimerHandle, this, &AFortniteCloneCharacter::ServerRifleReloadTimeOut, 2.167f, false);
-					}
-					else if (State->CurrentWeapon == 2) {
-						if (State->JustShotShotgun) {
-							return;
-						}
-						if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] <= 0) {
-							return; // no ammo left
-						}
-						int BulletsNeeded = CurrentWeapon->MagazineSize - CurrentWeapon->CurrentBulletCount;
-						if (BulletsNeeded == 0) {
-							return; // magazine is full
-						}
-
-						if (State->EquippedWeaponsAmmunition[State->CurrentWeapon] < BulletsNeeded) {
-							BulletsNeeded = State->EquippedWeaponsAmmunition[State->CurrentWeapon];
-							State->EquippedWeaponsAmmunition[State->CurrentWeapon] = 0;
-						}
-						else {
-							State->EquippedWeaponsAmmunition[State->CurrentWeapon] -= BulletsNeeded;
-						}
-						NetMulticastPlayReloadShotgunAnimation();
-						CurrentWeapon->CurrentBulletCount += BulletsNeeded;
-						State->EquippedWeaponsClips[State->CurrentWeapon] += BulletsNeeded;
-						State->JustReloadedShotgun = true;
-						FTimerHandle ShotgunTimerHandle;
-						GetWorldTimerManager().SetTimer(ShotgunTimerHandle, this, &AFortniteCloneCharacter::ServerShotgunReloadTimeOut, 4.3f, false);
-					}
-
-				}
+				*/
 			}
 		}
 	}

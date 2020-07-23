@@ -4,6 +4,11 @@
 #include "FortniteClonePlayerState.h"
 #include "FortniteCloneCharacter.h"
 #include "FortniteCloneSpectator.h"
+<<<<<<< HEAD
+#include "FortniteCloneGameMode.h"
+#include "FortniteCloneGameInstance.h"
+=======
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 #include "Engine/Engine.h"
 #include "UnrealNetwork.h"
 #include "StormActor.h"
@@ -15,7 +20,7 @@ AFortniteClonePlayerController::AFortniteClonePlayerController() {
 		State->bIsSpectator = true;
 	}*/
 	//PlayerState->bIsSpectator = true;
-	 static ConstructorHelpers::FClassFinder<AFortniteCloneSpectator> PlayerSpectatorBP(TEXT("/Game/ThirdPersonCPP/Blueprints/BP_SpectatorCharacter"));
+	 static ConstructorHelpers::FClassFinder<AFortniteCloneSpectator>PlayerSpectatorBP(TEXT("/Game/ThirdPersonCPP/Blueprints/BP_SpectatorCharacter"));
 	 PlayerSpectatorClass = PlayerSpectatorBP.Class;
 	 PlayerCount = 0;
 	 SpectatorCount = 1;
@@ -42,10 +47,13 @@ void AFortniteClonePlayerController::Tick(float DeltaTime) {
 		if (SpawnAsSpectator && PlayerState && !PlayerState->bIsSpectator) {
 			ChangeState(NAME_Spectating);
 			ClientGotoState(NAME_Spectating);
-			APawn* PlayerPawn = Cast<APawn>(GetWorld()->SpawnActor<AFortniteCloneSpectator>(PlayerSpectatorClass, FVector(-900, 350.0, 31812), FRotator::ZeroRotator));
+			AFortniteCloneGameMode * GM = Cast<AFortniteCloneGameMode>(GetWorld()->GetAuthGameMode());
+			APawn* PlayerPawn = Cast<APawn>(GetWorld()->SpawnActor<AFortniteCloneSpectator>(PlayerSpectatorClass, FVector(GM->PlayerKiller->GetActorLocation()), GM->PlayerKiller->GetActorRotation()));
 			//SetSpectatorPawn(Pawn);
+			PlayerPawn->SetActorLocationAndRotation(GM->PlayerKiller->GetActorLocation(), GM->PlayerKiller->GetActorRotation());
 			Possess(PlayerPawn);
 			Cast<AFortniteClonePlayerState>(PlayerState)->bIsSpectator = true; // ORDER MATTERS HERE, HAS TO BE SET AFTER POSSESSING A PAWN
+			PlayerPawn->SetActorLocationAndRotation(GM->PlayerKiller->GetActorLocation(), GM->PlayerKiller->GetActorRotation());
 		}
 	}
 }
@@ -60,25 +68,18 @@ void AFortniteClonePlayerController::GetLifetimeReplicatedProps(TArray< FLifetim
 
 void AFortniteClonePlayerController::ServerSwitchToSpectatorMode_Implementation() {
 	if (PlayerState) {
-		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString("Player state is not null"));
-		//Cast<AFortniteClonePlayerState>(PlayerState)->bIsSpectator = true;
 		ChangeState(NAME_Spectating);
 		ClientGotoState(NAME_Spectating);
+		AFortniteCloneCharacter * Player = Cast<AFortniteCloneCharacter>(GetPawn());
+		AFortniteCloneGameMode * GM = Cast<AFortniteCloneGameMode>(GetWorld()->GetAuthGameMode());
 		APawn* PlayerPawn = Cast<APawn>(GetWorld()->SpawnActor<AFortniteCloneSpectator>(PlayerSpectatorClass, FVector(-900, 350.0, 31812), FRotator::ZeroRotator));
-		//SetSpectatorPawn(Pawn);
 		Possess(PlayerPawn);
+		PlayerPawn->SetActorLocation(GM->PlayerKiller->GetActorLocation());
+		
 		Cast<AFortniteClonePlayerState>(PlayerState)->bIsSpectator = true; // ORDER MATTERS HERE, HAS TO BE SET AFTER POSSESSING A PAWN
-		/*FString LogMsg = FString("switch to spectator mode ") + FString::FromInt(GetNetMode());
-		UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);
-		LogMsg = FString("test ") + FString::FromInt(GetNetMode());
-		UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
 		if (Cast<AFortniteClonePlayerState>(PlayerState)->bIsSpectator) {
-			/*LogMsg = FString("What a spectator");
-			UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
 		}
 		else {
-			/*LogMsg = FString("What not a spectator");
-			UE_LOG(LogMyGame, Warning, TEXT("%s"), *LogMsg);*/
 		}
 	}
 }

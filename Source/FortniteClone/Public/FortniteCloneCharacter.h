@@ -18,6 +18,17 @@ class AFortniteClonePlayerState;
 class UThirdPersonAnimInstance;
 class AStormActor;
 class UAnimMontage;
+<<<<<<< HEAD
+class AFortPickupActor;
+class AVehicle;
+class UCharacterPartSkeletalMesh;
+class ULineTraceComponent;
+class UFortHealthComponent;
+
+
+
+=======
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 
 UCLASS(config=Game)
 class AFortniteCloneCharacter : public ACharacter
@@ -28,6 +39,15 @@ class AFortniteCloneCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;
 
+<<<<<<< HEAD
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		UCharacterPartSkeletalMesh* CharacterPartSkeletalMeshComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Health, meta = (AllowPrivateAccess = "true"))
+		UFortHealthComponent* HealthComponent;
+
+=======
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
@@ -36,7 +56,34 @@ class AFortniteCloneCharacter : public ACharacter
 	UCapsuleComponent* TriggerCapsule;
 
 public:
+<<<<<<< HEAD
+	AFortniteCloneCharacter(const class FObjectInitializer& ObjectInitializer);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		TArray<AFortPickupActor*> Inventory;
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+		int SelectedItem;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		FName WeaponAttachSocketName;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+		TSubclassOf<AWeaponActor> RifleWeaponClass;
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerPickup(FHitResult HitResult);
+
+
+	UFUNCTION()
+	void InitializeCharacterPartSkeletalMeshComponent();
+
+	UFUNCTION()
+	void SpawnPickaxe();
+
+=======
 	AFortniteCloneCharacter();
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
@@ -151,7 +198,7 @@ public:
 	int GetHealingItemCount(int HealingItemType);
 
 	/* The current weapon being held */
-	UPROPERTY(Replicated)
+	UPROPERTY(Replicated, BlueprintReadOnly)
 	AWeaponActor* CurrentWeapon;
 
 	/* The current healing item being held */
@@ -564,5 +611,16 @@ public:
 private:
 	// Object creation can only happen after the character has finished being constructed
 	virtual void BeginPlay() override;
+<<<<<<< HEAD
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSpawnPickaxe();
+
+public:
+	UFUNCTION(BlueprintPure, Category = "SafeZone")
+	bool GetIsStorm();
+
+=======
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 };
 

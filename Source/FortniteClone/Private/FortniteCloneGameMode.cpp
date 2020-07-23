@@ -119,6 +119,21 @@ void AFortniteCloneGameMode::PostLogin(APlayerController *NewPlayer) {
 	}*/
 }
 
+<<<<<<< HEAD
+void AFortniteCloneGameMode::PlayerDied(class AFortniteCloneCharacter * Killed, class AFortniteCloneCharacter * Killer)
+{
+	if (Killed)
+	{
+		PlayerKilled = Killed;
+
+		PlayerKiller = Killer;
+
+		if (AFortniteClonePlayerController * PC = Cast<AFortniteClonePlayerController>(Killed->GetController()))
+		{
+			Players.RemoveSingle(PC);
+		}
+		if (Players.Num() == 1 && Players.IsValidIndex(0))
+=======
 void AFortniteCloneGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) {
 	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
 /*#if WITH_GAMELIFT
@@ -129,6 +144,7 @@ void AFortniteCloneGameMode::PreLogin(const FString& Options, const FString& Add
 		FGameLiftGenericOutcome outcome = gameLiftSdkModule->AcceptPlayerSession(*PlayerSessionId);
 		UE_LOG(LogMyServerGame, Log, TEXT("AMyProjectGameMode::PreLogin: Client connecting with attempting to connect with GameLift PlayerSessionId: %s"), *PlayerSessionId);
 		if (!outcome.IsSuccess())
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 		{
 			ErrorMessage = outcome.GetError().m_errorMessage;
 			UE_LOG(LogMyServerGame, Log, TEXT("AMyProjectGameMode::PreLogin: Client connecting with invalid GameLift PlayerSessionId: %s, Error: %s"), *PlayerSessionId, *ErrorMessage);

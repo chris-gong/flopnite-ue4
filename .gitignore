@@ -104,3 +104,8 @@ Thumbs.db
 umodel.cfg
 umodel.exe
 notify.log
+
+# Exclude Rider Stuff
+Plugins/Developer/*
+*.idea
+

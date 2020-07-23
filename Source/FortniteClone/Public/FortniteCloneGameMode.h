@@ -24,6 +24,16 @@ public:
 
 	int TimePassed;
 
+<<<<<<< HEAD
+	UPROPERTY(BlueprintReadOnly)
+		 class AFortniteCloneCharacter * PlayerKiller;
+
+	UPROPERTY(BlueprintReadOnly)
+		class AFortniteCloneCharacter * PlayerKilled;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Storm | DO NOT CHANGE ")
+=======
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 	AStormActor* CurrentStorm;
 
 	virtual void BeginPlay() override;

@@ -8,23 +8,90 @@
 
 class AProjectileActor;
 class AFortniteCloneCharacter;
+<<<<<<< HEAD
+class UTexture2D;
+class UAnimMontage;
+class UAudioComponent;
+class UParticleSystemComponent;
+class UCameraShake;
+class UForceFeedbackEffect;
+class USoundCue;
+class USkeletalMeshComponent;
+class UStaticMeshComponent;
+class UDamageType;
+class UParticleSystem;
+class AFortDamageText;
+class USceneComponent;
+
+DECLARE_LOG_CATEGORY_EXTERN(LogWeaponActor, Log, All);
+
+// Contains information of a single hitscan weapon linetrace
+USTRUCT()
+struct FHitScanTrace
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY()
+		TEnumAsByte<EPhysicalSurface> SurfaceType;
+
+	UPROPERTY()
+		FVector_NetQuantize TraceTo;
+};
+
+
+=======
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 
 UCLASS()
 class FORTNITECLONE_API AWeaponActor : public AActor
 {
 	GENERATED_BODY()
+<<<<<<< HEAD
+
+public:
+	
+=======
 	
 public:	
 	// Sets default values for this actor's properties
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 	AWeaponActor();
 
 protected:
-	// Called when the game starts or when spawned
+
+<<<<<<< HEAD
 	virtual void BeginPlay() override;
 
+public:
+
+	void Fire();
+
+	void Reload();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerReload();
+
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;	
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh")
+		USceneComponent* SceneComp;
+
+	UPROPERTY(Replicated)
+		AFortniteCloneCharacter* Holder;
+
+
+	virtual bool IsSupportedForNetworking() const override
+	{
+		return true;
+	}
+=======
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
 
 	//associated bullet
 	UPROPERTY(EditDefaultsOnly, Category = "Bullet")
@@ -39,6 +106,98 @@ public:
 	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Bullet")
 	int CurrentBulletCount; // Only applies to assault rifle and shotgun
 
+<<<<<<< HEAD
+	
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "WeaponType")
+		int32 MaxAmmo;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Replicated, Category = "WeaponType", meta = (ClampMax = 0.0f))
+		int32 CurrentAmmo;
+
+	/** AnimMontage to play each time we fire */
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadWrite, Category = Gameplay)
+		class UAnimMontage* FireAnimation;
+
+	/** Damage Text  */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Gameplay)
+		 TSubclassOf<AFortDamageText> DamageTextClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Replicated, Category = Gameplay)
+		float BaseDamage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Replicated, Category = Gameplay, meta = (ClampMax = 200.0f))
+		float MaxDamge;
+
+	/** This is the damage that gets applied */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = Gameplay)
+		float ADamage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+		int Bullets;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Gameplay)
+		FName AttachSocketName;
+
+protected:
+
+	UPROPERTY(Replicated)
+	AFortDamageText * DamText;
+	
+	void SimulateWeaponFire();
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+	void PlayFireEffects(FVector TraceEnd);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+		FName MuzzleAttachPoint;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+		FName ShellEjectAttachPoint;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+		FName TracerTargetName;
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerFire();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+		UParticleSystem * TracerEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+		UParticleSystem* MuzzleFX;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+		UParticleSystem* ShellEjectFX;
+
+	UPROPERTY(Transient)
+		UParticleSystemComponent* MuzzlePSC;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+		UParticleSystem * ImpactEffect;
+
+	UPROPERTY(ReplicatedUsing = OnRep_HitScanTrace)
+		FHitScanTrace HitScanTrace;
+
+	UFUNCTION()
+		void OnRep_HitScanTrace();
+
+	UAudioComponent* PlayWeaponSound(USoundCue* SoundToPlay);
+
+	float PlayWeaponAnimation(UAnimMontage* Animation, float InPlayRate = 1.0f, FName StartSectionName = NAME_None);
+
+	void StopWeaponAnimation(UAnimMontage* Animation);
+
+private:
+
+	bool CanShoot();
+
+	void UseAmmo();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Sounds")
+		USoundCue* FireSound;
+};
+=======
 	UPROPERTY(EditDefaultsOnly, Category = "WeaponType")
 	int WeaponType; // 0 for pickaxe, 1 for assault rifle, 2 for shotgun
 
@@ -47,3 +206,4 @@ public:
 		return true;
 	}
 };
+>>>>>>> 8291d0bfd62b9a8353bd9f60c662263c1893b6a9
