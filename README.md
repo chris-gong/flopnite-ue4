@@ -1,5 +1,5 @@
 ## What is Flopnite [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/BEASTSM96/flopnite/blob/v2/LICENSE)
-Relatively new to game development, my friends and I wanted to challenge ourselves by recreating the popular triple A game *Fortnite* in a limited time frame while having fun doing so. We also documented the process and posted the documentaries to our [YouTube channel](https://www.youtube.com/watch?v=UCyIgPcXKLQ). This recreation was made using Unreal Engine 4 and Amazon GameLift.
+I'm relatively new to game development, my friends and I wanted to challenge ourselves by recreating the popular triple A game *Fortnite* in a limited time frame while having fun doing so. We also documented the process and posted the documentaries to our [YouTube channel](https://www.youtube.com/channel/UCO77KLKwplncMHLo6gLpIHw). This recreation was made using Unreal Engine 4 and Amazon GameLift.
 
 ## Who was involved in Weekly
 I am proud to say that this was truly a community effort. Although I was the main programmer, we had many people who contribute by providing art assets and game code:
