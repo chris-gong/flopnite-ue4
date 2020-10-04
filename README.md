@@ -10,3 +10,12 @@ Also, a big thanks has to be given to all the people who answer questions in the
 
 ## For those who want to test
 We are currently looking for testers for a huge game session! If you're interested, then join our [Discord](https://discord.gg/2xbR5qT).
+
+##
+*Note is project is new and some info may be worng*
+
+[![Twitter](https://img.shields.io/badge/%40Flopperam--blue.svg?style=social&logo=Twitter)](https://twitter.com/Flopperam)
+[![Patreon](https://img.shields.io/badge/Flopperam--red.svg?style=social&logo=Patreon)](https://www.patreon.com/flopperam)
+[![PayPal](https://img.shields.io/badge/Flopperam--red.svg?style=social&logo=PayPal)](https://www.paypal.me/flopperam)
+[![Github](https://img.shields.io/badge/Flopperam--red.svg?style=social&logo=Github)](https://github.com/sponsors/chris-gong)
+[![Youtube](https://img.shields.io/badge/Flopperam--red.svg?style=social&logo=youtube)](https://www.youtube.com/channel/UCO77KLKwplncMHLo6gLpIHw)
