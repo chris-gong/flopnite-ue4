@@ -4,6 +4,10 @@ Relatively new to game development, my friends and I wanted to challenge ourselv
 ## Who was involved in Flopnite
 * [Ryan Thomas](https://github.com/rthomas24)
 * [Mike Decaprio](https://www.instagram.com/mikedecaprio1/)
+* [AEMIX](https://github.com/A7xMd)
+* [pivotman319](https://www.youtube.com/channel/UCBTI2nRl1eJ3y_Ru25dlQvg)
+* [Layo](https://www.youtube.com/channel/UCBH3aPCsPBAz-tPUS8cJCMw)
+* [BEAST](https://github.com/BEASTSM96)
 
 Also, a big thanks has to be given to all the people who watch us work on the game on YouTube and Twitch, all the people who answer questions in the Unreal Slackers Discord, all the people who answer questions on the Unreal Q&A forums, all the youtubers who post amazing Unreal tutorials, all the people who answer questions on the AWS Game Tech forums, and all the people in our Discord server who help test out the game.
 
