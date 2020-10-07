@@ -24,5 +24,10 @@ void UFNAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 
 void UFNAttributeSet::OnRep_MoveSpeed(const FGameplayAttributeData& OldMoveSpeed)
 {
+<<<<<<< HEAD
 	GAMEPLAYATTRIBUTE_REPNOTIFY( UFNAttributeSet, MoveSpeed, OldMoveSpeed );
 }
+=======
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UFNAttributeSet, MoveSpeed);
+}
+>>>>>>> fee491b... fix GAMEPLAYATTRIBUTE_REPNOTIFY
