@@ -7,7 +7,9 @@
 
 USprintAbility::USprintAbility() {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability.Sprint")));
+	FGameplayTag SprintAbilityTag = FGameplayTag::RequestGameplayTag(FName("Ability.Sprint"));
+	AbilityTags.AddTag(SprintAbilityTag);
+	ActivationOwnedTags.AddTag(SprintAbilityTag);
 	AbilityInputID = EFNAbilityInputID::Sprint;
 }
 
@@ -36,7 +38,7 @@ void USprintAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 				SprintEffectHandle = ApplyGameplayEffectToOwner(Handle, ActorInfo, ActivationInfo, NewObject<UGameplayEffect>(this, SprintEffect), 1);
 				// set a sprinting flag in character movement component to true
 				CharacterMovementComponent->RequestToStartSprinting = true;
-				UE_LOG(LogTemp, Warning, TEXT("sprint ability successfully activated"));
+				//UE_LOG(LogTemp, Warning, TEXT("sprint ability successfully activated"));
 
 				return;
 			}
@@ -52,18 +54,13 @@ bool USprintAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handle,
 	{
 		ACharacter* Character = CastChecked<ACharacter>(ActorInfo->AvatarActor.Get());
 		if (Character) {
-			// TODO: check if player is on the ground or not, or if they're aiming down sight, and etc.
-			return true;
-		}
-		else {
-			UE_LOG(LogTemp, Warning, TEXT("Cannot activate ability 1"));
-			return false;
+			UFNCharacterMovementComponent* CharacterMovementComponent = CastChecked<UFNCharacterMovementComponent>(Character->GetMovementComponent());
+			if (CharacterMovementComponent && !CharacterMovementComponent->IsFalling()) {
+				return true;
+			}
 		}
 	}
-	else {
-		UE_LOG(LogTemp, Warning, TEXT("Cannot activate ability 2"));
-		return false;
-	}
+	return false;
 }
 
 void USprintAbility::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) {
@@ -89,7 +86,7 @@ void USprintAbility::CancelAbility(const FGameplayAbilitySpecHandle Handle, cons
 			}
 			// set a sprinting flag in character movement component to true
 			CharacterMovementComponent->RequestToStartSprinting = false;
-			UE_LOG(LogTemp, Warning, TEXT("sprint ability successfully cancelled"));
+			//UE_LOG(LogTemp, Warning, TEXT("sprint ability successfully cancelled"));
 
 		}
 	}
