@@ -1,6 +1,7 @@
 ## What is Flopnite [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/BEASTSM96/flopnite/blob/v2/LICENSE)
 I'm relatively new to game development, my friends and I wanted to challenge ourselves by recreating the popular triple A game *Fortnite* in a limited time frame while having fun doing so. We Will also document the process to our [YouTube channel](https://www.youtube.com/channel/UCO77KLKwplncMHLo6gLpIHw). This recreation was made using Unreal Engine 4 and Amazon GameLift.
 
+
 ## Who was involved in Flopnite
 * [Ryan Thomas](https://github.com/rthomas24)
 * [Mike Decaprio](https://www.instagram.com/mikedecaprio1/)
@@ -14,7 +15,6 @@ Also, a big thanks has to be given to all the people who watch us work on the ga
 ## For those who want to test
 We are currently looking for testers for a huge game session! If you're interested, then join our [Discord](https://discord.gg/2xbR5qT).
 
-## Follow us and support us!
 [![Twitter](https://img.shields.io/badge/%40Flopperam--blue.svg?style=social&logo=Twitter)](https://twitter.com/Flopperam)
 [![Patreon](https://img.shields.io/badge/Flopperam--red.svg?style=social&logo=Patreon)](https://www.patreon.com/flopperam)
 [![PayPal](https://img.shields.io/badge/Flopperam--red.svg?style=social&logo=PayPal)](https://www.paypal.me/flopperam)
