@@ -13,7 +13,6 @@ UCLASS(Blueprintable)
 class FLOPNITE_API UFNAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
-	
 public:
 	UFNAnimInstance(  );
 	
