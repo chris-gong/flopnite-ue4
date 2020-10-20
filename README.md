@@ -12,7 +12,7 @@ Relatively new to game development, my friends and I wanted to challenge ourselv
 Also, a big thanks has to be given to all the people who watch us work on the game on YouTube and Twitch, all the people who answer questions in the Unreal Slackers Discord, all the people who answer questions on the Unreal Q&A forums, all the youtubers who post amazing Unreal tutorials, all the people who answer questions on the AWS Game Tech forums, and all the people in our Discord server who help test out the game.
 
 ## For those who want to test
-We are currently looking for testers for a huge game session! If you're interested, then join our [Discord](https://discord.gg/2xbR5qT).
+We are currently looking for testers for a huge game session! If you're interested, then join our [Discord](https://discord.gg/8yvTRBv).
 
 ## Follow us and support us!
 [![Twitter](https://img.shields.io/badge/%40Flopperam--blue.svg?style=social&logo=Twitter)](https://twitter.com/Flopperam)
