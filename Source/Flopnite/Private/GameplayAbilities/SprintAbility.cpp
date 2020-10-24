@@ -7,7 +7,7 @@
 
 USprintAbility::USprintAbility() {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	FGameplayTag SprintAbilityTag = FGameplayTag::RequestGameplayTag(FName("Ability.Sprint"));
+	const FGameplayTag& SprintAbilityTag = FGameplayTag::RequestGameplayTag(FName("Ability.Sprint"));
 	AbilityTags.AddTag(SprintAbilityTag);
 	ActivationOwnedTags.AddTag(SprintAbilityTag);
 	AbilityInputID = EFNAbilityInputID::Sprint;
@@ -23,9 +23,7 @@ void USprintAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 			return;
 		}
 
-		AFNCharacter* Character = CastChecked<AFNCharacter>(ActorInfo->AvatarActor.Get());
-
-		if (Character) {
+		if (AFNCharacter* Character = CastChecked<AFNCharacter>(ActorInfo->AvatarActor.Get())) {
 			
 			UFNCharacterMovementComponent* CharacterMovementComponent = CastChecked<UFNCharacterMovementComponent>(Character->GetMovementComponent());
 			if (CharacterMovementComponent) {
@@ -52,8 +50,7 @@ bool USprintAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handle,
 {
 	if (ActorInfo != NULL && ActorInfo->AvatarActor != NULL)
 	{
-		ACharacter* Character = CastChecked<ACharacter>(ActorInfo->AvatarActor.Get());
-		if (Character) {
+		if (ACharacter* Character = CastChecked<ACharacter>(ActorInfo->AvatarActor.Get())) {
 			UFNCharacterMovementComponent* CharacterMovementComponent = CastChecked<UFNCharacterMovementComponent>(Character->GetMovementComponent());
 			if (CharacterMovementComponent && !CharacterMovementComponent->IsFalling()) {
 				return true;
@@ -74,12 +71,9 @@ void USprintAbility::CancelAbility(const FGameplayAbilitySpecHandle Handle, cons
 	// set a sprinting flag in character movement component to false
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
 
-	AFNCharacter* Character = CastChecked<AFNCharacter>(ActorInfo->AvatarActor.Get());
+	if (AFNCharacter* Character = CastChecked<AFNCharacter>(ActorInfo->AvatarActor.Get())) {
 
-	if (Character) {
-
-		UFNCharacterMovementComponent* CharacterMovementComponent = CastChecked<UFNCharacterMovementComponent>(Character->GetMovementComponent());
-		if (CharacterMovementComponent) {
+		if (UFNCharacterMovementComponent* CharacterMovementComponent = CastChecked<UFNCharacterMovementComponent>(Character->GetMovementComponent())) {
 			// set sprinting gameplay tags
 			if (SprintEffectHandle.IsValid()) {
 				BP_RemoveGameplayEffectFromOwnerWithHandle(SprintEffectHandle);

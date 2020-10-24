@@ -9,6 +9,7 @@
 
 class UFNAbilitySystemComponent;
 class UFNAttributeSet;
+struct FGameplayTag;
 /**
  * 
  */
@@ -22,7 +23,7 @@ public:
 
 	UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	class UFNAttributeSet* GetAttributeSet() const;
+	UFNAttributeSet* GetAttributeSet() const;
 
 protected:
 	// ability system component on the owning actor
@@ -32,4 +33,8 @@ protected:
 	// attribute set
 	UPROPERTY()
 	UFNAttributeSet* AttributeSet;
+
+	virtual void BeginPlay() override;
+	
+	virtual void JumpTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 };

@@ -9,7 +9,7 @@
 /**
  * 
  */
-UCLASS(Blueprintable)
+UCLASS()
 class FLOPNITE_API UFNAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
@@ -17,14 +17,20 @@ public:
 	UFNAnimInstance(  );
 	
 public:
-	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category="Generic" )
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category="Generic" )
 	float Speed;
 
-	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category="Generic" )
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category="Generic" )
 	bool IsInAir;
 
-	UPROPERTY( EditAnywhere, BlueprintReadWrite, Category="Generic" )
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category="Generic" )
 	float Direction;
+	
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category="Generic" )
+	float Yaw;
+
+	UPROPERTY( EditAnywhere, BlueprintReadOnly, Category="Generic" )
+	float Pitch;
 	
 	virtual void NativeUpdateAnimation( float DeltaSeconds ) override;
 	
@@ -35,7 +41,10 @@ public:
 	UFUNCTION( BlueprintCallable )
 	void NOTIFY_JogStart();
 
-	UPROPERTY( BlueprintReadWrite, EditAnywhere )
-	bool EnableJump;
+	UPROPERTY( BlueprintReadOnly, EditAnywhere )
+	bool JumpEnabled;
+
+	UPROPERTY( BlueprintReadOnly, EditAnywhere )
+	bool CrouchEnabled;
 	
 };

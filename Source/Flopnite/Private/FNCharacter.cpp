@@ -36,6 +36,8 @@ AFNCharacter::AFNCharacter(const class FObjectInitializer& ObjectInitializer) :
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
+	bAlwaysRelevant = false; // TODO: should this be true or false?
+
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
@@ -57,6 +59,7 @@ AFNCharacter::AFNCharacter(const class FObjectInitializer& ObjectInitializer) :
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 
 	ASCInputBound = false;
+	JumpEnabled = false;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -66,8 +69,6 @@ void AFNCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 {
 	// Set up gameplay key bindings
 	check(PlayerInputComponent);
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
-	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AFNCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AFNCharacter::MoveRight);
@@ -79,13 +80,6 @@ void AFNCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 	PlayerInputComponent->BindAxis("TurnRate", this, &AFNCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AFNCharacter::LookUpAtRate);
-
-	// handle touch devices
-	PlayerInputComponent->BindTouch(IE_Pressed, this, &AFNCharacter::TouchStarted);
-	PlayerInputComponent->BindTouch(IE_Released, this, &AFNCharacter::TouchStopped);
-
-	// VR headset functionality
-	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AFNCharacter::OnResetVR);
 
 	BindASCInput();
 }
@@ -139,21 +133,6 @@ UAbilitySystemComponent* AFNCharacter::GetAbilitySystemComponent() const {
 	else {
 		return nullptr;
 	}
-}
-
-void AFNCharacter::OnResetVR()
-{
-	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
-}
-
-void AFNCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
-{
-		Jump();
-}
-
-void AFNCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
-{
-		StopJumping();
 }
 
 void AFNCharacter::TurnAtRate(float Rate)

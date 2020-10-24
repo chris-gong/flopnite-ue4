@@ -17,7 +17,8 @@ enum class EFNAbilityInputID : uint8
 	None			UMETA(DisplayName = "None"),
 	Confirm			UMETA(DisplayName = "Confirm"),
 	Cancel			UMETA(DisplayName = "Cancel"),
-	Sprint			UMETA(DisplayName = "Sprint") // shift
+	Sprint			UMETA(DisplayName = "Sprint"), // shift
+	Jump			UMETA(DisplayName = "Jump") // space
 };
 
 UCLASS()

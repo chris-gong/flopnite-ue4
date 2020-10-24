@@ -6,7 +6,7 @@
 #include "GameFramework/Character.h"
 
 UFNCharacterMovementComponent::UFNCharacterMovementComponent() {
-	SprintSpeedMultiplier = 2.0f;
+	SprintSpeedMultiplier = 1.5f;
 	RequestToStartSprinting = false;
 }
 
