@@ -76,6 +76,9 @@ Plugins/*/Intermediate/*
 # Cache files for the editor to use
 DerivedDataCache/*
 
+# Unreal AnimStarterPack
+/Content/AnimStarterPack
+
 # Unreal StarterContent
 /Content/StarterContent
 
@@ -101,3 +104,6 @@ notify.log
 
 # Paid Assets
 /Content/PaidAssets
+
+# Rider Stuff
+.idea/

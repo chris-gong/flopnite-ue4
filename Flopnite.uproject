@@ -7,17 +7,7 @@
 		{
 			"Name": "Flopnite",
 			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"AdditionalDependencies": [
-				"Engine",
-				"GameplayAbilities"
-			]
-		}
-	],
-	"Plugins": [
-		{
-			"Name": "GameplayAbilities",
-			"Enabled": true
+			"LoadingPhase": "Default"
 		}
 	]
 }
