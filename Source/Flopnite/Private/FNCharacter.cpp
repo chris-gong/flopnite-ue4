@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "FlopniteCharacter.h"
+#include "FNCharacter.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -10,9 +10,9 @@
 #include "GameFramework/SpringArmComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
-// AFlopniteCharacter
+// AFNCharacter
 
-AFlopniteCharacter::AFlopniteCharacter()
+AFNCharacter::AFNCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -50,61 +50,61 @@ AFlopniteCharacter::AFlopniteCharacter()
 //////////////////////////////////////////////////////////////////////////
 // Input
 
-void AFlopniteCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
+void AFNCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	// Set up gameplay key bindings
 	check(PlayerInputComponent);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
-	PlayerInputComponent->BindAxis("MoveForward", this, &AFlopniteCharacter::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &AFlopniteCharacter::MoveRight);
+	PlayerInputComponent->BindAxis("MoveForward", this, &AFNCharacter::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &AFNCharacter::MoveRight);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
 	// "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
 	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
-	PlayerInputComponent->BindAxis("TurnRate", this, &AFlopniteCharacter::TurnAtRate);
+	PlayerInputComponent->BindAxis("TurnRate", this, &AFNCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
-	PlayerInputComponent->BindAxis("LookUpRate", this, &AFlopniteCharacter::LookUpAtRate);
+	PlayerInputComponent->BindAxis("LookUpRate", this, &AFNCharacter::LookUpAtRate);
 
 	// handle touch devices
-	PlayerInputComponent->BindTouch(IE_Pressed, this, &AFlopniteCharacter::TouchStarted);
-	PlayerInputComponent->BindTouch(IE_Released, this, &AFlopniteCharacter::TouchStopped);
+	PlayerInputComponent->BindTouch(IE_Pressed, this, &AFNCharacter::TouchStarted);
+	PlayerInputComponent->BindTouch(IE_Released, this, &AFNCharacter::TouchStopped);
 
 	// VR headset functionality
-	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AFlopniteCharacter::OnResetVR);
+	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AFNCharacter::OnResetVR);
 }
 
 
-void AFlopniteCharacter::OnResetVR()
+void AFNCharacter::OnResetVR()
 {
 	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
 }
 
-void AFlopniteCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
+void AFNCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
 {
 		Jump();
 }
 
-void AFlopniteCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
+void AFNCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
 {
 		StopJumping();
 }
 
-void AFlopniteCharacter::TurnAtRate(float Rate)
+void AFNCharacter::TurnAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
 	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 }
 
-void AFlopniteCharacter::LookUpAtRate(float Rate)
+void AFNCharacter::LookUpAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
-void AFlopniteCharacter::MoveForward(float Value)
+void AFNCharacter::MoveForward(float Value)
 {
 	if ((Controller != NULL) && (Value != 0.0f))
 	{
@@ -118,7 +118,7 @@ void AFlopniteCharacter::MoveForward(float Value)
 	}
 }
 
-void AFlopniteCharacter::MoveRight(float Value)
+void AFNCharacter::MoveRight(float Value)
 {
 	if ( (Controller != NULL) && (Value != 0.0f) )
 	{

@@ -4,15 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "FlopniteGameMode.generated.h"
+#include "FNGameMode.generated.h"
 
 UCLASS(minimalapi)
-class AFlopniteGameMode : public AGameModeBase
+class AFNGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 
 public:
-	AFlopniteGameMode();
+	AFNGameMode();
 };
 
 
