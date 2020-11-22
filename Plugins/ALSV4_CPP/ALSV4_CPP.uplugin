@@ -20,7 +20,7 @@
 		{
 			"Name": "ALSV4_CPP",
 			"Type": "Runtime",
-			"LoadingPhase": "Default",
+			"LoadingPhase": "PreDefault",
 			"AdditionalDependencies": [
 				"Engine",
 				"AIModule",
