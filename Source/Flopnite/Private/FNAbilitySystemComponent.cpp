@@ -3,3 +3,7 @@
 
 #include "FNAbilitySystemComponent.h"
 
+UFNAbilitySystemComponent::UFNAbilitySystemComponent()
+{
+	CharacterAbilitiesGiven = false;
+}

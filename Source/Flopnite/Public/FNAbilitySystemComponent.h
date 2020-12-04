@@ -13,5 +13,10 @@ UCLASS()
 class FLOPNITE_API UFNAbilitySystemComponent : public UAbilitySystemComponent
 {
 	GENERATED_BODY()
-	
+
+public:
+	UFNAbilitySystemComponent();
+
+	UPROPERTY()
+	bool CharacterAbilitiesGiven;
 };
