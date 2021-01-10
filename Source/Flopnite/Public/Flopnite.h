@@ -13,8 +13,8 @@ enum class EFNAbilityInputID : uint8
     Confirm,
     // 2 Cancel Ability? 
     Cancel,
-    // 3 ChooseWeapon - Q key
-	ChooseWeapon,
-    // 4 UseWeapon - Left Mouse Button
-	UseWeapon
+    // 4 Fire Rifle - Left Mouse Button
+	FireRifle,
+	// 5 Fire Pistol - Left Mouse Button
+	FirePistol
 };

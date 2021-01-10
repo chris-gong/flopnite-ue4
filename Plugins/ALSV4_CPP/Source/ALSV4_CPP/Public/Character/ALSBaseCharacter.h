@@ -118,7 +118,7 @@ public:
 	EALSViewMode GetViewMode() const { return ViewMode; }
 
 	UFUNCTION(BlueprintCallable, Category = "ALS|Character States")
-	void SetOverlayState(EALSOverlayState NewState);
+	virtual void SetOverlayState(EALSOverlayState NewState);
 
 	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "ALS|Character States")
 	void Server_SetOverlayState(EALSOverlayState NewState);

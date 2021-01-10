@@ -2,8 +2,16 @@
 
 
 #include "FNAbilitySystemComponent.h"
+#include "GeneratedCodeHelpers.h"
 
-UFNAbilitySystemComponent::UFNAbilitySystemComponent()
+UFNAbilitySystemComponent::UFNAbilitySystemComponent(const FObjectInitializer& ObjectInitializer) :
+    Super(ObjectInitializer)
 {
 	CharacterAbilitiesGiven = false;
+}
+
+void UFNAbilitySystemComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(UFNAbilitySystemComponent, CharacterAbilitiesGiven);
 }

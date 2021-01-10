@@ -15,8 +15,8 @@ class FLOPNITE_API UFNAbilitySystemComponent : public UAbilitySystemComponent
 	GENERATED_BODY()
 
 public:
-	UFNAbilitySystemComponent();
+	UFNAbilitySystemComponent(const FObjectInitializer& ObjectInitializer);
 
-	UPROPERTY()
+	UPROPERTY(Replicated);
 	bool CharacterAbilitiesGiven;
 };
