@@ -137,6 +137,12 @@ void AFNCharacter::OnOverlayStateChanged(EALSOverlayState PreviousState)
 	EquipWeapon();
 }
 
+bool AFNCharacter::MantleCheck(const FALSMantleTraceSettings& TraceSettings, EDrawDebugTrace::Type DebugType) 
+{
+	// disable climbing/mantle logic
+	return false;
+}
+
 void AFNCharacter::EquipWeapon()
 {
 	if (AbilitySystemComponent)

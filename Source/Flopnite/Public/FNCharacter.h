@@ -77,6 +77,9 @@ protected:
 
 	virtual void OnOverlayStateChanged(EALSOverlayState PreviousState) override;
 
+	virtual bool MantleCheck(const FALSMantleTraceSettings& TraceSettings,
+		EDrawDebugTrace::Type DebugType = EDrawDebugTrace::Type::ForOneFrame) override;
+
 	UFUNCTION()
 	void EquipWeapon();
 
