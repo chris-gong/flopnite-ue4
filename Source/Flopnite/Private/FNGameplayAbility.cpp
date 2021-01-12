@@ -7,5 +7,5 @@ UFNGameplayAbility::UFNGameplayAbility()
 {
 	// Default to Instance Per Actor
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	bServerRespectsRemoteAbilityCancellation = false;
+	bServerRespectsRemoteAbilityCancellation = false; // may need to reconsider this line potentially
 }
