@@ -76,9 +76,6 @@ Plugins/*/Intermediate/*
 # Cache files for the editor to use
 DerivedDataCache/*
 
-# Unreal AnimStarterPack
-/Content/AnimStarterPack
-
 # Unreal StarterContent
 /Content/StarterContent
 
