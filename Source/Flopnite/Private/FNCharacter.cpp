@@ -134,7 +134,9 @@ void AFNCharacter::SetOverlayState(EALSOverlayState NewState)
 void AFNCharacter::OnOverlayStateChanged(EALSOverlayState PreviousState)
 {
 	Super::OnOverlayStateChanged(PreviousState);
-	EquipWeapon();
+	if (GetLocalRole() == ROLE_AutonomousProxy || GetLocalRole() == ROLE_Authority) {
+		EquipWeapon();
+	}
 }
 
 bool AFNCharacter::MantleCheck(const FALSMantleTraceSettings& TraceSettings, EDrawDebugTrace::Type DebugType) 
