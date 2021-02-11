@@ -151,20 +151,20 @@ void AFNCharacter::EquipWeapon()
 		AbilitySystemComponent->RemoveActiveGameplayEffect(WeaponChangedEffectHandle);
 		
 		// add gameplay tag through gameplay effect indicating that the character has equipped a new weapon
-		// as well as grant ability (through gameplay effect or calling give ability?)
+		// which in effect grants the ability, if any, associated with the new effect
 		FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
 		EffectContext.AddSourceObject(this);
 
 		
 		if (OverlayState == EALSOverlayState::Rifle)
 		{
-			FGameplayEffectSpecHandle NothingEquippedEffectHandle = AbilitySystemComponent->MakeOutgoingSpec(*(EquipWeaponEffects.Find("Rifle")), 1, EffectContext);
-			EquippedWeaponEffectHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*(NothingEquippedEffectHandle.Data.Get()));
+			FGameplayEffectSpecHandle RifleEquippedEffectHandle = AbilitySystemComponent->MakeOutgoingSpec(*(EquipWeaponEffects.Find("Rifle")), 1, EffectContext);
+			EquippedWeaponEffectHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*(RifleEquippedEffectHandle.Data.Get()));
 		}
 		else if (OverlayState == EALSOverlayState::PistolTwoHanded)
 		{
-			FGameplayEffectSpecHandle NothingEquippedEffectHandle = AbilitySystemComponent->MakeOutgoingSpec(*(EquipWeaponEffects.Find("Pistol")), 1, EffectContext);
-			EquippedWeaponEffectHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*(NothingEquippedEffectHandle.Data.Get()));
+			FGameplayEffectSpecHandle PistolEquippedEffectHandle = AbilitySystemComponent->MakeOutgoingSpec(*(EquipWeaponEffects.Find("Pistol")), 1, EffectContext);
+			EquippedWeaponEffectHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*(PistolEquippedEffectHandle.Data.Get()));
 		}
 		else
 		{
@@ -179,6 +179,7 @@ void AFNCharacter::UnEquipWeapon()
 	if (AbilitySystemComponent)
 	{
 		// remove existing gameplay effect associated with the previously equipped weapon
+		// which in effect removes the ability associated, if any existed, with the previous effect
 		AbilitySystemComponent->RemoveActiveGameplayEffect(EquippedWeaponEffectHandle);
 		
 		// add gameplay tag through gameplay effect indicating that the character is currently changing weapons
@@ -187,7 +188,5 @@ void AFNCharacter::UnEquipWeapon()
 
 		FGameplayEffectSpecHandle ChangingWeaponEffectHandle = AbilitySystemComponent->MakeOutgoingSpec(ChangingWeaponEffect, 1, EffectContext);
 		WeaponChangedEffectHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*(ChangingWeaponEffectHandle.Data.Get()));
-
-		// remove ability (through gameplay effect at the start or through clearability?)
 	}
 }
