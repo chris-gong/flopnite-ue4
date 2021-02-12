@@ -4,17 +4,20 @@
 
 #include "CoreMinimal.h"
 #include "FNGameplayAbility.h"
-#include "FireWeaponAbility.generated.h"
+#include "FNGA_FireWeapon.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class FLOPNITE_API UFireWeaponAbility : public UFNGameplayAbility
+class FLOPNITE_API UFNGA_FireWeapon : public UFNGameplayAbility
 {
 	GENERATED_BODY()
 public:
-	UFireWeaponAbility();
+	UFNGA_FireWeapon();
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Weapon")
+	UAnimMontage* FireMontage;
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 

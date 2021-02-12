@@ -1,15 +1,15 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "FireWeaponAbility.h"
+#include "FNGA_FireWeapon.h"
 
-UFireWeaponAbility::UFireWeaponAbility() 
+UFNGA_FireWeapon::UFNGA_FireWeapon()
 {
 	ActivationBlockedTags.AddTag(FGameplayTag::RequestGameplayTag(FName("State.ChangingWeapon")));
 	ActivationBlockedTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability.Fire")));
 }
 
-void UFireWeaponAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+void UFNGA_FireWeapon::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
