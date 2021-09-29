@@ -1,6 +1,8 @@
 ## What is Flopnite [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/BEASTSM96/flopnite/blob/v2/LICENSE)
 Relatively new to game development, my friends and I wanted to challenge ourselves by recreating the popular Triple-A game *Fortnite* in a limited time frame while having fun doing so. This process was documented on our [YouTube channel](https://www.youtube.com/playlist?list=PLa1dM5bPQv0ttx1H4Hblunj_OgrVzskVv). We used Unreal Engine 4 and Amazon GameLift for this transformation. **Unfortunately, due to high server costs, we have decided to shut down the Fortnite Clone/Flopnite project in order to spend more time on making tutorials related to game development and computer science.**
 
+The v1 branch is the version of the project used in the videos. The v1-plus branch built off the v1 branch but is not stable. The v2 and master branches are not related to the v1 or the v1-plus branch as we tried starting the project over from scratch but sadly did not get very far.
+
 ## Who was involved in Flopnite
 * [Ryan Thomas](https://github.com/rthomas24)
 * [Mike Decaprio](https://www.instagram.com/mikedecaprio1/)
